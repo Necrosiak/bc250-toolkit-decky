@@ -86,11 +86,18 @@ def _find_umr() -> str | None:
     return None
 
 
+def _umr_cmd_prefix(umr: str) -> list:
+    # Le plugin tourne en tant que bazzite (non-root) — umr a besoin de root pour debugfs
+    if os.geteuid() != 0:
+        return ["sudo", umr]
+    return [umr]
+
+
 def _umr_write(umr: str, reg: str, value: int,
                se: int | None = None, sh: int | None = None) -> bool:
     # -g sélectionne l'instance GPU (instance 1 sur kernel 6.17+)
     # -b DOIT précéder -w : umr traite les flags séquentiellement
-    cmd = [umr, "-g", CU_ASIC_INSTANCE]
+    cmd = _umr_cmd_prefix(umr) + ["-g", CU_ASIC_INSTANCE]
     if se is not None and sh is not None:
         cmd += ["-b", str(se), str(sh), "0xffffffff"]
     cmd += ["-w", f"{CU_ASIC}.{reg}", hex(value)]
@@ -105,7 +112,7 @@ def _umr_read(umr: str, reg: str,
               se: int | None = None, sh: int | None = None) -> int | None:
     # -g sélectionne l'instance GPU (instance 1 sur kernel 6.17+)
     # -b DOIT précéder -r
-    cmd = [umr, "-g", CU_ASIC_INSTANCE]
+    cmd = _umr_cmd_prefix(umr) + ["-g", CU_ASIC_INSTANCE]
     if se is not None and sh is not None:
         cmd += ["-b", str(se), str(sh), "0xffffffff"]
     cmd += ["-r", f"{CU_ASIC}.{reg}"]
