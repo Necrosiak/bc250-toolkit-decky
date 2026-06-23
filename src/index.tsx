@@ -40,29 +40,23 @@ interface SystemStatus {
 
 type TabId = "games" | "system" | "settings";
 
-// ── Steam helpers ─────────────────────────────────────────────────────────────
+// ── Steam helpers (via Python backend — SteamClient API cassée dans QAM) ───────
 
-async function setLaunchOptions(appId: number, opts: string): Promise<boolean> {
-  try {
-    await (window as any).SteamClient.Apps.SetLaunchOptions(appId, opts);
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-
-async function setCompatTool(appId: number, protonName: string): Promise<boolean> {
-  try {
-    const tools: any[] = await (window as any).SteamClient.Apps.GetAvailableCompatTools(appId);
-    const tool = tools.find(
-      (t: any) => (t.strDisplayName ?? "").includes(protonName) || (t.strToolName ?? "").includes(protonName)
-    );
-    if (!tool) return false;
-    await (window as any).SteamClient.Apps.SpecifyCompatTool(appId, tool.strToolName);
-    return true;
-  } catch (_) {
-    return false;
-  }
+async function applyGameSettings(
+  appId: number,
+  toolName: string,
+  launchOpts: string
+): Promise<{ compatOk: boolean; compatDetail: string; launchOk: boolean; launchDetail: string }> {
+  const [compatResult, launchResult] = await Promise.all([
+    call<[number, string], { ok: boolean; error?: string }>("apply_compat_tool", appId, toolName),
+    call<[number, string], { ok: boolean; error?: string }>("apply_launch_options", appId, launchOpts),
+  ]);
+  return {
+    compatOk: compatResult.ok,
+    compatDetail: compatResult.error ?? toolName,
+    launchOk: launchResult.ok,
+    launchDetail: launchResult.error ?? "OK",
+  };
 }
 
 // ── Onglet Jeux ───────────────────────────────────────────────────────────────
@@ -126,9 +120,13 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
         const entry = gamesDb[String(e.unAppID)];
         if (!entry || !("proton" in entry)) return;
         const g = entry as GameEntry;
-        await setLaunchOptions(e.unAppID, g.launch_options);
-        await setCompatTool(e.unAppID, g.proton);
-        toaster.toast({ title: "BC250 Toolkit", body: `✓ Settings appliqués : ${g.name}`, duration: 3000 });
+        const r = await applyGameSettings(e.unAppID, g.proton, g.launch_options);
+        const ok = r.compatOk || r.launchOk;
+        toaster.toast({
+          title: "BC250 Toolkit",
+          body: ok ? `✓ Settings appliqués : ${g.name}` : `✗ Erreur : ${r.compatDetail}`,
+          duration: 3000,
+        });
       });
     } catch (_) {}
     return () => { try { unreg?.(); } catch (_) {} };
@@ -138,16 +136,23 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
     if (!selected) return;
     setApplying(true);
     try {
-      const okL = await setLaunchOptions(selected.appid, selected.game.launch_options);
-      const okP = await setCompatTool(selected.appid, selected.game.proton);
-      setApplied(okL);
-      toaster.toast({
-        title: "BC250 Toolkit",
-        body: okL
-          ? `✓ Settings BC-250 appliqués${!okP ? " (Proton non trouvé)" : ""}`
-          : "✗ Erreur — launch options non appliquées",
-        duration: 4000,
-      });
+      const r = await applyGameSettings(selected.appid, selected.game.proton, selected.game.launch_options);
+      const allOk = r.compatOk && r.launchOk;
+      const partialOk = r.compatOk || r.launchOk;
+      setApplied(allOk);
+      if (allOk) {
+        toaster.toast({ title: "BC250 Toolkit", body: "✓ Settings BC-250 appliqués (redémarre Steam)", duration: 4000 });
+      } else if (partialOk) {
+        const msg = r.compatOk ? "Proton OK — Launch options KO" : "Launch options OK — Proton KO";
+        toaster.toast({ title: "BC250 Toolkit", body: `⚠ Partiel : ${msg}`, duration: 5000 });
+        setApplied(true);
+      } else {
+        toaster.toast({
+          title: "BC250 Toolkit",
+          body: `✗ Erreur — ${r.compatDetail}`,
+          duration: 5000,
+        });
+      }
     } finally {
       setApplying(false);
     }
