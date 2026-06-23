@@ -24,9 +24,9 @@
       align-items: center;
       gap: 16px;
     }
-    header img { height: 40px; }
     header h1 { font-size: 1.4rem; color: #fff; }
     header h1 span { color: #e44d26; }
+    header p { font-size: 0.82rem; color: #888; margin-top: 3px; }
 
     .lang-bar {
       background: #12122a;
@@ -57,7 +57,7 @@
       max-width: 720px;
       width: 100%;
       margin: 32px auto;
-      padding: 0 16px;
+      padding: 0 16px 40px;
     }
 
     .intro {
@@ -66,14 +66,59 @@
       border-left: 3px solid #e44d26;
       border-radius: 0 8px 8px 0;
       padding: 16px 20px;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
       font-size: 0.95rem;
       line-height: 1.6;
     }
     .intro a { color: #e44d26; text-decoration: none; }
     .intro a:hover { text-decoration: underline; }
 
-    form { display: flex; flex-direction: column; gap: 20px; }
+    /* Guidelines box */
+    .guidelines {
+      background: rgba(255, 160, 0, 0.06);
+      border: 1px solid rgba(255, 160, 0, 0.3);
+      border-left: 3px solid #ffa000;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+    }
+    .guidelines-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #ffa000;
+      margin-bottom: 10px;
+    }
+    .guidelines ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .guidelines li {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: #ccc;
+      padding-left: 18px;
+      position: relative;
+    }
+    .guidelines li::before {
+      content: attr(data-bullet);
+      position: absolute;
+      left: 0;
+      color: #ffa000;
+      font-weight: 700;
+    }
+    .guidelines li strong { color: #ffa000; }
+    .guidelines li code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 0.82rem;
+      color: #e0e0e0;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+
+    form { display: flex; flex-direction: column; gap: 22px; }
 
     .field { display: flex; flex-direction: column; gap: 6px; }
 
@@ -83,12 +128,28 @@
       color: #ccc;
     }
     label .req { color: #e44d26; margin-left: 2px; }
+
     .hint {
       font-size: 0.78rem;
       color: #888;
-      margin-top: 2px;
+      line-height: 1.5;
     }
     .hint a { color: #e44d26; text-decoration: none; }
+    .hint a:hover { text-decoration: underline; }
+
+    .hint-warn {
+      font-size: 0.78rem;
+      color: #ffa000;
+      line-height: 1.5;
+      margin-top: 3px;
+    }
+    .hint-warn code {
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 0.78rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
 
     input[type="text"], textarea, select {
       background: #12122a;
@@ -108,6 +169,29 @@
     textarea { resize: vertical; min-height: 80px; }
     select option { background: #12122a; }
 
+    .field.invalid input, .field.invalid textarea, .field.invalid select {
+      border-color: #ff6b6b;
+    }
+    .field.warn input, .field.warn textarea {
+      border-color: #ffa000;
+    }
+
+    .error {
+      font-size: 0.82rem;
+      color: #ff6b6b;
+      display: none;
+      padding-left: 2px;
+    }
+    .field.invalid .error { display: block; }
+
+    .field-warn-msg {
+      font-size: 0.82rem;
+      color: #ffa000;
+      display: none;
+      padding-left: 2px;
+    }
+    .field.warn .field-warn-msg { display: block; }
+
     .submit-btn {
       background: #e44d26;
       color: #fff;
@@ -119,15 +203,18 @@
       cursor: pointer;
       transition: background 0.2s, transform 0.1s;
       align-self: flex-start;
+      margin-top: 6px;
     }
     .submit-btn:hover { background: #c43a1c; }
     .submit-btn:active { transform: scale(0.98); }
 
-    .error { color: #ff6b6b; font-size: 0.82rem; display: none; }
-    .field.invalid .error { display: block; }
-    .field.invalid input, .field.invalid textarea, .field.invalid select {
-      border-color: #ff6b6b;
+    .submit-note {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 10px;
+      line-height: 1.5;
     }
+    .submit-note a { color: #e44d26; text-decoration: none; }
 
     footer {
       background: #0a0a15;
@@ -145,6 +232,7 @@
 <header>
   <div>
     <h1>BC250 <span>Toolkit</span></h1>
+    <p>ASRock BC-250 · Cyan Skillfish · Bazzite / SteamOS</p>
   </div>
 </header>
 
@@ -153,20 +241,31 @@
 <main>
   <div class="intro" id="introText"></div>
 
+  <!-- Guidelines -->
+  <div class="guidelines">
+    <div class="guidelines-title" id="guideTitle"></div>
+    <ul id="guideList"></ul>
+  </div>
+
   <form id="gameForm" novalidate>
+
+    <!-- Game Name -->
     <div class="field" id="f-name">
       <label for="gameName"><span data-i18n="label_name"></span><span class="req">*</span></label>
       <input type="text" id="gameName" autocomplete="off" />
       <div class="error" data-i18n="err_required"></div>
     </div>
 
+    <!-- App ID -->
     <div class="field" id="f-appid">
       <label for="appId"><span data-i18n="label_appid"></span><span class="req">*</span></label>
-      <input type="text" id="appId" autocomplete="off" inputmode="numeric" />
-      <div class="hint"><span data-i18n="hint_appid"></span> <a href="https://store.steampowered.com" target="_blank" rel="noopener">store.steampowered.com/app/<strong>XXXXXX</strong>/</a></div>
+      <input type="text" id="appId" autocomplete="off" inputmode="numeric" placeholder="ex: 1245620" />
+      <div class="hint"><span data-i18n="hint_appid"></span> — <a href="https://www.steamdb.info/" target="_blank" rel="noopener">SteamDB</a> / store.steampowered.com/app/<strong>XXXXXX</strong>/</div>
+      <div class="hint-warn" data-i18n="hintwarn_appid"></div>
       <div class="error" id="appIdError"></div>
     </div>
 
+    <!-- Proton -->
     <div class="field" id="f-proton">
       <label for="proton"><span data-i18n="label_proton"></span><span class="req">*</span></label>
       <select id="proton">
@@ -175,34 +274,46 @@
         <option value="Proton Stable">Proton Stable</option>
         <option value="Other (specify in notes)">Other (specify in notes)</option>
       </select>
-      <div class="error" data-i18n="err_required"></div>
+      <div class="hint" data-i18n="hint_proton"></div>
     </div>
 
+    <!-- Compat Tool -->
     <div class="field" id="f-compat">
       <label for="compatTool"><span data-i18n="label_compat"></span></label>
-      <input type="text" id="compatTool" placeholder="proton_ge / proton_experimental" autocomplete="off" />
+      <input type="text" id="compatTool" placeholder="proton_ge / proton_experimental / proton_stable" autocomplete="off" />
       <div class="hint" data-i18n="hint_compat"></div>
     </div>
 
+    <!-- Launch Options -->
     <div class="field" id="f-launch">
       <label for="launchOpts"><span data-i18n="label_launch"></span></label>
       <textarea id="launchOpts" rows="3" placeholder="MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%"></textarea>
+      <div class="hint" data-i18n="hint_launch"></div>
+      <div class="hint-warn" data-i18n="hintwarn_launch"></div>
+      <div class="field-warn-msg" id="launchWarnMsg"></div>
     </div>
 
+    <!-- Notes -->
     <div class="field" id="f-notes">
       <label for="notes"><span data-i18n="label_notes"></span><span class="req">*</span></label>
-      <textarea id="notes" rows="4"></textarea>
+      <textarea id="notes" rows="5"></textarea>
       <div class="hint" data-i18n="hint_notes"></div>
-      <div class="error" data-i18n="err_required"></div>
+      <div class="hint-warn" data-i18n="hintwarn_notes"></div>
+      <div class="error" id="notesError"></div>
     </div>
 
+    <!-- Tested By -->
     <div class="field" id="f-tested">
       <label for="testedBy"><span data-i18n="label_tested"></span></label>
       <input type="text" id="testedBy" autocomplete="off" />
       <div class="hint" data-i18n="hint_tested"></div>
     </div>
 
-    <button type="submit" class="submit-btn" data-i18n="btn_submit"></button>
+    <div>
+      <button type="submit" class="submit-btn" data-i18n="btn_submit"></button>
+      <div class="submit-note" data-i18n="submit_note"></div>
+    </div>
+
   </form>
 </main>
 
@@ -210,179 +321,362 @@
   <a href="https://github.com/Necrosiak/bc250-toolkit-decky" target="_blank" rel="noopener">BC250 Toolkit on GitHub</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener" data-i18n="footer_db"></a>
+  &nbsp;·&nbsp;
+  <a href="https://elektricm.github.io/amd-bc250-docs" target="_blank" rel="noopener">BC-250 Docs</a>
 </footer>
 
 <script>
+/* ── Translations ── */
 const I18N = {
   en: {
     page_title: "BC250 Toolkit — Submit a Game",
-    intro: 'Help the BC-250 community by submitting a game you have tested. After submission, a GitHub issue will be opened. Once <strong>approved</strong>, it will be automatically added to the database and available in the plugin.<br><br>Already in the DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Check the game list</a>.',
+    intro: 'Help the BC-250 community by submitting a game you have tested. A GitHub issue will be created and reviewed. Once <strong>approved</strong>, the game is automatically added to the database and available in the plugin for all BC-250 users.<br><br>Already in the DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Check the game list ↗</a>',
+    guide_title: "⚠ Before submitting — Please read",
+    guides: [
+      { bullet: "✅", text: "<strong>Only submit games you personally tested</strong> on a real BC-250 (ASRock BC-250 with Cyan Skillfish GPU)." },
+      { bullet: "✅", text: "<strong>Notes must include</strong> FPS, resolution, and graphics preset used (Low / Medium / High). Vague notes like «works» or «runs fine» will be rejected." },
+      { bullet: "❌", text: "<strong>Do not include</strong> variables already applied globally by bc250-tweaks: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Launch options must end with <code>%command%</code></strong> — without it the game will not start." },
+      { bullet: "❌", text: "<strong>Do not submit</strong> games with kernel-level anti-cheat (Fortnite, Valorant, The Finals…) — they are incompatible with Linux, no fix exists." },
+      { bullet: "❌", text: "<strong>Do not paste the full Steam URL</strong> as App ID — only the number (e.g. <code>1245620</code>). Check on SteamDB if unsure." },
+    ],
     label_name: "Game Name",
     label_appid: "Steam App ID",
-    hint_appid: "Found in the Steam Store URL:",
+    hint_appid: "The number in the Steam Store page URL",
+    hintwarn_appid: "❌ Do not paste the full URL — only the number (e.g. 1245620)",
     label_proton: "Proton Version",
+    hint_proton: "If unsure, GE-Proton (latest) is recommended for most games on BC-250.",
     label_compat: "Compat Tool ID (optional)",
-    hint_compat: "Internal ID used by Steam: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "Internal Steam ID — leave blank if unsure: proton_ge · proton_experimental · proton_stable",
     label_launch: "Launch Options",
+    hint_launch: "Must contain %command% at the end. Leave blank if default options from bc250-tweaks are enough.",
+    hintwarn_launch: "❌ Do not add: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (already set globally by bc250-tweaks)",
     label_notes: "Notes",
-    hint_notes: "Performance (FPS, resolution, settings), known issues, workarounds for BC-250",
+    hint_notes: "✅ Include: FPS achieved, resolution (1080p/720p), graphics preset, known issues, workarounds specific to BC-250.",
+    hintwarn_notes: "❌ Do not write generic notes like «it works» or «runs fine» — they will be rejected. Be specific.",
     label_tested: "Tested By (optional)",
     hint_tested: "Your GitHub username or Discord handle",
-    btn_submit: "Submit on GitHub →",
+    btn_submit: "Open GitHub issue →",
+    submit_note: "You will be redirected to GitHub to confirm and submit. A GitHub account is required.<br>After submission, wait for approval — do not submit the same game twice.",
     err_required: "This field is required.",
-    err_appid: "App ID must be a number (e.g. 1245620).",
+    err_appid_num: "App ID must be a number only (e.g. 1245620). Check on SteamDB.",
+    err_appid_url: "Do not paste the full URL — copy only the number from the URL.",
+    err_notes_short: "Notes are too short. Please include FPS, resolution, and graphics settings.",
+    err_notes_generic: "Notes are too generic. Add details: FPS, resolution, settings, known issues.",
+    warn_no_cmd: "⚠ Launch options should end with %command% — without it the game may not start.",
+    warn_already_set: "⚠ Some variables are already set globally by bc250-tweaks and should not be duplicated:",
     footer_db: "View game database",
   },
   fr: {
     page_title: "BC250 Toolkit — Soumettre un jeu",
-    intro: 'Aidez la communauté BC-250 en soumettant un jeu que vous avez testé. Après soumission, une issue GitHub sera ouverte. Une fois <strong>approuvée</strong>, le jeu sera automatiquement ajouté à la base de données et disponible dans le plugin.<br><br>Déjà dans la DB ? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Voir la liste des jeux</a>.',
+    intro: 'Aidez la communauté BC-250 en soumettant un jeu que vous avez testé. Une issue GitHub sera créée et relue. Une fois <strong>approuvée</strong>, le jeu est automatiquement ajouté à la base de données et disponible dans le plugin pour tous les utilisateurs BC-250.<br><br>Déjà dans la DB ? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Voir la liste des jeux ↗</a>',
+    guide_title: "⚠ Avant de soumettre — À lire obligatoirement",
+    guides: [
+      { bullet: "✅", text: "<strong>Ne soumettez que des jeux testés personnellement</strong> sur un vrai BC-250 (ASRock BC-250 avec GPU Cyan Skillfish)." },
+      { bullet: "✅", text: "<strong>Les notes doivent inclure</strong> les FPS obtenus, la résolution et les paramètres graphiques utilisés (Bas / Moyen / Élevé). Des notes vagues comme «ça marche» seront rejetées." },
+      { bullet: "❌", text: "<strong>Ne pas inclure</strong> les variables déjà appliquées globalement par bc250-tweaks : <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Les options de lancement doivent se terminer par <code>%command%</code></strong> — sans ça le jeu ne se lancera pas." },
+      { bullet: "❌", text: "<strong>Ne pas soumettre</strong> des jeux avec anti-triche kernel (Fortnite, Valorant, The Finals…) — incompatibles Linux, pas de solution." },
+      { bullet: "❌", text: "<strong>Ne pas coller l'URL Steam complète</strong> comme App ID — seulement le numéro (ex : <code>1245620</code>). Vérifier sur SteamDB si besoin." },
+    ],
     label_name: "Nom du jeu",
     label_appid: "Steam App ID",
-    hint_appid: "Disponible dans l'URL du Steam Store :",
+    hint_appid: "Le numéro dans l'URL de la page Steam Store",
+    hintwarn_appid: "❌ Ne pas coller l'URL complète — seulement le numéro (ex : 1245620)",
     label_proton: "Version Proton",
+    hint_proton: "En cas de doute, GE-Proton (latest) est recommandé pour la plupart des jeux sur BC-250.",
     label_compat: "Compat Tool ID (optionnel)",
-    hint_compat: "ID interne utilisé par Steam : proton_ge, proton_experimental, proton_stable",
+    hint_compat: "ID interne Steam — laisser vide si incertain : proton_ge · proton_experimental · proton_stable",
     label_launch: "Options de lancement",
+    hint_launch: "Doit contenir %command% à la fin. Laisser vide si les options par défaut de bc250-tweaks suffisent.",
+    hintwarn_launch: "❌ Ne pas ajouter : RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (déjà appliqués globalement par bc250-tweaks)",
     label_notes: "Notes",
-    hint_notes: "Performances (FPS, résolution, qualité), problèmes connus, solutions pour BC-250",
+    hint_notes: "✅ Inclure : FPS obtenus, résolution (1080p/720p), preset graphique, problèmes connus, solutions spécifiques BC-250.",
+    hintwarn_notes: "❌ Ne pas écrire des notes génériques comme «ça marche» — elles seront rejetées. Soyez précis.",
     label_tested: "Testé par (optionnel)",
     hint_tested: "Votre pseudo GitHub ou Discord",
-    btn_submit: "Soumettre sur GitHub →",
+    btn_submit: "Ouvrir une issue GitHub →",
+    submit_note: "Vous serez redirigé vers GitHub pour confirmer et soumettre. Un compte GitHub est requis.<br>Après soumission, attendez l'approbation — ne soumettez pas le même jeu deux fois.",
     err_required: "Ce champ est requis.",
-    err_appid: "L'App ID doit être un nombre (ex : 1245620).",
+    err_appid_num: "L'App ID doit être un nombre uniquement (ex : 1245620). Vérifiez sur SteamDB.",
+    err_appid_url: "Ne pas coller l'URL complète — copiez uniquement le numéro depuis l'URL.",
+    err_notes_short: "Les notes sont trop courtes. Incluez les FPS, la résolution et les paramètres graphiques.",
+    err_notes_generic: "Les notes sont trop vagues. Ajoutez des détails : FPS, résolution, paramètres, problèmes connus.",
+    warn_no_cmd: "⚠ Les options de lancement doivent se terminer par %command% — sans ça le jeu peut ne pas se lancer.",
+    warn_already_set: "⚠ Certaines variables sont déjà appliquées globalement par bc250-tweaks et ne doivent pas être dupliquées :",
     footer_db: "Voir la base de données",
   },
   de: {
     page_title: "BC250 Toolkit — Spiel einreichen",
-    intro: 'Helfe der BC-250 Community, indem du ein getestetes Spiel einreichst. Nach der Einreichung wird ein GitHub-Issue geöffnet. Nach <strong>Genehmigung</strong> wird es automatisch zur Datenbank hinzugefügt.<br><br>Schon in der DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Spieleliste ansehen</a>.',
+    intro: 'Hilf der BC-250 Community, indem du ein getestetes Spiel einreichst. Ein GitHub-Issue wird erstellt und geprüft. Nach <strong>Genehmigung</strong> wird es automatisch zur Datenbank hinzugefügt.<br><br>Schon in der DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Spieleliste ansehen ↗</a>',
+    guide_title: "⚠ Vor dem Einreichen — Bitte lesen",
+    guides: [
+      { bullet: "✅", text: "<strong>Nur persönlich getestete Spiele</strong> auf einem echten BC-250 (ASRock BC-250, Cyan Skillfish GPU) einreichen." },
+      { bullet: "✅", text: "<strong>Hinweise müssen enthalten:</strong> FPS, Auflösung und Grafikvoreinstellung (Niedrig / Mittel / Hoch). Vage Notizen wie «läuft» werden abgelehnt." },
+      { bullet: "❌", text: "<strong>Nicht hinzufügen</strong> — von bc250-tweaks bereits global gesetzte Variablen: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Startoptionen müssen mit <code>%command%</code> enden</strong> — sonst startet das Spiel nicht." },
+      { bullet: "❌", text: "<strong>Keine Spiele einreichen</strong> mit Kernel-Anti-Cheat (Fortnite, Valorant…) — Linux-inkompatibel, keine Lösung verfügbar." },
+      { bullet: "❌", text: "<strong>Nicht die vollständige URL einfügen</strong> — nur die Nummer (z.B. <code>1245620</code>). Bei Unsicherheit SteamDB prüfen." },
+    ],
     label_name: "Spielname",
     label_appid: "Steam App-ID",
-    hint_appid: "In der Steam-Store-URL zu finden:",
+    hint_appid: "Die Nummer in der Steam-Store-URL",
+    hintwarn_appid: "❌ Nicht die vollständige URL einfügen — nur die Nummer (z.B. 1245620)",
     label_proton: "Proton-Version",
+    hint_proton: "Bei Unsicherheit: GE-Proton (latest) wird für die meisten Spiele auf BC-250 empfohlen.",
     label_compat: "Compat Tool ID (optional)",
-    hint_compat: "Interne ID für Steam: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "Interne Steam-ID — leer lassen wenn unklar: proton_ge · proton_experimental · proton_stable",
     label_launch: "Startoptionen",
+    hint_launch: "Muss %command% am Ende enthalten. Leer lassen, wenn die bc250-tweaks-Standardoptionen ausreichen.",
+    hintwarn_launch: "❌ Nicht hinzufügen: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (bereits global durch bc250-tweaks gesetzt)",
     label_notes: "Hinweise",
-    hint_notes: "Leistung (FPS, Auflösung, Einstellungen), bekannte Probleme, BC-250-Lösungen",
+    hint_notes: "✅ Angeben: erreichte FPS, Auflösung (1080p/720p), Grafikvoreinstellung, bekannte Probleme, BC-250-Lösungen.",
+    hintwarn_notes: "❌ Keine allgemeinen Notizen wie «läuft» schreiben — sie werden abgelehnt. Bitte präzise sein.",
     label_tested: "Getestet von (optional)",
     hint_tested: "GitHub- oder Discord-Benutzername",
-    btn_submit: "Auf GitHub einreichen →",
+    btn_submit: "GitHub-Issue öffnen →",
+    submit_note: "Du wirst zu GitHub weitergeleitet. Ein GitHub-Konto ist erforderlich.<br>Nach der Einreichung auf Genehmigung warten — dasselbe Spiel nicht zweimal einreichen.",
     err_required: "Dieses Feld ist erforderlich.",
-    err_appid: "App-ID muss eine Zahl sein (z.B. 1245620).",
+    err_appid_num: "App-ID muss nur eine Zahl sein (z.B. 1245620). Auf SteamDB prüfen.",
+    err_appid_url: "Nicht die vollständige URL einfügen — nur die Nummer kopieren.",
+    err_notes_short: "Hinweise zu kurz. Bitte FPS, Auflösung und Grafikeinstellungen angeben.",
+    err_notes_generic: "Hinweise zu allgemein. Details ergänzen: FPS, Auflösung, Einstellungen, bekannte Probleme.",
+    warn_no_cmd: "⚠ Startoptionen sollten mit %command% enden — sonst startet das Spiel möglicherweise nicht.",
+    warn_already_set: "⚠ Einige Variablen werden bereits global durch bc250-tweaks gesetzt und sollten nicht dupliziert werden:",
     footer_db: "Spieledatenbank anzeigen",
   },
   es: {
     page_title: "BC250 Toolkit — Enviar un juego",
-    intro: 'Ayuda a la comunidad BC-250 enviando un juego que hayas probado. Se abrirá un issue en GitHub. Una vez <strong>aprobado</strong>, se añadirá automáticamente a la base de datos.<br><br>¿Ya está en la DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Ver lista de juegos</a>.',
+    intro: 'Ayuda a la comunidad BC-250 enviando un juego que hayas probado. Se creará un issue en GitHub y será revisado. Una vez <strong>aprobado</strong>, se añade automáticamente a la base de datos.<br><br>¿Ya está en la DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Ver lista de juegos ↗</a>',
+    guide_title: "⚠ Antes de enviar — Por favor lee esto",
+    guides: [
+      { bullet: "✅", text: "<strong>Solo envía juegos probados personalmente</strong> en un BC-250 real (ASRock BC-250, GPU Cyan Skillfish)." },
+      { bullet: "✅", text: "<strong>Las notas deben incluir:</strong> FPS obtenidos, resolución y preset gráfico (Bajo / Medio / Alto). Notas vagas como «funciona» serán rechazadas." },
+      { bullet: "❌", text: "<strong>No incluir</strong> variables ya aplicadas globalmente por bc250-tweaks: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Las opciones de inicio deben terminar con <code>%command%</code></strong> — sin esto el juego no se iniciará." },
+      { bullet: "❌", text: "<strong>No enviar</strong> juegos con anti-cheat de nivel kernel (Fortnite, Valorant…) — incompatibles con Linux, sin solución." },
+      { bullet: "❌", text: "<strong>No pegar la URL completa de Steam</strong> como App ID — solo el número (ej: <code>1245620</code>). Verificar en SteamDB si hay dudas." },
+    ],
     label_name: "Nombre del juego",
     label_appid: "Steam App ID",
-    hint_appid: "Se encuentra en la URL de Steam Store:",
+    hint_appid: "El número en la URL de la página de Steam Store",
+    hintwarn_appid: "❌ No pegues la URL completa — solo el número (ej: 1245620)",
     label_proton: "Versión de Proton",
+    hint_proton: "Si no estás seguro, GE-Proton (latest) es recomendado para la mayoría de juegos en BC-250.",
     label_compat: "Compat Tool ID (opcional)",
-    hint_compat: "ID interno de Steam: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "ID interno de Steam — dejar vacío si no estás seguro: proton_ge · proton_experimental · proton_stable",
     label_launch: "Opciones de inicio",
+    hint_launch: "Debe contener %command% al final. Dejar vacío si las opciones predeterminadas de bc250-tweaks son suficientes.",
+    hintwarn_launch: "❌ No añadir: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (ya aplicados globalmente por bc250-tweaks)",
     label_notes: "Notas",
-    hint_notes: "Rendimiento (FPS, resolución, ajustes), problemas conocidos, soluciones para BC-250",
+    hint_notes: "✅ Incluir: FPS obtenidos, resolución (1080p/720p), preset gráfico, problemas conocidos, soluciones específicas BC-250.",
+    hintwarn_notes: "❌ No escribir notas genéricas como «funciona» — serán rechazadas. Sé específico.",
     label_tested: "Probado por (opcional)",
     hint_tested: "Tu nombre de GitHub o Discord",
-    btn_submit: "Enviar en GitHub →",
+    btn_submit: "Abrir issue en GitHub →",
+    submit_note: "Serás redirigido a GitHub para confirmar. Se requiere cuenta de GitHub.<br>Tras el envío, espera la aprobación — no envíes el mismo juego dos veces.",
     err_required: "Este campo es obligatorio.",
-    err_appid: "El App ID debe ser un número (ej: 1245620).",
+    err_appid_num: "El App ID debe ser solo un número (ej: 1245620). Verifica en SteamDB.",
+    err_appid_url: "No pegues la URL completa — copia solo el número.",
+    err_notes_short: "Notas demasiado cortas. Incluye FPS, resolución y ajustes gráficos.",
+    err_notes_generic: "Notas demasiado genéricas. Añade detalles: FPS, resolución, ajustes, problemas conocidos.",
+    warn_no_cmd: "⚠ Las opciones de inicio deben terminar con %command% — sin esto el juego puede no iniciar.",
+    warn_already_set: "⚠ Algunas variables ya son aplicadas globalmente por bc250-tweaks y no deben duplicarse:",
     footer_db: "Ver base de datos",
   },
   it: {
     page_title: "BC250 Toolkit — Invia un gioco",
-    intro: 'Aiuta la comunità BC-250 inviando un gioco che hai testato. Verrà aperta una issue su GitHub. Dopo l\'<strong>approvazione</strong>, verrà aggiunto automaticamente al database.<br><br>Già nel DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Vedi la lista giochi</a>.',
+    intro: 'Aiuta la comunità BC-250 inviando un gioco che hai testato. Verrà creata una issue su GitHub e revisionata. Dopo l\'<strong>approvazione</strong>, il gioco viene aggiunto automaticamente al database.<br><br>Già nel DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Vedi la lista giochi ↗</a>',
+    guide_title: "⚠ Prima di inviare — Leggi attentamente",
+    guides: [
+      { bullet: "✅", text: "<strong>Invia solo giochi testati personalmente</strong> su un BC-250 reale (ASRock BC-250, GPU Cyan Skillfish)." },
+      { bullet: "✅", text: "<strong>Le note devono includere:</strong> FPS ottenuti, risoluzione e preset grafico (Basso / Medio / Alto). Note vaghe come «funziona» verranno rifiutate." },
+      { bullet: "❌", text: "<strong>Non includere</strong> variabili già applicate globalmente da bc250-tweaks: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Le opzioni di avvio devono terminare con <code>%command%</code></strong> — senza di esso il gioco non si avvierà." },
+      { bullet: "❌", text: "<strong>Non inviare</strong> giochi con anti-cheat kernel (Fortnite, Valorant…) — incompatibili con Linux, nessuna soluzione disponibile." },
+      { bullet: "❌", text: "<strong>Non incollare l'URL Steam completo</strong> come App ID — solo il numero (es: <code>1245620</code>). Verificare su SteamDB se necessario." },
+    ],
     label_name: "Nome del gioco",
     label_appid: "Steam App ID",
-    hint_appid: "Disponibile nell'URL dello Steam Store:",
+    hint_appid: "Il numero nell'URL della pagina Steam Store",
+    hintwarn_appid: "❌ Non incollare l'URL completo — solo il numero (es: 1245620)",
     label_proton: "Versione Proton",
+    hint_proton: "In caso di dubbio, GE-Proton (latest) è consigliato per la maggior parte dei giochi su BC-250.",
     label_compat: "Compat Tool ID (opzionale)",
-    hint_compat: "ID interno Steam: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "ID interno Steam — lasciare vuoto se incerto: proton_ge · proton_experimental · proton_stable",
     label_launch: "Opzioni di avvio",
+    hint_launch: "Deve contenere %command% alla fine. Lasciare vuoto se le opzioni predefinite di bc250-tweaks sono sufficienti.",
+    hintwarn_launch: "❌ Non aggiungere: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (già impostati globalmente da bc250-tweaks)",
     label_notes: "Note",
-    hint_notes: "Prestazioni (FPS, risoluzione, impostazioni), problemi noti, soluzioni per BC-250",
+    hint_notes: "✅ Includere: FPS ottenuti, risoluzione (1080p/720p), preset grafico, problemi noti, soluzioni specifiche BC-250.",
+    hintwarn_notes: "❌ Non scrivere note generiche come «funziona» — verranno rifiutate. Essere specifici.",
     label_tested: "Testato da (opzionale)",
     hint_tested: "Il tuo username GitHub o Discord",
-    btn_submit: "Invia su GitHub →",
+    btn_submit: "Apri issue su GitHub →",
+    submit_note: "Verrai reindirizzato a GitHub per confermare. È richiesto un account GitHub.<br>Dopo l'invio, attendi l'approvazione — non inviare lo stesso gioco due volte.",
     err_required: "Questo campo è obbligatorio.",
-    err_appid: "L'App ID deve essere un numero (es: 1245620).",
+    err_appid_num: "L'App ID deve essere solo un numero (es: 1245620). Verifica su SteamDB.",
+    err_appid_url: "Non incollare l'URL completo — copia solo il numero.",
+    err_notes_short: "Note troppo brevi. Includi FPS, risoluzione e impostazioni grafiche.",
+    err_notes_generic: "Note troppo generiche. Aggiungi dettagli: FPS, risoluzione, impostazioni, problemi noti.",
+    warn_no_cmd: "⚠ Le opzioni di avvio dovrebbero terminare con %command% — senza di esso il gioco potrebbe non avviarsi.",
+    warn_already_set: "⚠ Alcune variabili sono già impostate globalmente da bc250-tweaks e non devono essere duplicate:",
     footer_db: "Vedi database giochi",
   },
   pt: {
     page_title: "BC250 Toolkit — Enviar um jogo",
-    intro: 'Ajude a comunidade BC-250 enviando um jogo que testou. Será aberta uma issue no GitHub. Após <strong>aprovação</strong>, será adicionado automaticamente à base de dados.<br><br>Já está na DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Ver lista de jogos</a>.',
+    intro: 'Ajude a comunidade BC-250 enviando um jogo que testou. Será criada uma issue no GitHub e revista. Após <strong>aprovação</strong>, o jogo é adicionado automaticamente à base de dados.<br><br>Já está na DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Ver lista de jogos ↗</a>',
+    guide_title: "⚠ Antes de enviar — Por favor leia",
+    guides: [
+      { bullet: "✅", text: "<strong>Envie apenas jogos testados pessoalmente</strong> num BC-250 real (ASRock BC-250, GPU Cyan Skillfish)." },
+      { bullet: "✅", text: "<strong>As notas devem incluir:</strong> FPS obtidos, resolução e predefinição gráfica (Baixo / Médio / Alto). Notas vagas como «funciona» serão rejeitadas." },
+      { bullet: "❌", text: "<strong>Não incluir</strong> variáveis já aplicadas globalmente pelo bc250-tweaks: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>As opções de lançamento devem terminar com <code>%command%</code></strong> — sem isso o jogo não iniciará." },
+      { bullet: "❌", text: "<strong>Não enviar</strong> jogos com anti-cheat de nível kernel (Fortnite, Valorant…) — incompatíveis com Linux, sem solução." },
+      { bullet: "❌", text: "<strong>Não colar o URL Steam completo</strong> como App ID — apenas o número (ex: <code>1245620</code>). Verificar no SteamDB se necessário." },
+    ],
     label_name: "Nome do jogo",
     label_appid: "Steam App ID",
-    hint_appid: "Encontrado no URL da Steam Store:",
+    hint_appid: "O número no URL da página Steam Store",
+    hintwarn_appid: "❌ Não cole o URL completo — apenas o número (ex: 1245620)",
     label_proton: "Versão Proton",
+    hint_proton: "Em caso de dúvida, GE-Proton (latest) é recomendado para a maioria dos jogos no BC-250.",
     label_compat: "Compat Tool ID (opcional)",
-    hint_compat: "ID interno Steam: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "ID interno Steam — deixar em branco se incerto: proton_ge · proton_experimental · proton_stable",
     label_launch: "Opções de lançamento",
+    hint_launch: "Deve conter %command% no final. Deixar em branco se as opções padrão do bc250-tweaks forem suficientes.",
+    hintwarn_launch: "❌ Não adicionar: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (já aplicados globalmente pelo bc250-tweaks)",
     label_notes: "Notas",
-    hint_notes: "Desempenho (FPS, resolução, definições), problemas conhecidos, soluções para BC-250",
+    hint_notes: "✅ Incluir: FPS obtidos, resolução (1080p/720p), predefinição gráfica, problemas conhecidos, soluções específicas BC-250.",
+    hintwarn_notes: "❌ Não escrever notas genéricas como «funciona» — serão rejeitadas. Seja específico.",
     label_tested: "Testado por (opcional)",
     hint_tested: "O seu nome no GitHub ou Discord",
-    btn_submit: "Enviar no GitHub →",
+    btn_submit: "Abrir issue no GitHub →",
+    submit_note: "Será redirecionado para o GitHub para confirmar. É necessária conta GitHub.<br>Após o envio, aguarde aprovação — não envie o mesmo jogo duas vezes.",
     err_required: "Este campo é obrigatório.",
-    err_appid: "O App ID deve ser um número (ex: 1245620).",
+    err_appid_num: "O App ID deve ser apenas um número (ex: 1245620). Verifique no SteamDB.",
+    err_appid_url: "Não cole o URL completo — copie apenas o número.",
+    err_notes_short: "Notas demasiado curtas. Inclua FPS, resolução e definições gráficas.",
+    err_notes_generic: "Notas demasiado genéricas. Adicione detalhes: FPS, resolução, definições, problemas conhecidos.",
+    warn_no_cmd: "⚠ As opções de lançamento devem terminar com %command% — sem isso o jogo pode não iniciar.",
+    warn_already_set: "⚠ Algumas variáveis já são aplicadas globalmente pelo bc250-tweaks e não devem ser duplicadas:",
     footer_db: "Ver base de dados",
   },
   nl: {
     page_title: "BC250 Toolkit — Spel indienen",
-    intro: 'Help de BC-250 community door een getest spel in te dienen. Er wordt een GitHub-issue aangemaakt. Na <strong>goedkeuring</strong> wordt het automatisch toegevoegd aan de database.<br><br>Al in de DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Spellenlijst bekijken</a>.',
+    intro: 'Help de BC-250 community door een getest spel in te dienen. Er wordt een GitHub-issue aangemaakt en beoordeeld. Na <strong>goedkeuring</strong> wordt het automatisch aan de database toegevoegd.<br><br>Al in de DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Spellenlijst bekijken ↗</a>',
+    guide_title: "⚠ Voor het indienen — Lees dit eerst",
+    guides: [
+      { bullet: "✅", text: "<strong>Dien alleen persoonlijk geteste spellen in</strong> op een echte BC-250 (ASRock BC-250, Cyan Skillfish GPU)." },
+      { bullet: "✅", text: "<strong>Opmerkingen moeten bevatten:</strong> FPS, resolutie en grafische preset (Laag / Gemiddeld / Hoog). Vage opmerkingen zoals «werkt» worden afgewezen." },
+      { bullet: "❌", text: "<strong>Niet toevoegen</strong> — variabelen al globaal ingesteld door bc250-tweaks: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Startopties moeten eindigen met <code>%command%</code></strong> — zonder dit start het spel niet." },
+      { bullet: "❌", text: "<strong>Geen spellen indienen</strong> met kernel-level anti-cheat (Fortnite, Valorant…) — Linux-incompatibel, geen oplossing." },
+      { bullet: "❌", text: "<strong>Niet de volledige Steam-URL plakken</strong> als App ID — alleen het getal (bijv. <code>1245620</code>). Controleer op SteamDB bij twijfel." },
+    ],
     label_name: "Spelnaam",
     label_appid: "Steam App ID",
-    hint_appid: "Te vinden in de Steam Store URL:",
+    hint_appid: "Het getal in de Steam Store-URL",
+    hintwarn_appid: "❌ Plak niet de volledige URL — alleen het getal (bijv. 1245620)",
     label_proton: "Proton-versie",
+    hint_proton: "Bij twijfel: GE-Proton (latest) wordt aanbevolen voor de meeste spellen op BC-250.",
     label_compat: "Compat Tool ID (optioneel)",
-    hint_compat: "Interne Steam-ID: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "Interne Steam-ID — leeg laten indien onzeker: proton_ge · proton_experimental · proton_stable",
     label_launch: "Startopties",
+    hint_launch: "Moet %command% aan het einde bevatten. Leeg laten als de standaardopties van bc250-tweaks voldoende zijn.",
+    hintwarn_launch: "❌ Niet toevoegen: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (al globaal ingesteld door bc250-tweaks)",
     label_notes: "Opmerkingen",
-    hint_notes: "Prestaties (FPS, resolutie, instellingen), bekende problemen, oplossingen voor BC-250",
+    hint_notes: "✅ Vermeld: behaalde FPS, resolutie (1080p/720p), grafische preset, bekende problemen, BC-250-oplossingen.",
+    hintwarn_notes: "❌ Geen algemene opmerkingen zoals «werkt» schrijven — ze worden afgewezen. Wees specifiek.",
     label_tested: "Getest door (optioneel)",
     hint_tested: "Je GitHub- of Discord-gebruikersnaam",
-    btn_submit: "Indienen op GitHub →",
+    btn_submit: "GitHub-issue openen →",
+    submit_note: "Je wordt doorgestuurd naar GitHub om te bevestigen. Een GitHub-account is vereist.<br>Wacht na indiening op goedkeuring — dien hetzelfde spel niet twee keer in.",
     err_required: "Dit veld is verplicht.",
-    err_appid: "App ID moet een getal zijn (bijv. 1245620).",
+    err_appid_num: "App ID moet alleen een getal zijn (bijv. 1245620). Controleer op SteamDB.",
+    err_appid_url: "Plak niet de volledige URL — kopieer alleen het getal.",
+    err_notes_short: "Opmerkingen te kort. Vermeld FPS, resolutie en grafische instellingen.",
+    err_notes_generic: "Opmerkingen te algemeen. Voeg details toe: FPS, resolutie, instellingen, bekende problemen.",
+    warn_no_cmd: "⚠ Startopties moeten eindigen met %command% — anders start het spel mogelijk niet.",
+    warn_already_set: "⚠ Sommige variabelen worden al globaal ingesteld door bc250-tweaks en mogen niet worden gedupliceerd:",
     footer_db: "Spellenlijst bekijken",
   },
   pl: {
     page_title: "BC250 Toolkit — Zgłoś grę",
-    intro: 'Pomóż społeczności BC-250, zgłaszając przetestowaną grę. Zostanie otwarty issue na GitHubie. Po <strong>zatwierdzeniu</strong> gra zostanie automatycznie dodana do bazy danych.<br><br>Już w DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Zobacz listę gier</a>.',
+    intro: 'Pomóż społeczności BC-250, zgłaszając przetestowaną grę. Zostanie otwarty issue na GitHubie i przejrzany. Po <strong>zatwierdzeniu</strong> gra jest automatycznie dodawana do bazy danych.<br><br>Już w DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Zobacz listę gier ↗</a>',
+    guide_title: "⚠ Przed zgłoszeniem — Przeczytaj koniecznie",
+    guides: [
+      { bullet: "✅", text: "<strong>Zgłaszaj tylko osobiście przetestowane gry</strong> na prawdziwym BC-250 (ASRock BC-250, GPU Cyan Skillfish)." },
+      { bullet: "✅", text: "<strong>Uwagi muszą zawierać:</strong> FPS, rozdzielczość i preset graficzny (Niski / Średni / Wysoki). Ogólne uwagi jak «działa» zostaną odrzucone." },
+      { bullet: "❌", text: "<strong>Nie dodawać</strong> zmiennych już globalnie ustawionych przez bc250-tweaks: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Opcje uruchamiania muszą kończyć się na <code>%command%</code></strong> — bez tego gra się nie uruchomi." },
+      { bullet: "❌", text: "<strong>Nie zgłaszać</strong> gier z kernel-level anti-cheat (Fortnite, Valorant…) — niekompatybilne z Linuxem, brak rozwiązania." },
+      { bullet: "❌", text: "<strong>Nie wklejać pełnego URL Steam</strong> jako App ID — tylko numer (np. <code>1245620</code>). Sprawdź na SteamDB w razie wątpliwości." },
+    ],
     label_name: "Nazwa gry",
     label_appid: "Steam App ID",
-    hint_appid: "Znajdziesz w adresie URL Steam Store:",
+    hint_appid: "Liczba w adresie URL strony Steam Store",
+    hintwarn_appid: "❌ Nie wklejaj pełnego URL — tylko numer (np. 1245620)",
     label_proton: "Wersja Proton",
+    hint_proton: "Jeśli nie wiesz, GE-Proton (latest) jest zalecany dla większości gier na BC-250.",
     label_compat: "Compat Tool ID (opcjonalne)",
-    hint_compat: "Wewnętrzne ID Steam: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "Wewnętrzne ID Steam — zostaw puste jeśli niepewny: proton_ge · proton_experimental · proton_stable",
     label_launch: "Opcje uruchamiania",
+    hint_launch: "Musi zawierać %command% na końcu. Zostaw puste jeśli domyślne opcje bc250-tweaks wystarczają.",
+    hintwarn_launch: "❌ Nie dodawaj: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (już globalnie ustawione przez bc250-tweaks)",
     label_notes: "Uwagi",
-    hint_notes: "Wydajność (FPS, rozdzielczość, ustawienia), znane problemy, rozwiązania dla BC-250",
+    hint_notes: "✅ Uwzględnij: osiągnięte FPS, rozdzielczość (1080p/720p), preset graficzny, znane problemy, rozwiązania dla BC-250.",
+    hintwarn_notes: "❌ Nie pisz ogólnych uwag jak «działa» — zostaną odrzucone. Bądź konkretny.",
     label_tested: "Testowane przez (opcjonalne)",
     hint_tested: "Twoja nazwa na GitHubie lub Discordzie",
-    btn_submit: "Wyślij na GitHub →",
+    btn_submit: "Otwórz issue na GitHubie →",
+    submit_note: "Zostaniesz przekierowany do GitHuba w celu potwierdzenia. Wymagane konto GitHub.<br>Po zgłoszeniu poczekaj na zatwierdzenie — nie zgłaszaj tej samej gry dwa razy.",
     err_required: "To pole jest wymagane.",
-    err_appid: "App ID musi być liczbą (np. 1245620).",
+    err_appid_num: "App ID musi być tylko liczbą (np. 1245620). Sprawdź na SteamDB.",
+    err_appid_url: "Nie wklejaj pełnego URL — skopiuj tylko numer.",
+    err_notes_short: "Uwagi za krótkie. Podaj FPS, rozdzielczość i ustawienia graficzne.",
+    err_notes_generic: "Uwagi zbyt ogólne. Dodaj szczegóły: FPS, rozdzielczość, ustawienia, znane problemy.",
+    warn_no_cmd: "⚠ Opcje uruchamiania powinny kończyć się na %command% — bez tego gra może się nie uruchomić.",
+    warn_already_set: "⚠ Niektóre zmienne są już globalnie ustawiane przez bc250-tweaks i nie powinny być duplikowane:",
     footer_db: "Zobacz bazę danych gier",
   },
   ru: {
     page_title: "BC250 Toolkit — Добавить игру",
-    intro: 'Помогите сообществу BC-250, отправив протестированную игру. На GitHub будет открыт issue. После <strong>одобрения</strong> игра автоматически добавится в базу данных.<br><br>Уже в базе? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Посмотреть список игр</a>.',
+    intro: 'Помогите сообществу BC-250, отправив протестированную игру. Будет создан issue на GitHub и проверен. После <strong>одобрения</strong> игра автоматически добавляется в базу данных.<br><br>Уже в базе? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Посмотреть список игр ↗</a>',
+    guide_title: "⚠ Перед отправкой — Обязательно прочитайте",
+    guides: [
+      { bullet: "✅", text: "<strong>Отправляйте только лично протестированные игры</strong> на реальном BC-250 (ASRock BC-250, GPU Cyan Skillfish)." },
+      { bullet: "✅", text: "<strong>Заметки должны содержать:</strong> FPS, разрешение и пресет графики (Низкое / Среднее / Высокое). Расплывчатые заметки вроде «работает» будут отклонены." },
+      { bullet: "❌", text: "<strong>Не включать</strong> переменные, уже применённые глобально bc250-tweaks: <code>RADV_DEBUG=nohiz</code>, <code>DXVK_LOG_LEVEL=none</code>, <code>VKD3D_DEBUG=none</code>, <code>WINE_FULLSCREEN_FSR=1</code>, <code>WINEDEBUG=-all</code>." },
+      { bullet: "❌", text: "<strong>Параметры запуска должны заканчиваться на <code>%command%</code></strong> — без этого игра не запустится." },
+      { bullet: "❌", text: "<strong>Не отправлять</strong> игры с kernel-level античитом (Fortnite, Valorant…) — несовместимы с Linux, решения нет." },
+      { bullet: "❌", text: "<strong>Не вставлять полный URL Steam</strong> как App ID — только цифры (например, <code>1245620</code>). Проверьте на SteamDB при сомнении." },
+    ],
     label_name: "Название игры",
     label_appid: "Steam App ID",
-    hint_appid: "Найдите в URL страницы Steam Store:",
+    hint_appid: "Число в URL страницы Steam Store",
+    hintwarn_appid: "❌ Не вставляйте полный URL — только число (например, 1245620)",
     label_proton: "Версия Proton",
+    hint_proton: "Если не уверены, GE-Proton (latest) рекомендуется для большинства игр на BC-250.",
     label_compat: "Compat Tool ID (необязательно)",
-    hint_compat: "Внутренний ID Steam: proton_ge, proton_experimental, proton_stable",
+    hint_compat: "Внутренний ID Steam — оставьте пустым если не уверены: proton_ge · proton_experimental · proton_stable",
     label_launch: "Параметры запуска",
+    hint_launch: "Должны содержать %command% в конце. Оставьте пустым, если стандартных параметров bc250-tweaks достаточно.",
+    hintwarn_launch: "❌ Не добавляйте: RADV_DEBUG=nohiz · DXVK_LOG_LEVEL=none · VKD3D_DEBUG=none · WINE_FULLSCREEN_FSR=1 · WINEDEBUG=-all (уже применены глобально через bc250-tweaks)",
     label_notes: "Заметки",
-    hint_notes: "Производительность (FPS, разрешение, настройки), известные проблемы, решения для BC-250",
+    hint_notes: "✅ Включите: достигнутый FPS, разрешение (1080p/720p), пресет графики, известные проблемы, решения для BC-250.",
+    hintwarn_notes: "❌ Не пишите расплывчатые заметки вроде «работает» — они будут отклонены. Будьте конкретны.",
     label_tested: "Протестировал (необязательно)",
     hint_tested: "Ваш ник на GitHub или Discord",
-    btn_submit: "Отправить на GitHub →",
+    btn_submit: "Открыть issue на GitHub →",
+    submit_note: "Вы будете перенаправлены на GitHub для подтверждения. Необходим аккаунт GitHub.<br>После отправки ждите одобрения — не отправляйте одну игру дважды.",
     err_required: "Это поле обязательно.",
-    err_appid: "App ID должен быть числом (например: 1245620).",
+    err_appid_num: "App ID должен быть только числом (например, 1245620). Проверьте на SteamDB.",
+    err_appid_url: "Не вставляйте полный URL — скопируйте только число.",
+    err_notes_short: "Заметки слишком короткие. Укажите FPS, разрешение и настройки графики.",
+    err_notes_generic: "Заметки слишком общие. Добавьте детали: FPS, разрешение, настройки, известные проблемы.",
+    warn_no_cmd: "⚠ Параметры запуска должны заканчиваться на %command% — иначе игра может не запуститься.",
+    warn_already_set: "⚠ Некоторые переменные уже применяются глобально через bc250-tweaks и не должны дублироваться:",
     footer_db: "Смотреть базу данных",
   },
 };
@@ -391,6 +685,18 @@ const LANG_LABELS = {
   en: "EN 🇬🇧", fr: "FR 🇫🇷", de: "DE 🇩🇪", es: "ES 🇪🇸",
   it: "IT 🇮🇹", pt: "PT 🇵🇹", nl: "NL 🇳🇱", pl: "PL 🇵🇱", ru: "RU 🇷🇺",
 };
+
+/* Variables already set globally by bc250-tweaks — warn if present in launch options */
+const ALREADY_SET = [
+  'RADV_DEBUG=nohiz',
+  'DXVK_LOG_LEVEL=none',
+  'VKD3D_DEBUG=none',
+  'WINE_FULLSCREEN_FSR=1',
+  'WINEDEBUG=-all',
+];
+
+/* Strings that indicate overly generic notes */
+const GENERIC_NOTES = ['works', 'fonctionne', 'ça marche', 'ok', 'good', 'runs fine', 'runs', 'fine', 'fun', 'jouable'];
 
 let currentLang = "en";
 
@@ -403,15 +709,25 @@ function applyLang(lang) {
   currentLang = lang;
   const t = I18N[lang];
   document.title = t.page_title;
+  document.documentElement.lang = lang;
   document.getElementById("introText").innerHTML = t.intro;
+
+  // Guidelines
+  document.getElementById("guideTitle").textContent = t.guide_title;
+  const ul = document.getElementById("guideList");
+  ul.innerHTML = "";
+  t.guides.forEach(g => {
+    const li = document.createElement("li");
+    li.setAttribute("data-bullet", g.bullet);
+    li.innerHTML = g.text;
+    ul.appendChild(li);
+  });
+
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const key = el.getAttribute("data-i18n");
-    if (t[key]) el.innerHTML = t[key];
+    if (t[key] !== undefined) el.innerHTML = t[key];
   });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-    const key = el.getAttribute("data-i18n-placeholder");
-    if (t[key]) el.placeholder = t[key];
-  });
+
   document.querySelectorAll("#langBar button").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.lang === lang);
   });
@@ -428,43 +744,96 @@ function buildLangBar() {
   });
 }
 
+function clearState(fieldId) {
+  const f = document.getElementById(fieldId);
+  f.classList.remove("invalid", "warn");
+}
+
+function setError(fieldId, msg) {
+  const f = document.getElementById(fieldId);
+  f.classList.remove("warn");
+  f.classList.add("invalid");
+  const err = f.querySelector(".error");
+  if (err && msg) err.textContent = msg;
+}
+
+function setWarn(fieldId, msg) {
+  const f = document.getElementById(fieldId);
+  if (f.classList.contains("invalid")) return; // error takes priority
+  f.classList.add("warn");
+  const warnEl = f.querySelector(".field-warn-msg");
+  if (warnEl && msg) warnEl.textContent = msg;
+}
+
 function validate() {
-  let ok = true;
   const t = I18N[currentLang];
+  let ok = true;
 
-  const nameEl = document.getElementById("gameName");
-  const nameField = document.getElementById("f-name");
-  nameField.classList.toggle("invalid", !nameEl.value.trim());
-  if (!nameEl.value.trim()) ok = false;
+  // Clear all states
+  ["f-name", "f-appid", "f-proton", "f-launch", "f-notes"].forEach(clearState);
 
-  const appIdEl = document.getElementById("appId");
-  const appIdField = document.getElementById("f-appid");
-  const appIdError = document.getElementById("appIdError");
-  const appIdVal = appIdEl.value.trim();
-  if (!appIdVal) {
-    appIdField.classList.add("invalid");
-    appIdError.textContent = t.err_required;
+  // Game name
+  if (!document.getElementById("gameName").value.trim()) {
+    setError("f-name", t.err_required);
     ok = false;
-  } else if (!/^\d+$/.test(appIdVal)) {
-    appIdField.classList.add("invalid");
-    appIdError.textContent = t.err_appid;
-    ok = false;
-  } else {
-    appIdField.classList.remove("invalid");
-    appIdError.textContent = "";
   }
 
-  const notesEl = document.getElementById("notes");
-  const notesField = document.getElementById("f-notes");
-  notesField.classList.toggle("invalid", !notesEl.value.trim());
-  if (!notesEl.value.trim()) ok = false;
+  // App ID
+  const appIdVal = document.getElementById("appId").value.trim();
+  if (!appIdVal) {
+    setError("f-appid", t.err_required);
+    ok = false;
+  } else if (appIdVal.includes("steamcommunity") || appIdVal.includes("store.steampowered") || appIdVal.includes("steamdb") || appIdVal.includes("/")) {
+    setError("f-appid", t.err_appid_url);
+    ok = false;
+  } else if (!/^\d+$/.test(appIdVal)) {
+    setError("f-appid", t.err_appid_num);
+    ok = false;
+  }
+
+  // Launch options — warn if %command% missing (not blocking if field is empty)
+  const launchVal = document.getElementById("launchOpts").value.trim();
+  if (launchVal && !launchVal.includes("%command%")) {
+    setWarn("f-launch", t.warn_no_cmd);
+    // Not blocking — user can intentionally omit, but warn
+  }
+  // Warn if known-already-set vars are present
+  if (launchVal) {
+    const found = ALREADY_SET.filter(v => launchVal.includes(v));
+    if (found.length > 0) {
+      const msg = t.warn_already_set + " " + found.map(v => v).join(", ");
+      setWarn("f-launch", msg);
+    }
+  }
+
+  // Notes
+  const notesVal = document.getElementById("notes").value.trim();
+  if (!notesVal) {
+    setError("f-notes", t.err_required);
+    ok = false;
+  } else if (notesVal.length < 15) {
+    setError("f-notes", t.err_notes_short);
+    ok = false;
+  } else {
+    const lower = notesVal.toLowerCase();
+    const isGeneric = GENERIC_NOTES.some(w => lower === w || lower === w + "." || lower === w + "!");
+    if (isGeneric) {
+      setError("f-notes", t.err_notes_generic);
+      ok = false;
+    }
+  }
 
   return ok;
 }
 
 document.getElementById("gameForm").addEventListener("submit", function(e) {
   e.preventDefault();
-  if (!validate()) return;
+  if (!validate()) {
+    // Scroll to first error
+    const firstInvalid = document.querySelector(".field.invalid");
+    if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
 
   const gameName   = document.getElementById("gameName").value.trim();
   const appId      = document.getElementById("appId").value.trim();
@@ -488,6 +857,14 @@ document.getElementById("gameForm").addEventListener("submit", function(e) {
   const bodyEnc = encodeURIComponent(body);
   const url = `https://github.com/Necrosiak/bc250-toolkit-decky/issues/new?template=game_request.yml&title=${title}&body=${bodyEnc}`;
   window.open(url, "_blank", "noopener");
+});
+
+// Clear error/warn on input
+["gameName", "appId", "launchOpts", "notes"].forEach(id => {
+  document.getElementById(id).addEventListener("input", function() {
+    const fieldMap = { gameName: "f-name", appId: "f-appid", launchOpts: "f-launch", notes: "f-notes" };
+    clearState(fieldMap[id]);
+  });
 });
 
 buildLangBar();
