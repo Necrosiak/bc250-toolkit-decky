@@ -70,7 +70,7 @@ let api;
 try {
     api = internalAPIConnection.connect(API_VERSION, manifest.name);
 }
-catch (_) {
+catch {
     api = internalAPIConnection.connect(1, manifest.name);
     console.warn(`[@decky/api] Requested API version ${API_VERSION} but the running loader only supports version 1. Some features may not work.`);
 }
