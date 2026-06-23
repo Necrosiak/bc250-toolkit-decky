@@ -8,6 +8,20 @@ Base de données communautaire d'options de lancement optimisées pour le BC-250
 
 ---
 
+## Captures d'écran
+
+<p align="center">
+  <img src="assets/screenshots/tab-games.png" width="32%" alt="Onglet Jeux"/>
+  <img src="assets/screenshots/tab-cu.png" width="32%" alt="Onglet CU"/>
+  <img src="assets/screenshots/tab-system.png" width="32%" alt="Onglet Système"/>
+</p>
+<p align="center">
+  <img src="assets/screenshots/tab-settings.png" width="32%" alt="Onglet Réglages"/>
+  <img src="assets/screenshots/game-crimson-desert.png" width="32%" alt="Settings Crimson Desert"/>
+</p>
+
+---
+
 ## Fonctionnalités
 
 ### Onglet Jeux
@@ -50,9 +64,9 @@ Le plugin détecte automatiquement la langue de l'interface Steam :
 ## Installation
 
 ### Via DeckyLoader (méthode recommandée)
-> Plugin en cours de soumission au Decky Plugin Store.
+> Plugin disponible dans le Decky Plugin Store — rechercher **BC250 Toolkit**.
 
-Installation manuelle en attendant :
+Installation manuelle :
 
 ```bash
 git clone https://github.com/Necrosiak/bc250-toolkit-decky.git \

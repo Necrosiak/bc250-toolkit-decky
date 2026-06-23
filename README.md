@@ -8,6 +8,20 @@ Community database of optimized launch options for the BC-250 — apply in one c
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/tab-games.png" width="32%" alt="Games Tab"/>
+  <img src="assets/screenshots/tab-cu.png" width="32%" alt="CU Tab"/>
+  <img src="assets/screenshots/tab-system.png" width="32%" alt="System Tab"/>
+</p>
+<p align="center">
+  <img src="assets/screenshots/tab-settings.png" width="32%" alt="Settings Tab"/>
+  <img src="assets/screenshots/game-crimson-desert.png" width="32%" alt="Crimson Desert settings"/>
+</p>
+
+---
+
 ## Features
 
 ### Games Tab
@@ -50,9 +64,9 @@ The plugin automatically detects the Steam interface language:
 ## Installation
 
 ### Via DeckyLoader (recommended)
-> Plugin pending submission to the Decky Plugin Store.
+> Plugin available in the Decky Plugin Store — search for **BC250 Toolkit**.
 
-Manual installation in the meantime:
+Manual installation:
 
 ```bash
 git clone https://github.com/Necrosiak/bc250-toolkit-decky.git \
