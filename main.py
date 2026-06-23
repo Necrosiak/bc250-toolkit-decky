@@ -1,5 +1,4 @@
 import asyncio
-import concurrent.futures
 import json
 import os
 import re
@@ -74,6 +73,8 @@ CU_RESTORE_SCRIPT = Path("/usr/local/bin/bc250-cu-restore")
 CU_SERVICE_NAME   = "bc250-cu-profile"
 CU_SERVICE_PATH   = Path(f"/etc/systemd/system/{CU_SERVICE_NAME}.service")
 CU_MANAGER        = Path("/usr/local/bin/bc250-cu-live-manager")
+CU_LIVE_CACHE     = Path("/tmp/bc250-cu-live.json")  # état courant, effacé au reboot
+_cu_reading       = False  # verrou simple pour éviter des lectures umr simultanées
 
 
 def _find_umr() -> str | None:
@@ -116,6 +117,34 @@ def _umr_read(umr: str, reg: str,
 
 def _masks_cu_count(masks: list) -> int:
     return sum(bin(m & 0x1f).count("1") * 2 for m in masks)
+
+
+def _read_all_cu_masks_seq(umr: str) -> list:
+    """Lecture séquentielle des 4 masques SPI (utilisé dans un thread executor)."""
+    results = []
+    for se, sh in CU_SE_SH:
+        v = _umr_read(umr, CU_REG_SPI, se, sh)
+        print(f"[BC250 CU] SE{se} SH{sh} => {v}")
+        results.append(v)
+    return results
+
+
+async def _bg_cu_read(umr: str):
+    """Tâche asyncio de fond : lit les registres CU et écrit le cache."""
+    global _cu_reading
+    try:
+        print("[BC250 CU] lecture umr en fond...")
+        loop = asyncio.get_running_loop()
+        masks_raw = await loop.run_in_executor(None, _read_all_cu_masks_seq, umr)
+        masks = [v or 0 for v in masks_raw]
+        cu_count = _masks_cu_count(masks)
+        current_profile = _identify_profile(masks)
+        print(f"[BC250 CU] cache mis à jour: cu_count={cu_count}, profile={current_profile}")
+        CU_LIVE_CACHE.write_text(json.dumps({"cu_count": cu_count, "current_profile": current_profile}))
+    except Exception as e:
+        print(f"[BC250 CU] erreur bg_cu_read: {e}")
+    finally:
+        _cu_reading = False
 
 
 def _identify_profile(masks: list) -> str | None:
@@ -448,7 +477,7 @@ class Plugin:
     # ── CU management ─────────────────────────────────────────────────────────
 
     async def get_cu_status(self) -> dict:
-        """Retourne le statut CU actuel (registres SPI via umr + profil boot)."""
+        """Retourne le statut CU actuel."""
         umr = _find_umr()
         result: dict = {
             "umr_available": umr is not None,
@@ -459,19 +488,22 @@ class Plugin:
             "profiles": {name: {"label": p["label"], "cu": p["cu"]} for name, p in CU_PROFILES.items()},
         }
 
-        if umr:
-            loop = asyncio.get_running_loop()
-            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-                tasks = [
-                    loop.run_in_executor(pool, _umr_read, umr, CU_REG_SPI, se, sh)
-                    for se, sh in CU_SE_SH
-                ]
-                masks_raw = await asyncio.gather(*tasks)
-            masks = [v or 0 for v in masks_raw]
-            result["cu_count"] = _masks_cu_count(masks)
-            result["current_profile"] = _identify_profile(masks)
+        # Chemin rapide : cache écrit par apply_cu_profile
+        if CU_LIVE_CACHE.exists():
+            try:
+                cached = json.loads(CU_LIVE_CACHE.read_text())
+                result["cu_count"] = cached.get("cu_count")
+                result["current_profile"] = cached.get("current_profile")
+            except Exception:
+                pass
 
-        # Lire le profil de boot depuis le conf existant
+        # Chemin lent : lecture umr en tâche de fond (non-bloquant, cache mis à jour)
+        global _cu_reading
+        if result["cu_count"] is None and umr and not _cu_reading:
+            _cu_reading = True
+            asyncio.create_task(_bg_cu_read(umr))
+
+        # Profil de boot depuis le conf
         for conf_path in (CU_SERVICE_PATH.parent / "bc250-cu-live-manager.conf",
                           Path("/etc/bc250-cu-live-manager.conf")):
             if conf_path.exists():
@@ -518,7 +550,13 @@ class Plugin:
         if save_boot:
             self._write_cu_boot_service(profile, masks, umr)
 
-        return {"ok": True, "profile": profile, "cu_count": CU_PROFILES[profile]["cu"]}
+        cu = CU_PROFILES[profile]["cu"]
+        try:
+            CU_LIVE_CACHE.write_text(json.dumps({"cu_count": cu, "current_profile": profile}))
+        except Exception:
+            pass
+
+        return {"ok": True, "profile": profile, "cu_count": cu}
 
     def _write_cu_boot_service(self, profile: str, masks: list, umr: str):
         """Crée un script de restauration CU + service systemd activé au boot."""
