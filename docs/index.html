@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BC250 Toolkit — Submit a Game</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d0d1a;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #12122a;
+      border-bottom: 2px solid #e44d26;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header img { height: 40px; }
+    header h1 { font-size: 1.4rem; color: #fff; }
+    header h1 span { color: #e44d26; }
+
+    .lang-bar {
+      background: #12122a;
+      padding: 8px 24px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #222244;
+    }
+    .lang-bar button {
+      background: none;
+      border: 1px solid #333366;
+      color: #aaa;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .lang-bar button:hover, .lang-bar button.active {
+      background: #e44d26;
+      border-color: #e44d26;
+      color: #fff;
+    }
+
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    .intro {
+      background: #12122a;
+      border: 1px solid #222244;
+      border-left: 3px solid #e44d26;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .intro a { color: #e44d26; text-decoration: none; }
+    .intro a:hover { text-decoration: underline; }
+
+    form { display: flex; flex-direction: column; gap: 20px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ccc;
+    }
+    label .req { color: #e44d26; margin-left: 2px; }
+    .hint {
+      font-size: 0.78rem;
+      color: #888;
+      margin-top: 2px;
+    }
+    .hint a { color: #e44d26; text-decoration: none; }
+
+    input[type="text"], textarea, select {
+      background: #12122a;
+      border: 1px solid #333366;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #e44d26;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    select option { background: #12122a; }
+
+    .submit-btn {
+      background: #e44d26;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      align-self: flex-start;
+    }
+    .submit-btn:hover { background: #c43a1c; }
+    .submit-btn:active { transform: scale(0.98); }
+
+    .error { color: #ff6b6b; font-size: 0.82rem; display: none; }
+    .field.invalid .error { display: block; }
+    .field.invalid input, .field.invalid textarea, .field.invalid select {
+      border-color: #ff6b6b;
+    }
+
+    footer {
+      background: #0a0a15;
+      border-top: 1px solid #222244;
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: #555;
+    }
+    footer a { color: #e44d26; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>BC250 <span>Toolkit</span></h1>
+  </div>
+</header>
+
+<div class="lang-bar" id="langBar"></div>
+
+<main>
+  <div class="intro" id="introText"></div>
+
+  <form id="gameForm" novalidate>
+    <div class="field" id="f-name">
+      <label for="gameName"><span data-i18n="label_name"></span><span class="req">*</span></label>
+      <input type="text" id="gameName" autocomplete="off" />
+      <div class="error" data-i18n="err_required"></div>
+    </div>
+
+    <div class="field" id="f-appid">
+      <label for="appId"><span data-i18n="label_appid"></span><span class="req">*</span></label>
+      <input type="text" id="appId" autocomplete="off" inputmode="numeric" />
+      <div class="hint"><span data-i18n="hint_appid"></span> <a href="https://store.steampowered.com" target="_blank" rel="noopener">store.steampowered.com/app/<strong>XXXXXX</strong>/</a></div>
+      <div class="error" id="appIdError"></div>
+    </div>
+
+    <div class="field" id="f-proton">
+      <label for="proton"><span data-i18n="label_proton"></span><span class="req">*</span></label>
+      <select id="proton">
+        <option value="GE-Proton (latest)">GE-Proton (latest)</option>
+        <option value="Proton Experimental">Proton Experimental</option>
+        <option value="Proton Stable">Proton Stable</option>
+        <option value="Other (specify in notes)">Other (specify in notes)</option>
+      </select>
+      <div class="error" data-i18n="err_required"></div>
+    </div>
+
+    <div class="field" id="f-compat">
+      <label for="compatTool"><span data-i18n="label_compat"></span></label>
+      <input type="text" id="compatTool" placeholder="proton_ge / proton_experimental" autocomplete="off" />
+      <div class="hint" data-i18n="hint_compat"></div>
+    </div>
+
+    <div class="field" id="f-launch">
+      <label for="launchOpts"><span data-i18n="label_launch"></span></label>
+      <textarea id="launchOpts" rows="3" placeholder="MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%"></textarea>
+    </div>
+
+    <div class="field" id="f-notes">
+      <label for="notes"><span data-i18n="label_notes"></span><span class="req">*</span></label>
+      <textarea id="notes" rows="4"></textarea>
+      <div class="hint" data-i18n="hint_notes"></div>
+      <div class="error" data-i18n="err_required"></div>
+    </div>
+
+    <div class="field" id="f-tested">
+      <label for="testedBy"><span data-i18n="label_tested"></span></label>
+      <input type="text" id="testedBy" autocomplete="off" />
+      <div class="hint" data-i18n="hint_tested"></div>
+    </div>
+
+    <button type="submit" class="submit-btn" data-i18n="btn_submit"></button>
+  </form>
+</main>
+
+<footer>
+  <a href="https://github.com/Necrosiak/bc250-toolkit-decky" target="_blank" rel="noopener">BC250 Toolkit on GitHub</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener" data-i18n="footer_db"></a>
+</footer>
+
+<script>
+const I18N = {
+  en: {
+    page_title: "BC250 Toolkit — Submit a Game",
+    intro: 'Help the BC-250 community by submitting a game you have tested. After submission, a GitHub issue will be opened. Once <strong>approved</strong>, it will be automatically added to the database and available in the plugin.<br><br>Already in the DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Check the game list</a>.',
+    label_name: "Game Name",
+    label_appid: "Steam App ID",
+    hint_appid: "Found in the Steam Store URL:",
+    label_proton: "Proton Version",
+    label_compat: "Compat Tool ID (optional)",
+    hint_compat: "Internal ID used by Steam: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Launch Options",
+    label_notes: "Notes",
+    hint_notes: "Performance (FPS, resolution, settings), known issues, workarounds for BC-250",
+    label_tested: "Tested By (optional)",
+    hint_tested: "Your GitHub username or Discord handle",
+    btn_submit: "Submit on GitHub →",
+    err_required: "This field is required.",
+    err_appid: "App ID must be a number (e.g. 1245620).",
+    footer_db: "View game database",
+  },
+  fr: {
+    page_title: "BC250 Toolkit — Soumettre un jeu",
+    intro: 'Aidez la communauté BC-250 en soumettant un jeu que vous avez testé. Après soumission, une issue GitHub sera ouverte. Une fois <strong>approuvée</strong>, le jeu sera automatiquement ajouté à la base de données et disponible dans le plugin.<br><br>Déjà dans la DB ? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Voir la liste des jeux</a>.',
+    label_name: "Nom du jeu",
+    label_appid: "Steam App ID",
+    hint_appid: "Disponible dans l'URL du Steam Store :",
+    label_proton: "Version Proton",
+    label_compat: "Compat Tool ID (optionnel)",
+    hint_compat: "ID interne utilisé par Steam : proton_ge, proton_experimental, proton_stable",
+    label_launch: "Options de lancement",
+    label_notes: "Notes",
+    hint_notes: "Performances (FPS, résolution, qualité), problèmes connus, solutions pour BC-250",
+    label_tested: "Testé par (optionnel)",
+    hint_tested: "Votre pseudo GitHub ou Discord",
+    btn_submit: "Soumettre sur GitHub →",
+    err_required: "Ce champ est requis.",
+    err_appid: "L'App ID doit être un nombre (ex : 1245620).",
+    footer_db: "Voir la base de données",
+  },
+  de: {
+    page_title: "BC250 Toolkit — Spiel einreichen",
+    intro: 'Helfe der BC-250 Community, indem du ein getestetes Spiel einreichst. Nach der Einreichung wird ein GitHub-Issue geöffnet. Nach <strong>Genehmigung</strong> wird es automatisch zur Datenbank hinzugefügt.<br><br>Schon in der DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Spieleliste ansehen</a>.',
+    label_name: "Spielname",
+    label_appid: "Steam App-ID",
+    hint_appid: "In der Steam-Store-URL zu finden:",
+    label_proton: "Proton-Version",
+    label_compat: "Compat Tool ID (optional)",
+    hint_compat: "Interne ID für Steam: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Startoptionen",
+    label_notes: "Hinweise",
+    hint_notes: "Leistung (FPS, Auflösung, Einstellungen), bekannte Probleme, BC-250-Lösungen",
+    label_tested: "Getestet von (optional)",
+    hint_tested: "GitHub- oder Discord-Benutzername",
+    btn_submit: "Auf GitHub einreichen →",
+    err_required: "Dieses Feld ist erforderlich.",
+    err_appid: "App-ID muss eine Zahl sein (z.B. 1245620).",
+    footer_db: "Spieledatenbank anzeigen",
+  },
+  es: {
+    page_title: "BC250 Toolkit — Enviar un juego",
+    intro: 'Ayuda a la comunidad BC-250 enviando un juego que hayas probado. Se abrirá un issue en GitHub. Una vez <strong>aprobado</strong>, se añadirá automáticamente a la base de datos.<br><br>¿Ya está en la DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Ver lista de juegos</a>.',
+    label_name: "Nombre del juego",
+    label_appid: "Steam App ID",
+    hint_appid: "Se encuentra en la URL de Steam Store:",
+    label_proton: "Versión de Proton",
+    label_compat: "Compat Tool ID (opcional)",
+    hint_compat: "ID interno de Steam: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Opciones de inicio",
+    label_notes: "Notas",
+    hint_notes: "Rendimiento (FPS, resolución, ajustes), problemas conocidos, soluciones para BC-250",
+    label_tested: "Probado por (opcional)",
+    hint_tested: "Tu nombre de GitHub o Discord",
+    btn_submit: "Enviar en GitHub →",
+    err_required: "Este campo es obligatorio.",
+    err_appid: "El App ID debe ser un número (ej: 1245620).",
+    footer_db: "Ver base de datos",
+  },
+  it: {
+    page_title: "BC250 Toolkit — Invia un gioco",
+    intro: 'Aiuta la comunità BC-250 inviando un gioco che hai testato. Verrà aperta una issue su GitHub. Dopo l\'<strong>approvazione</strong>, verrà aggiunto automaticamente al database.<br><br>Già nel DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Vedi la lista giochi</a>.',
+    label_name: "Nome del gioco",
+    label_appid: "Steam App ID",
+    hint_appid: "Disponibile nell'URL dello Steam Store:",
+    label_proton: "Versione Proton",
+    label_compat: "Compat Tool ID (opzionale)",
+    hint_compat: "ID interno Steam: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Opzioni di avvio",
+    label_notes: "Note",
+    hint_notes: "Prestazioni (FPS, risoluzione, impostazioni), problemi noti, soluzioni per BC-250",
+    label_tested: "Testato da (opzionale)",
+    hint_tested: "Il tuo username GitHub o Discord",
+    btn_submit: "Invia su GitHub →",
+    err_required: "Questo campo è obbligatorio.",
+    err_appid: "L'App ID deve essere un numero (es: 1245620).",
+    footer_db: "Vedi database giochi",
+  },
+  pt: {
+    page_title: "BC250 Toolkit — Enviar um jogo",
+    intro: 'Ajude a comunidade BC-250 enviando um jogo que testou. Será aberta uma issue no GitHub. Após <strong>aprovação</strong>, será adicionado automaticamente à base de dados.<br><br>Já está na DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Ver lista de jogos</a>.',
+    label_name: "Nome do jogo",
+    label_appid: "Steam App ID",
+    hint_appid: "Encontrado no URL da Steam Store:",
+    label_proton: "Versão Proton",
+    label_compat: "Compat Tool ID (opcional)",
+    hint_compat: "ID interno Steam: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Opções de lançamento",
+    label_notes: "Notas",
+    hint_notes: "Desempenho (FPS, resolução, definições), problemas conhecidos, soluções para BC-250",
+    label_tested: "Testado por (opcional)",
+    hint_tested: "O seu nome no GitHub ou Discord",
+    btn_submit: "Enviar no GitHub →",
+    err_required: "Este campo é obrigatório.",
+    err_appid: "O App ID deve ser um número (ex: 1245620).",
+    footer_db: "Ver base de dados",
+  },
+  nl: {
+    page_title: "BC250 Toolkit — Spel indienen",
+    intro: 'Help de BC-250 community door een getest spel in te dienen. Er wordt een GitHub-issue aangemaakt. Na <strong>goedkeuring</strong> wordt het automatisch toegevoegd aan de database.<br><br>Al in de DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Spellenlijst bekijken</a>.',
+    label_name: "Spelnaam",
+    label_appid: "Steam App ID",
+    hint_appid: "Te vinden in de Steam Store URL:",
+    label_proton: "Proton-versie",
+    label_compat: "Compat Tool ID (optioneel)",
+    hint_compat: "Interne Steam-ID: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Startopties",
+    label_notes: "Opmerkingen",
+    hint_notes: "Prestaties (FPS, resolutie, instellingen), bekende problemen, oplossingen voor BC-250",
+    label_tested: "Getest door (optioneel)",
+    hint_tested: "Je GitHub- of Discord-gebruikersnaam",
+    btn_submit: "Indienen op GitHub →",
+    err_required: "Dit veld is verplicht.",
+    err_appid: "App ID moet een getal zijn (bijv. 1245620).",
+    footer_db: "Spellenlijst bekijken",
+  },
+  pl: {
+    page_title: "BC250 Toolkit — Zgłoś grę",
+    intro: 'Pomóż społeczności BC-250, zgłaszając przetestowaną grę. Zostanie otwarty issue na GitHubie. Po <strong>zatwierdzeniu</strong> gra zostanie automatycznie dodana do bazy danych.<br><br>Już w DB? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Zobacz listę gier</a>.',
+    label_name: "Nazwa gry",
+    label_appid: "Steam App ID",
+    hint_appid: "Znajdziesz w adresie URL Steam Store:",
+    label_proton: "Wersja Proton",
+    label_compat: "Compat Tool ID (opcjonalne)",
+    hint_compat: "Wewnętrzne ID Steam: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Opcje uruchamiania",
+    label_notes: "Uwagi",
+    hint_notes: "Wydajność (FPS, rozdzielczość, ustawienia), znane problemy, rozwiązania dla BC-250",
+    label_tested: "Testowane przez (opcjonalne)",
+    hint_tested: "Twoja nazwa na GitHubie lub Discordzie",
+    btn_submit: "Wyślij na GitHub →",
+    err_required: "To pole jest wymagane.",
+    err_appid: "App ID musi być liczbą (np. 1245620).",
+    footer_db: "Zobacz bazę danych gier",
+  },
+  ru: {
+    page_title: "BC250 Toolkit — Добавить игру",
+    intro: 'Помогите сообществу BC-250, отправив протестированную игру. На GitHub будет открыт issue. После <strong>одобрения</strong> игра автоматически добавится в базу данных.<br><br>Уже в базе? <a href="https://github.com/Necrosiak/bc250-toolkit-decky/blob/main/README.md" target="_blank" rel="noopener">Посмотреть список игр</a>.',
+    label_name: "Название игры",
+    label_appid: "Steam App ID",
+    hint_appid: "Найдите в URL страницы Steam Store:",
+    label_proton: "Версия Proton",
+    label_compat: "Compat Tool ID (необязательно)",
+    hint_compat: "Внутренний ID Steam: proton_ge, proton_experimental, proton_stable",
+    label_launch: "Параметры запуска",
+    label_notes: "Заметки",
+    hint_notes: "Производительность (FPS, разрешение, настройки), известные проблемы, решения для BC-250",
+    label_tested: "Протестировал (необязательно)",
+    hint_tested: "Ваш ник на GitHub или Discord",
+    btn_submit: "Отправить на GitHub →",
+    err_required: "Это поле обязательно.",
+    err_appid: "App ID должен быть числом (например: 1245620).",
+    footer_db: "Смотреть базу данных",
+  },
+};
+
+const LANG_LABELS = {
+  en: "EN 🇬🇧", fr: "FR 🇫🇷", de: "DE 🇩🇪", es: "ES 🇪🇸",
+  it: "IT 🇮🇹", pt: "PT 🇵🇹", nl: "NL 🇳🇱", pl: "PL 🇵🇱", ru: "RU 🇷🇺",
+};
+
+let currentLang = "en";
+
+function detectLang() {
+  const nav = (navigator.language || "en").toLowerCase().slice(0, 2);
+  return I18N[nav] ? nav : "en";
+}
+
+function applyLang(lang) {
+  currentLang = lang;
+  const t = I18N[lang];
+  document.title = t.page_title;
+  document.getElementById("introText").innerHTML = t.intro;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (t[key]) el.innerHTML = t[key];
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (t[key]) el.placeholder = t[key];
+  });
+  document.querySelectorAll("#langBar button").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.lang === lang);
+  });
+}
+
+function buildLangBar() {
+  const bar = document.getElementById("langBar");
+  Object.entries(LANG_LABELS).forEach(([code, label]) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.dataset.lang = code;
+    btn.onclick = () => applyLang(code);
+    bar.appendChild(btn);
+  });
+}
+
+function validate() {
+  let ok = true;
+  const t = I18N[currentLang];
+
+  const nameEl = document.getElementById("gameName");
+  const nameField = document.getElementById("f-name");
+  nameField.classList.toggle("invalid", !nameEl.value.trim());
+  if (!nameEl.value.trim()) ok = false;
+
+  const appIdEl = document.getElementById("appId");
+  const appIdField = document.getElementById("f-appid");
+  const appIdError = document.getElementById("appIdError");
+  const appIdVal = appIdEl.value.trim();
+  if (!appIdVal) {
+    appIdField.classList.add("invalid");
+    appIdError.textContent = t.err_required;
+    ok = false;
+  } else if (!/^\d+$/.test(appIdVal)) {
+    appIdField.classList.add("invalid");
+    appIdError.textContent = t.err_appid;
+    ok = false;
+  } else {
+    appIdField.classList.remove("invalid");
+    appIdError.textContent = "";
+  }
+
+  const notesEl = document.getElementById("notes");
+  const notesField = document.getElementById("f-notes");
+  notesField.classList.toggle("invalid", !notesEl.value.trim());
+  if (!notesEl.value.trim()) ok = false;
+
+  return ok;
+}
+
+document.getElementById("gameForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  if (!validate()) return;
+
+  const gameName   = document.getElementById("gameName").value.trim();
+  const appId      = document.getElementById("appId").value.trim();
+  const proton     = document.getElementById("proton").value;
+  const compatTool = document.getElementById("compatTool").value.trim();
+  const launchOpts = document.getElementById("launchOpts").value.trim();
+  const notes      = document.getElementById("notes").value.trim();
+  const testedBy   = document.getElementById("testedBy").value.trim();
+
+  const body = [
+    `### Game Name\n\n${gameName}`,
+    `### Steam App ID\n\n${appId}`,
+    `### Proton Version\n\n${proton}`,
+    `### Compat Tool ID (optional)\n\n${compatTool || "_none_"}`,
+    `### Launch Options\n\n${launchOpts || "_none_"}`,
+    `### Notes\n\n${notes}`,
+    `### Tested By\n\n${testedBy || "_anonymous_"}`,
+  ].join("\n\n");
+
+  const title = encodeURIComponent(`[Game] ${gameName}`);
+  const bodyEnc = encodeURIComponent(body);
+  const url = `https://github.com/Necrosiak/bc250-toolkit-decky/issues/new?template=game_request.yml&title=${title}&body=${bodyEnc}`;
+  window.open(url, "_blank", "noopener");
+});
+
+buildLangBar();
+applyLang(detectLang());
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+name: Game Submission
+description: Submit a game to the BC-250 community database
+title: "[Game] "
+labels: ["game-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Submit a game tested on the **ASRock BC-250** (Cyan Skillfish). You can also use the [web form](https://necrosiak.github.io/bc250-toolkit-decky/).
+  - type: input
+    id: game_name
+    attributes:
+      label: Game Name
+      placeholder: "Elden Ring"
+    validations:
+      required: true
+  - type: input
+    id: app_id
+    attributes:
+      label: Steam App ID
+      description: "Found in the Steam Store URL: store.steampowered.com/app/XXXXXX/"
+      placeholder: "1245620"
+    validations:
+      required: true
+  - type: dropdown
+    id: proton
+    attributes:
+      label: Proton Version
+      options:
+        - GE-Proton (latest)
+        - Proton Experimental
+        - Proton Stable
+        - Other (specify in notes)
+    validations:
+      required: true
+  - type: input
+    id: compat_tool
+    attributes:
+      label: Compat Tool ID (optional)
+      description: "Internal ID: proton_ge, proton_experimental, proton_stable"
+      placeholder: "proton_ge"
+  - type: textarea
+    id: launch_options
+    attributes:
+      label: Launch Options
+      placeholder: "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: "Performance, known issues, settings recommendations for BC-250"
+      placeholder: "~60 FPS at 1080p Medium. Disable RT."
+    validations:
+      required: true
+  - type: input
+    id: tested_by
+    attributes:
+      label: Tested By (optional)
+      placeholder: "Your GitHub username or Discord handle"

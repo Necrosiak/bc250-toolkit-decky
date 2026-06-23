@@ -1,6 +1,6 @@
 # BC250 Toolkit — DeckyLoader Plugin
 
-> **[🇫🇷 Lire en français](README.fr.md)**
+> 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
 
 A [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) plugin for the **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) running Bazzite or SteamOS Linux.
 
@@ -96,7 +96,13 @@ The DB is in [`games_db.json`](games_db.json) and updates automatically from Git
 
 ## Contributing
 
-The strength of this plugin is the BC-250 community. To add a game:
+The strength of this plugin is the BC-250 community.
+
+### Easy way — Web form
+
+Use the **[game submission form](https://necrosiak.github.io/bc250-toolkit-decky/)** — fill in the details, click Submit, and a GitHub issue is created automatically. Once approved, the game is added to the database via PR.
+
+### Developer way — Direct PR
 
 1. Fork this repo
 2. Edit `games_db.json` following the existing format

@@ -1,0 +1,143 @@
+# BC250 Toolkit — DeckyLoader Plugin
+
+> 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
+
+Ein [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader)-Plugin für den **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) unter Bazzite oder SteamOS Linux.
+
+Community-Datenbank mit optimierten Startoptionen für den BC-250 — direkt aus dem Steam Quick Access Menu anwendbar.
+
+---
+
+## Funktionen
+
+### Spiele-Tab
+- Erkennt automatisch das ausgewählte Spiel in der Steam-Bibliothek
+- Zeigt empfohlene Einstellungen für den BC-250 (Proton-Version, Startoptionen, Hinweise)
+- **Übernehmen-Schaltfläche** — schreibt Startoptionen und wählt Proton direkt über das Backend
+- **Auto-Apply** (opt-in) — wendet Einstellungen automatisch an, wenn ein bekanntes Spiel gestartet wird
+
+### CU (Compute Units)-Tab
+- Live-Anzeige der aktiven CU-Anzahl über GPU-SPI-Register
+- 4 Profile:
+  - **24 CU** (BC-250 Standard)
+  - **32 CU**
+  - **36 CU**
+  - **40 CU** (voll — alle WGPs aktiv)
+- Live-Anwendung ohne Neustart
+- **Beim Start speichern**-Schalter — installiert einen systemd-Dienst, der das Profil bei jedem Start wiederherstellt
+- Benötigt `umr` — **automatische Installation per Schaltfläche** (`rpm-ostree install --apply-live`, kein Neustart nötig)
+- Integrierter Hinweis und Stabilitätsempfehlungen
+
+### System-Tab
+- CPU/GPU-Temperaturen in Echtzeit
+- scx_lavd-Status, Tuned-Profil, Gamemode-Daemon-Status
+- Manuelle Aktualisierungsschaltfläche für [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
+
+### Einstellungen-Tab
+- Auto-Apply-Schalter
+- DB-Aktualisierung von GitHub
+
+---
+
+## Sprache
+
+Das Plugin erkennt automatisch die Steam-Sprache:
+
+**English · Français · Deutsch · Español · Italiano · Português · Nederlands · Polski · Русский**
+
+---
+
+## Installation
+
+### Über DeckyLoader (empfohlen)
+> Plugin wird für den Decky Plugin Store eingereicht.
+
+Manuelle Installation in der Zwischenzeit:
+
+```bash
+git clone https://github.com/Necrosiak/bc250-toolkit-decky.git \
+  ~/homebrew/plugins/BC250-Toolkit
+sudo systemctl restart plugin_loader
+```
+
+### Voraussetzungen
+- [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) installiert
+- Bazzite oder SteamOS auf BC-250
+
+---
+
+## Spieldatenbank
+
+Die DB befindet sich in [`games_db.json`](games_db.json) und aktualisiert sich automatisch von GitHub.
+
+### Unterstützte Spiele
+
+| Spiel | Proton | Hinweise |
+|---|---|---|
+| Crimson Desert | Proton Experimental (bleeding-edge) | GPU-Spoof 731F erforderlich |
+| Cyberpunk 2077 | GE-Proton | RT deaktiviert empfohlen |
+| Elden Ring | GE-Proton | ~60 FPS spielbar |
+| Red Dead Redemption 2 | GE-Proton | Vulkan-Modus erforderlich |
+| Control | GE-Proton | RT funktioniert (RDNA 1.5) |
+| Counter-Strike 2 | Proton Experimental | 100+ FPS |
+| Rocket League | Proton Experimental | 120+ FPS |
+| Devil May Cry 5 | GE-Proton | ~100 FPS Hoch |
+| Company of Heroes 3 | GE-Proton | VRAM-Split mind. 4 GB erforderlich |
+| Detroit: Become Human | Proton Experimental | Stabile 60 FPS |
+| The Last of Us Part I | GE-Proton | 60 FPS Medium-Hoch |
+| Black Myth: Wukong | GE-Proton | Unveränderte Spieldateien erforderlich |
+| Stardew Valley | Proton Experimental | Perfekt |
+
+### Bekannte inkompatible Spiele
+- **Fortnite** / **Valorant** — Kernel-EAC, Linux inkompatibel
+- **FF VII Rebirth** — Prüft GPU-ID, Cyan Skillfish nicht erkannt, kein Fix verfügbar
+
+---
+
+## Beitragen
+
+### Einfache Methode — Webformular
+
+Nutze das **[Einreichungsformular](https://necrosiak.github.io/bc250-toolkit-decky/)** — fülle die Angaben aus, klicke auf Einreichen, und ein GitHub-Issue wird automatisch erstellt. Nach Genehmigung wird das Spiel per PR hinzugefügt.
+
+### Entwickler-Methode — Direkter PR
+
+1. Forke dieses Repository
+2. Bearbeite `games_db.json` entsprechend dem vorhandenen Format
+3. Öffne einen Pull Request
+
+### Eintragsformat
+
+```json
+"STEAM_APP_ID": {
+  "name": "Spielname",
+  "proton": "GE-Proton10-34",
+  "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
+  "notes": "BC-250-spezifische Hinweise",
+  "tested_on": "BC-250"
+}
+```
+
+> Die Steam-AppID befindet sich in der URL der Spielseite im Steam Store.
+
+---
+
+## Build (Entwickler)
+
+```bash
+pnpm install
+pnpm run build
+
+# Lokal bereitstellen
+sudo cp dist/index.js ~/homebrew/plugins/BC250-Toolkit/dist/
+sudo cp main.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
+sudo systemctl restart plugin_loader
+```
+
+---
+
+## Siehe auch
+
+- [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) — vollständige System-Tweaks + Auto-Update
+- [AMD BC-250 Docs](https://elektricm.github.io/amd-bc250-docs) — Community-Wiki
+- [bc250.info](https://bc250.info)

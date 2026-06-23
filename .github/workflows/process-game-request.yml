@@ -1,0 +1,148 @@
+name: Process Game Request
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  add-game:
+    if: github.event.label.name == 'approved'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check game-request label
+        id: check_label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.issue.labels.map(l => l.name);
+            if (!labels.includes('game-request')) {
+              core.setFailed('Issue does not have the game-request label — skipping.');
+            }
+            core.setOutput('issue_number', context.payload.issue.number);
+            core.setOutput('issue_body', context.payload.issue.body);
+            core.setOutput('issue_title', context.payload.issue.title);
+
+      - uses: actions/checkout@v4
+
+      - name: Parse issue and create PR
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_BODY: ${{ steps.check_label.outputs.issue_body }}
+          ISSUE_NUMBER: ${{ steps.check_label.outputs.issue_number }}
+        run: |
+          python3 << 'PYEOF'
+          import os, json, re, subprocess, sys
+          from datetime import date
+
+          body = os.environ["ISSUE_BODY"]
+          issue_number = os.environ["ISSUE_NUMBER"]
+
+          def extract_field(body, field):
+              pattern = rf"### {re.escape(field)}\s*\n\n(.*?)(?=\n\n###|\Z)"
+              m = re.search(pattern, body, re.DOTALL)
+              return m.group(1).strip() if m else ""
+
+          game_name    = extract_field(body, "Game Name")
+          app_id       = extract_field(body, "Steam App ID")
+          proton       = extract_field(body, "Proton Version")
+          compat_tool  = extract_field(body, "Compat Tool ID (optional)")
+          launch_opts  = extract_field(body, "Launch Options")
+          notes        = extract_field(body, "Notes")
+          tested_by    = extract_field(body, "Tested By (optional)")
+
+          if not game_name or not app_id or not notes:
+              print("Missing required fields (game_name, app_id, notes). Aborting.")
+              sys.exit(1)
+
+          if not re.fullmatch(r'\d+', app_id):
+              print(f"Invalid App ID: {app_id}")
+              sys.exit(1)
+
+          with open("games_db.json", "r") as f:
+              db = json.load(f)
+
+          if app_id in db:
+              print(f"App ID {app_id} already exists in games_db.json")
+              sys.exit(1)
+
+          # Map proton dropdown value to compat_tool id if not provided
+          proton_map = {
+              "GE-Proton (latest)": "proton_ge",
+              "Proton Experimental": "proton_experimental",
+              "Proton Stable": "proton_stable",
+          }
+          if not compat_tool:
+              compat_tool = proton_map.get(proton, "")
+
+          entry = {"name": game_name, "proton": proton}
+          if compat_tool:
+              entry["compat_tool"] = compat_tool
+          if launch_opts:
+              entry["launch_options"] = launch_opts
+          if notes:
+              entry["notes"] = notes
+          entry["tested_on"] = "BC-250"
+          if tested_by:
+              entry["submitted_by"] = tested_by
+
+          db[app_id] = entry
+          db["_meta"]["updated"] = date.today().isoformat()
+
+          with open("games_db.json", "w") as f:
+              json.dump(db, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+
+          branch = f"add-game-{app_id}"
+          subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+          subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+          subprocess.run(["git", "checkout", "-b", branch], check=True)
+          subprocess.run(["git", "add", "games_db.json"], check=True)
+          subprocess.run(["git", "commit", "-m", f"db: add {game_name} ({app_id}) — from issue #{issue_number}"], check=True)
+          subprocess.run(["git", "push", "origin", branch], check=True)
+
+          pr_body = f"""Adds **{game_name}** (App ID `{app_id}`) to the community database.
+
+          Submitted via issue #{issue_number}.
+
+          Closes #{issue_number}
+          """
+
+          result = subprocess.run(
+              ["gh", "pr", "create",
+               "--title", f"[DB] Add {game_name} ({app_id})",
+               "--body", pr_body,
+               "--head", branch,
+               "--base", "main"],
+              capture_output=True, text=True, check=True
+          )
+          pr_url = result.stdout.strip()
+          print(f"PR created: {pr_url}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"pr_url={pr_url}\n")
+              f.write(f"game_name={game_name}\n")
+              f.write(f"app_id={app_id}\n")
+
+          PYEOF
+
+      - name: Comment on issue
+        if: steps.create_pr.outputs.pr_url != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prUrl = '${{ steps.create_pr.outputs.pr_url }}';
+            const gameName = '${{ steps.create_pr.outputs.game_name }}';
+            const appId = '${{ steps.create_pr.outputs.app_id }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: `✅ **${gameName}** (App ID \`${appId}\`) has been approved!\n\nA pull request has been automatically created: ${prUrl}\n\nOnce merged, the game will appear in the BC250 Toolkit plugin after the next DB refresh.`
+            });
