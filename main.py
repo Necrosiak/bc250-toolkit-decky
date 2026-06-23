@@ -6,7 +6,7 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-GAMES_DB_URL = "https://raw.githubusercontent.com/necrocyberangel/bc250-toolkit-decky/main/games_db.json"
+GAMES_DB_URL = "https://raw.githubusercontent.com/Necrosiak/bc250-toolkit-decky/main/games_db.json"
 LOCAL_DB_PATH = Path(os.path.dirname(__file__)) / "games_db.json"
 CACHE_DB_PATH = Path("/tmp/bc250_games_db_cache.json")
 TWEAKS_APPLY = "/opt/bc250-tweaks/apply.sh"
