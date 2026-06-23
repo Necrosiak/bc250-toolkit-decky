@@ -82,9 +82,11 @@ def _find_umr() -> str | None:
 
 def _umr_write(umr: str, reg: str, value: int,
                se: int | None = None, sh: int | None = None) -> bool:
-    cmd = [umr, "-w", f"{CU_ASIC}.{reg}", hex(value)]
+    # -b DOIT précéder -w : umr traite les flags séquentiellement
+    cmd = [umr]
     if se is not None and sh is not None:
         cmd += ["-b", str(se), str(sh), "0xffffffff"]
+    cmd += ["-w", f"{CU_ASIC}.{reg}", hex(value)]
     try:
         subprocess.run(cmd, capture_output=True, timeout=5)
         return True
@@ -94,9 +96,11 @@ def _umr_write(umr: str, reg: str, value: int,
 
 def _umr_read(umr: str, reg: str,
               se: int | None = None, sh: int | None = None) -> int | None:
-    cmd = [umr, "-r", f"{CU_ASIC}.{reg}"]
+    # -b DOIT précéder -r
+    cmd = [umr]
     if se is not None and sh is not None:
         cmd += ["-b", str(se), str(sh), "0xffffffff"]
+    cmd += ["-r", f"{CU_ASIC}.{reg}"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
         m = re.search(r'0x[0-9a-fA-F]+', result.stdout)
@@ -551,6 +555,25 @@ class Plugin:
             subprocess.run(["systemctl", "enable", CU_SERVICE_NAME], capture_output=True, timeout=5)
         except Exception:
             pass
+
+    # ── umr auto-install ──────────────────────────────────────────────────────
+
+    async def install_umr(self) -> dict:
+        """Lance rpm-ostree install --apply-live umr. Bloquant ~30s."""
+        if _find_umr():
+            return {"ok": True, "already": True}
+        try:
+            r = subprocess.run(
+                ["rpm-ostree", "install", "--apply-live", "--assumeyes", "umr"],
+                capture_output=True, text=True, timeout=180,
+            )
+            if r.returncode == 0:
+                return {"ok": True, "already": False}
+            return {"ok": False, "error": (r.stderr or r.stdout)[-500:]}
+        except subprocess.TimeoutExpired:
+            return {"ok": False, "error": "Timeout (180s)"}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
 
     # ── DB info ───────────────────────────────────────────────────────────────
 

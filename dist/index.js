@@ -208,6 +208,7 @@ function CuTab() {
     const [applying, setApplying] = SP_REACT.useState(null);
     const [saveBoot, setSaveBoot] = SP_REACT.useState(false);
     const [lastMsg, setLastMsg] = SP_REACT.useState(null);
+    const [installingUmr, setInstallingUmr] = SP_REACT.useState(false);
     const refresh = SP_REACT.useCallback(() => {
         call("get_cu_status").then(setStatus);
     }, []);
@@ -216,6 +217,28 @@ function CuTab() {
         const t = setInterval(refresh, 10000);
         return () => clearInterval(t);
     }, [refresh]);
+    const handleInstallUmr = async () => {
+        setInstallingUmr(true);
+        setLastMsg(null);
+        toaster.toast({ title: "BC250 Toolkit", body: "Installation de umr en cours (~30s)...", duration: 5000 });
+        try {
+            const r = await call("install_umr");
+            if (r.ok) {
+                const msg = r.already ? "✓ umr déjà disponible" : "✓ umr installé — CU disponible";
+                setLastMsg(msg);
+                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+                refresh();
+            }
+            else {
+                const msg = `✗ Échec install umr: ${r.error}`;
+                setLastMsg(msg);
+                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 6000 });
+            }
+        }
+        finally {
+            setInstallingUmr(false);
+        }
+    };
     const applyProfile = async (profileKey) => {
         setApplying(profileKey);
         setLastMsg(null);
@@ -245,7 +268,7 @@ function CuTab() {
                                     ? `${status.cu_count} / 40 CU`
                                     : status.umr_available
                                         ? "lecture..."
-                                        : "N/A" }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Boot", children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsxs("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: ["\u26A0 umr non disponible", "\n", "Installer : rpm-ostree install umr"] }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { title: "Profils", children: CU_PROFILE_LIST.map(({ key, label, color }) => {
+                                        : "N/A" }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Boot", children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: "\u26A0 umr non disponible \u2014 requis pour la gestion CU" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: installingUmr, onClick: handleInstallUmr, children: installingUmr ? "Installation en cours..." : "Installer umr automatiquement" }) })] }))] }), SP_JSX.jsx(DFL.PanelSection, { title: "Profils", children: CU_PROFILE_LIST.map(({ key, label, color }) => {
                     const isActive = status.current_profile === key;
                     const isBoot = status.boot_profile === key;
                     const isApplying = applying === key;

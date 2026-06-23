@@ -14,6 +14,17 @@ Plugin [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) pour l'*
 - **Bouton Appliquer** — écrit directement les launch options et sélectionne Proton via l'API Steam
 - **Auto-apply** (opt-in) — applique automatiquement les settings au lancement d'un jeu connu
 
+### Onglet CU (Compute Units)
+- Lecture live du nombre de CU actifs via les registres SPI du GPU
+- 4 profils disponibles :
+  - **24 CU** (stock BC-250)
+  - **32 CU**
+  - **36 CU**
+  - **40 CU** (full — tous les WGPs actifs)
+- Application live sans reboot
+- Toggle **Sauvegarder au boot** — installe un service systemd qui restaure le profil à chaque démarrage
+- Requiert `umr` — **installation automatique via un bouton** si non présent (`rpm-ostree install --apply-live`, sans reboot)
+
 ### Onglet Système
 - Températures CPU/GPU en temps réel
 - Statut scx_lavd, profil tuned, gamemode daemon
@@ -107,8 +118,8 @@ pnpm install
 pnpm run build
 
 # Déployer localement
-cp dist/index.js ~/homebrew/plugins/BC250-Toolkit/dist/
-cp games_db.json ~/homebrew/plugins/BC250-Toolkit/
+sudo cp dist/index.js ~/homebrew/plugins/BC250-Toolkit/dist/
+sudo cp main.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
 sudo systemctl restart plugin_loader
 ```
 

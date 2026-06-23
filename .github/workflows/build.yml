@@ -1,0 +1,43 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build plugin
+        run: pnpm run build
+
+      - name: Package plugin
+        run: |
+          mkdir -p out/BC250-Toolkit/dist
+          cp dist/index.js out/BC250-Toolkit/dist/
+          cp main.py plugin.json package.json games_db.json README.md out/BC250-Toolkit/
+          cd out
+          zip -r ../BC250-Toolkit.zip BC250-Toolkit/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BC250-Toolkit.zip
+          generate_release_notes: true

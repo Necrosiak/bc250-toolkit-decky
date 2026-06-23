@@ -269,6 +269,7 @@ function CuTab() {
   const [applying, setApplying] = useState<string | null>(null);
   const [saveBoot, setSaveBoot] = useState(false);
   const [lastMsg, setLastMsg] = useState<string | null>(null);
+  const [installingUmr, setInstallingUmr] = useState(false);
 
   const refresh = useCallback(() => {
     call<[], CuStatus>("get_cu_status").then(setStatus);
@@ -279,6 +280,27 @@ function CuTab() {
     const t = setInterval(refresh, 10000);
     return () => clearInterval(t);
   }, [refresh]);
+
+  const handleInstallUmr = async () => {
+    setInstallingUmr(true);
+    setLastMsg(null);
+    toaster.toast({ title: "BC250 Toolkit", body: "Installation de umr en cours (~30s)...", duration: 5000 });
+    try {
+      const r = await call<[], { ok: boolean; already?: boolean; error?: string }>("install_umr");
+      if (r.ok) {
+        const msg = r.already ? "✓ umr déjà disponible" : "✓ umr installé — CU disponible";
+        setLastMsg(msg);
+        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+        refresh();
+      } else {
+        const msg = `✗ Échec install umr: ${r.error}`;
+        setLastMsg(msg);
+        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 6000 });
+      }
+    } finally {
+      setInstallingUmr(false);
+    }
+  };
 
   const applyProfile = async (profileKey: string) => {
     setApplying(profileKey);
@@ -331,14 +353,24 @@ function CuTab() {
           </PanelSectionRow>
         )}
         {!status.umr_available && (
-          <PanelSectionRow>
-            <Field>
-              <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>
-                ⚠ umr non disponible{"\n"}
-                Installer : rpm-ostree install umr
-              </div>
-            </Field>
-          </PanelSectionRow>
+          <>
+            <PanelSectionRow>
+              <Field>
+                <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>
+                  ⚠ umr non disponible — requis pour la gestion CU
+                </div>
+              </Field>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ButtonItem
+                layout="below"
+                disabled={installingUmr}
+                onClick={handleInstallUmr}
+              >
+                {installingUmr ? "Installation en cours..." : "Installer umr automatiquement"}
+              </ButtonItem>
+            </PanelSectionRow>
+          </>
         )}
       </PanelSection>
 
