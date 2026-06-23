@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "version": "2",
+    "description": "BC-250 community game database. PRs welcome at github.com/necrocyberangel/bc250-toolkit-decky",
+    "hardware": "ASRock BC-250 (AMD Ryzen Embedded V2000 / Cyan Skillfish GPU)",
+    "updated": "2026-06-23"
+  },
+  "3321460": {
+    "name": "Crimson Desert",
+    "proton": "Proton Experimental",
+    "proton_branch": "bleeding-edge",
+    "proton_note": "⚠ Activer la branche bleeding-edge : Bibliothèque Steam > Outils > Proton Experimental > Propriétés > Versions du jeu et bêtas > bleeding-edge",
+    "launch_options": "DXVK_CONFIG=\"dxgi.customDeviceId=731F dxgi.customVendorId=1002\" MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "Le spoofing GPU (731F/1002) contourne la non-reconnaissance du Cyan Skillfish par le jeu. Depuis le bleeding-edge du 01/04/2026, le jeu tourne sans args supplémentaires — les options restent utiles pour MangoHud/vkBasalt.",
+    "source": "https://www.youtube.com/watch?v=OjO2Vd0Lu1U — commentaires communauté BC-250",
+    "tested_on": "BC-250"
+  },
+  "1091500": {
+    "name": "Cyberpunk 2077",
+    "proton": "GE-Proton10-34",
+    "launch_options": "RADV_PERFTEST=gpl,sam MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "RT désactivé recommandé. FSR + CAS donne de bons résultats sur BC-250.",
+    "tested_on": "BC-250"
+  },
+  "1174180": {
+    "name": "Red Dead Redemption 2",
+    "proton": "GE-Proton10-34",
+    "launch_options": "WINE_FULLSCREEN_FSR=1 WINE_FULLSCREEN_FSR_STRENGTH=3 MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "Vulkan natif recommandé. Réduire le budget mémoire graphique dans les options du jeu.",
+    "tested_on": "BC-250"
+  },
+  "1172470": {
+    "name": "Apex Legends",
+    "proton": "GE-Proton10-34",
+    "launch_options": "+fps_max 60 MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
+    "notes": "Limiter à 60 FPS pour la stabilité. EAC fonctionne via Proton.",
+    "tested_on": "BC-250"
+  },
+  "413150": {
+    "name": "Stardew Valley",
+    "proton": "Proton Experimental",
+    "launch_options": "gamemoderun %command%",
+    "notes": "Fonctionne parfaitement nativement ou via Proton.",
+    "tested_on": "BC-250"
+  }
+}

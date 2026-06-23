@@ -1,0 +1,11 @@
+{
+  "name": "BC250 Toolkit",
+  "author": "necrocyberangel",
+  "flags": ["_root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["bc250", "amd", "apu", "gaming", "optimizer", "launch-options", "proton"],
+    "description": "Optimiseur de jeux pour ASRock BC-250 (AMD Ryzen Embedded V2000). Base de données communautaire d'options de lancement, sélection Proton automatique, et statut système.",
+    "image": ""
+  }
+}
