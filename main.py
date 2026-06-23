@@ -3,6 +3,7 @@ import json
 import os
 import re
 import subprocess
+import time
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -74,7 +75,8 @@ CU_SERVICE_NAME   = "bc250-cu-profile"
 CU_SERVICE_PATH   = Path(f"/etc/systemd/system/{CU_SERVICE_NAME}.service")
 CU_MANAGER        = Path("/usr/local/bin/bc250-cu-live-manager")
 CU_LIVE_CACHE     = Path("/tmp/bc250-cu-live.json")  # état courant, effacé au reboot
-_cu_reading       = False  # verrou simple pour éviter des lectures umr simultanées
+_cu_reading       = False   # verrou simple pour éviter des lectures umr simultanées
+_cu_last_attempt  = 0.0     # timestamp du dernier lancement bg read (rate-limit 30s)
 
 
 def _find_umr() -> str | None:
@@ -109,9 +111,16 @@ def _umr_read(umr: str, reg: str,
     cmd += ["-r", f"{CU_ASIC}.{reg}"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        if result.returncode != 0 or not result.stdout.strip():
+            print(f"[BC250 CU] umr rc={result.returncode} stderr={result.stderr[:200]!r} stdout={result.stdout[:100]!r}")
         m = re.search(r'0x[0-9a-fA-F]+', result.stdout)
+        if m:
+            return int(m.group(), 16)
+        # Certaines versions umr écrivent sur stderr
+        m = re.search(r'0x[0-9a-fA-F]+', result.stderr)
         return int(m.group(), 16) if m else None
-    except Exception:
+    except Exception as e:
+        print(f"[BC250 CU] umr exception: {e}")
         return None
 
 
@@ -136,6 +145,13 @@ async def _bg_cu_read(umr: str):
         print("[BC250 CU] lecture umr en fond...")
         loop = asyncio.get_running_loop()
         masks_raw = await loop.run_in_executor(None, _read_all_cu_masks_seq, umr)
+        print(f"[BC250 CU] masks_raw={masks_raw}")
+
+        # Si tous les reads ont échoué (None ou 0), ne pas écrire un faux cache à 0
+        if not any(v is not None and v != 0 for v in masks_raw):
+            print("[BC250 CU] bg_cu_read: tous les reads ont échoué — cache non écrit")
+            return
+
         masks = [v or 0 for v in masks_raw]
         cu_count = _masks_cu_count(masks)
         current_profile = _identify_profile(masks)
@@ -239,6 +255,15 @@ if __name__ == "__main__":
 class Plugin:
     async def _main(self):
         self._games_db: dict = {}
+        # Purge le cache CU si cu_count=0 (lecture umr ratée lors d'une session précédente)
+        if CU_LIVE_CACHE.exists():
+            try:
+                cached = json.loads(CU_LIVE_CACHE.read_text())
+                if not cached.get("cu_count"):
+                    CU_LIVE_CACHE.unlink()
+                    print("[BC250 CU] cache invalide (cu_count=0) purgé au démarrage")
+            except Exception:
+                CU_LIVE_CACHE.unlink(missing_ok=True)
         self._install_pre_steam_hook()
         await self._load_db()
 
@@ -498,9 +523,13 @@ class Plugin:
                 pass
 
         # Chemin lent : lecture umr en tâche de fond (non-bloquant, cache mis à jour)
-        global _cu_reading
-        if result["cu_count"] is None and umr and not _cu_reading:
+        # Déclenche si : pas de valeur OU valeur = 0 (cache corrompu d'une lecture ratée)
+        global _cu_reading, _cu_last_attempt
+        need_read = (result["cu_count"] is None or result["cu_count"] == 0)
+        throttled = (time.time() - _cu_last_attempt) < 30  # retry max toutes les 30s
+        if need_read and umr and not _cu_reading and not throttled:
             _cu_reading = True
+            _cu_last_attempt = time.time()
             asyncio.create_task(_bg_cu_read(umr))
 
         # Profil de boot depuis le conf

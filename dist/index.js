@@ -85,6 +85,508 @@ const definePlugin = (fn) => {
     };
 };
 
+// i18n — BC250 Toolkit
+// Languages: en, fr, de, es, it, pt, nl, pl, ru
+// Auto-detected from Steam LocalizationManager, fallback to navigator.language
+const STEAM_MAP = {
+    english: "en", french: "fr", german: "de",
+    spanish: "es", portuguese: "pt", italian: "it",
+    dutch: "nl", polish: "pl", russian: "ru",
+};
+const NAV_MAP = {
+    en: "en", fr: "fr", de: "de", es: "es",
+    it: "it", pt: "pt", nl: "nl", pl: "pl", ru: "ru",
+};
+function detectLocale() {
+    try {
+        const lm = window.LocalizationManager;
+        for (const k of ["m_strLanguage", "strLanguage", "language"]) {
+            const v = lm?.[k];
+            if (typeof v === "string" && STEAM_MAP[v.toLowerCase()])
+                return STEAM_MAP[v.toLowerCase()];
+        }
+    }
+    catch { }
+    try {
+        const nav = navigator.language?.split("-")[0].toLowerCase();
+        if (nav && NAV_MAP[nav])
+            return NAV_MAP[nav];
+    }
+    catch { }
+    return "en";
+}
+let _locale = null;
+const T = {
+    en: {
+        // Tabs
+        tab_games: "Games",
+        tab_cu: "CU",
+        tab_system: "System",
+        tab_settings: "Settings",
+        // Games
+        db_optimized: "Optimized games for BC-250",
+        db_count: "{count} games",
+        installed_compat: "Installed & Compatible",
+        no_games: "No games from the DB are installed",
+        settings_title: "Settings to Apply",
+        label_proton: "Proton",
+        label_launch: "Launch options",
+        label_notes: "Notes",
+        btn_apply: "Apply BC-250 settings",
+        btn_applying: "Applying...",
+        btn_applied: "✓ Applied (restart Steam once)",
+        btn_refresh: "Refresh",
+        toast_applied: "✓ Settings applied: {name}",
+        toast_error: "✗ Error: {detail}",
+        toast_persistent: "✓ Persistent — restart Steam once",
+        toast_partial_compat: "⚠ Partial: Proton OK — Launch options failed",
+        toast_partial_launch: "⚠ Partial: Launch options OK — Proton failed",
+        // CU
+        cu_title: "CU Status",
+        cu_live: "Active CU (live)",
+        cu_reading: "reading...",
+        cu_na: "N/A",
+        cu_boot: "Boot",
+        cu_no_umr: "⚠ umr not available — required for CU management",
+        cu_install_umr: "Install umr automatically",
+        cu_installing_umr: "Installing...",
+        cu_profiles: "Profiles",
+        cu_options: "Options",
+        cu_save_boot: "Save to boot",
+        cu_save_boot_desc: "CU profile is automatically restored at each boot",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/row × 4 rows = 40 CU max\n36 CU = SE0 full (10+10) + SE1 partial (8+8)",
+        cu_applying: "Applying...",
+        cu_done_live: "✓ {count} CU applied (live — not persistent)",
+        cu_done_boot: "✓ {count} CU applied and saved to boot",
+        toast_umr_start: "Installing umr (~30s)...",
+        toast_umr_ok: "✓ umr installed — CU available",
+        toast_umr_already: "✓ umr already available",
+        toast_umr_fail: "✗ umr install failed: {error}",
+        // CU disclaimer
+        cu_warn_title: "⚠ Experimental — Use at your own risk",
+        cu_warn_body: "Increasing the CU count beyond stock (24 CU) is experimental. It may cause GPU instability, crashes, or overheating. The BC250 Toolkit team is NOT responsible for any hardware damage.",
+        cu_tips_title: "Recommendations",
+        cu_tips_body: "• Start with 32 CU and test for stability\n• Monitor temps in the System tab\n• Save to boot only after confirming stability\n• Return to 24 CU (stock) if issues occur",
+        // System
+        sys_temps: "Temperatures",
+        sys_status: "Status",
+        sys_scheduler: "Scheduler",
+        sys_tuned: "Tuned",
+        sys_gamemode: "Gamemode",
+        sys_active: "✓ active",
+        sys_inactive: "✗ inactive",
+        sys_unknown: "unknown",
+        sys_last_update: "Last update",
+        sys_btn_update: "Update tweaks",
+        sys_btn_updating: "Updating...",
+        sys_toast_ok: "✓ Tweaks updated",
+        sys_toast_fail: "✗ Update error",
+        sys_log: "Log",
+        // Settings
+        set_auto: "Auto-apply on launch",
+        set_auto_desc: "Automatically applies settings when a known game is launched",
+        set_refresh_db: "Refresh DB from GitHub",
+        set_refreshing: "Refreshing...",
+        set_db_date: "DB updated on",
+        set_contribute: "Contribute",
+        toast_db_ok: "DB updated",
+    },
+    fr: {
+        tab_games: "Jeux", tab_cu: "CU", tab_system: "Système", tab_settings: "Réglages",
+        db_optimized: "Jeux optimisés pour BC-250",
+        db_count: "{count} jeux",
+        installed_compat: "Installés et compatibles",
+        no_games: "Aucun jeu de la DB n'est installé",
+        settings_title: "Settings à appliquer",
+        label_proton: "Proton", label_launch: "Options de lancement", label_notes: "Notes",
+        btn_apply: "Appliquer les settings BC-250",
+        btn_applying: "Application...",
+        btn_applied: "✓ Appliqué (redémarre Steam une fois)",
+        btn_refresh: "Rafraîchir",
+        toast_applied: "✓ Settings appliqués : {name}",
+        toast_error: "✗ Erreur : {detail}",
+        toast_persistent: "✓ Persistant — redémarre Steam une fois",
+        toast_partial_compat: "⚠ Partiel : Proton OK — Launch options KO",
+        toast_partial_launch: "⚠ Partiel : Launch options OK — Proton KO",
+        cu_title: "Statut CU", cu_live: "CU actifs (live)",
+        cu_reading: "lecture...", cu_na: "N/A", cu_boot: "Boot",
+        cu_no_umr: "⚠ umr non disponible — requis pour la gestion CU",
+        cu_install_umr: "Installer umr automatiquement",
+        cu_installing_umr: "Installation en cours...",
+        cu_profiles: "Profils", cu_options: "Options",
+        cu_save_boot: "Sauvegarder au boot",
+        cu_save_boot_desc: "Le profil CU est restauré automatiquement à chaque démarrage",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/rangée × 4 rangées = 40 CU max\n36 CU = SE0 full (10+10) + SE1 partial (8+8)",
+        cu_applying: "Application...",
+        cu_done_live: "✓ {count} CU appliqués (live — non persistant)",
+        cu_done_boot: "✓ {count} CU appliqués et sauvegardés au boot",
+        toast_umr_start: "Installation de umr (~30s)...",
+        toast_umr_ok: "✓ umr installé — CU disponible",
+        toast_umr_already: "✓ umr déjà disponible",
+        toast_umr_fail: "✗ Échec install umr : {error}",
+        cu_warn_title: "⚠ Expérimental — Utilisation à vos risques",
+        cu_warn_body: "Augmenter le nombre de CU au-delà de 24 CU (stock) est expérimental. Cela peut provoquer instabilité GPU, crashs ou surchauffe. L'équipe BC250 Toolkit décline toute responsabilité en cas de dommages matériels.",
+        cu_tips_title: "Recommandations",
+        cu_tips_body: "• Commencez par 32 CU et testez la stabilité\n• Surveillez les temps dans l'onglet Système\n• Ne sauvegardez au boot qu'après avoir confirmé la stabilité\n• Revenez à 24 CU (stock) en cas de problème",
+        sys_temps: "Températures", sys_status: "Statut", sys_scheduler: "Scheduler",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ actif", sys_inactive: "✗ inactif", sys_unknown: "inconnu",
+        sys_last_update: "Dernier update",
+        sys_btn_update: "Mettre à jour les tweaks", sys_btn_updating: "Mise à jour...",
+        sys_toast_ok: "✓ Tweaks mis à jour", sys_toast_fail: "✗ Erreur mise à jour", sys_log: "Log",
+        set_auto: "Auto-apply au lancement",
+        set_auto_desc: "Applique automatiquement les settings quand un jeu connu est lancé",
+        set_refresh_db: "Rafraîchir DB depuis GitHub", set_refreshing: "Rafraîchissement...",
+        set_db_date: "DB mise à jour le", set_contribute: "Contribuer", toast_db_ok: "DB mise à jour",
+    },
+    de: {
+        tab_games: "Spiele", tab_cu: "CU", tab_system: "System", tab_settings: "Einstellungen",
+        db_optimized: "Optimierte Spiele für BC-250",
+        db_count: "{count} Spiele",
+        installed_compat: "Installiert & kompatibel",
+        no_games: "Keine Spiele aus der DB installiert",
+        settings_title: "Anzuwendende Einstellungen",
+        label_proton: "Proton", label_launch: "Startoptionen", label_notes: "Notizen",
+        btn_apply: "BC-250 Einstellungen anwenden",
+        btn_applying: "Wird angewendet...",
+        btn_applied: "✓ Angewendet (Steam einmal neu starten)",
+        btn_refresh: "Aktualisieren",
+        toast_applied: "✓ Einstellungen angewendet: {name}",
+        toast_error: "✗ Fehler: {detail}",
+        toast_persistent: "✓ Dauerhaft — Steam einmal neu starten",
+        toast_partial_compat: "⚠ Teilweise: Proton OK — Startoptionen fehlgeschlagen",
+        toast_partial_launch: "⚠ Teilweise: Startoptionen OK — Proton fehlgeschlagen",
+        cu_title: "CU-Status", cu_live: "Aktive CU (live)",
+        cu_reading: "Lesen...", cu_na: "N/A", cu_boot: "Boot",
+        cu_no_umr: "⚠ umr nicht verfügbar — für CU-Verwaltung erforderlich",
+        cu_install_umr: "umr automatisch installieren",
+        cu_installing_umr: "Installation läuft...",
+        cu_profiles: "Profile", cu_options: "Optionen",
+        cu_save_boot: "Beim Booten speichern",
+        cu_save_boot_desc: "CU-Profil wird bei jedem Start automatisch wiederhergestellt",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/Reihe × 4 Reihen = 40 CU max\n36 CU = SE0 voll (10+10) + SE1 teilw. (8+8)",
+        cu_applying: "Wird angewendet...",
+        cu_done_live: "✓ {count} CU angewendet (live — nicht dauerhaft)",
+        cu_done_boot: "✓ {count} CU angewendet und beim Boot gespeichert",
+        toast_umr_start: "umr wird installiert (~30s)...",
+        toast_umr_ok: "✓ umr installiert — CU verfügbar",
+        toast_umr_already: "✓ umr bereits verfügbar",
+        toast_umr_fail: "✗ umr-Installation fehlgeschlagen: {error}",
+        cu_warn_title: "⚠ Experimentell — Auf eigenes Risiko",
+        cu_warn_body: "Die Erhöhung der CU-Anzahl über 24 CU (Standard) ist experimentell. Es kann zu GPU-Instabilität, Abstürzen oder Überhitzung kommen. Das BC250 Toolkit-Team übernimmt keine Haftung für Hardwareschäden.",
+        cu_tips_title: "Empfehlungen",
+        cu_tips_body: "• Mit 32 CU beginnen und Stabilität testen\n• Temperaturen im System-Tab überwachen\n• Nur nach Stabilitätsbestätigung beim Boot speichern\n• Bei Problemen zu 24 CU (Standard) zurückkehren",
+        sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Scheduler",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ aktiv", sys_inactive: "✗ inaktiv", sys_unknown: "unbekannt",
+        sys_last_update: "Letztes Update",
+        sys_btn_update: "Tweaks aktualisieren", sys_btn_updating: "Aktualisiere...",
+        sys_toast_ok: "✓ Tweaks aktualisiert", sys_toast_fail: "✗ Update-Fehler", sys_log: "Log",
+        set_auto: "Automatisch beim Start anwenden",
+        set_auto_desc: "Wendet Einstellungen automatisch an, wenn ein bekanntes Spiel gestartet wird",
+        set_refresh_db: "DB von GitHub aktualisieren", set_refreshing: "Wird aktualisiert...",
+        set_db_date: "DB aktualisiert am", set_contribute: "Beitragen", toast_db_ok: "DB aktualisiert",
+    },
+    es: {
+        tab_games: "Juegos", tab_cu: "CU", tab_system: "Sistema", tab_settings: "Ajustes",
+        db_optimized: "Juegos optimizados para BC-250",
+        db_count: "{count} juegos",
+        installed_compat: "Instalados y compatibles",
+        no_games: "No hay juegos de la BD instalados",
+        settings_title: "Configuración a aplicar",
+        label_proton: "Proton", label_launch: "Opciones de inicio", label_notes: "Notas",
+        btn_apply: "Aplicar configuración BC-250",
+        btn_applying: "Aplicando...",
+        btn_applied: "✓ Aplicado (reinicia Steam una vez)",
+        btn_refresh: "Actualizar",
+        toast_applied: "✓ Configuración aplicada: {name}",
+        toast_error: "✗ Error: {detail}",
+        toast_persistent: "✓ Persistente — reinicia Steam una vez",
+        toast_partial_compat: "⚠ Parcial: Proton OK — Opciones de inicio fallaron",
+        toast_partial_launch: "⚠ Parcial: Opciones OK — Proton falló",
+        cu_title: "Estado CU", cu_live: "CU activos (en vivo)",
+        cu_reading: "leyendo...", cu_na: "N/D", cu_boot: "Arranque",
+        cu_no_umr: "⚠ umr no disponible — necesario para gestión CU",
+        cu_install_umr: "Instalar umr automáticamente",
+        cu_installing_umr: "Instalando...",
+        cu_profiles: "Perfiles", cu_options: "Opciones",
+        cu_save_boot: "Guardar al arranque",
+        cu_save_boot_desc: "El perfil CU se restaura automáticamente en cada inicio",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/fila × 4 filas = 40 CU máx\n36 CU = SE0 completo (10+10) + SE1 parcial (8+8)",
+        cu_applying: "Aplicando...",
+        cu_done_live: "✓ {count} CU aplicados (en vivo — no persistente)",
+        cu_done_boot: "✓ {count} CU aplicados y guardados al arranque",
+        toast_umr_start: "Instalando umr (~30s)...",
+        toast_umr_ok: "✓ umr instalado — CU disponible",
+        toast_umr_already: "✓ umr ya disponible",
+        toast_umr_fail: "✗ Instalación de umr fallida: {error}",
+        cu_warn_title: "⚠ Experimental — Bajo tu propio riesgo",
+        cu_warn_body: "Aumentar los CU más allá de 24 CU (stock) es experimental. Puede causar inestabilidad de GPU, cuelgues o sobrecalentamiento. El equipo BC250 Toolkit no se hace responsable de daños al hardware.",
+        cu_tips_title: "Recomendaciones",
+        cu_tips_body: "• Empieza con 32 CU y prueba la estabilidad\n• Monitoriza temperaturas en la pestaña Sistema\n• Guarda al arranque solo tras confirmar estabilidad\n• Vuelve a 24 CU (stock) si hay problemas",
+        sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Planificador",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ activo", sys_inactive: "✗ inactivo", sys_unknown: "desconocido",
+        sys_last_update: "Última actualización",
+        sys_btn_update: "Actualizar tweaks", sys_btn_updating: "Actualizando...",
+        sys_toast_ok: "✓ Tweaks actualizados", sys_toast_fail: "✗ Error de actualización", sys_log: "Log",
+        set_auto: "Auto-aplicar al iniciar",
+        set_auto_desc: "Aplica ajustes automáticamente cuando se lanza un juego conocido",
+        set_refresh_db: "Actualizar BD desde GitHub", set_refreshing: "Actualizando...",
+        set_db_date: "BD actualizada el", set_contribute: "Contribuir", toast_db_ok: "BD actualizada",
+    },
+    it: {
+        tab_games: "Giochi", tab_cu: "CU", tab_system: "Sistema", tab_settings: "Impostazioni",
+        db_optimized: "Giochi ottimizzati per BC-250",
+        db_count: "{count} giochi",
+        installed_compat: "Installati e compatibili",
+        no_games: "Nessun gioco del DB installato",
+        settings_title: "Impostazioni da applicare",
+        label_proton: "Proton", label_launch: "Opzioni di lancio", label_notes: "Note",
+        btn_apply: "Applica impostazioni BC-250",
+        btn_applying: "Applicazione...",
+        btn_applied: "✓ Applicato (riavvia Steam una volta)",
+        btn_refresh: "Aggiorna",
+        toast_applied: "✓ Impostazioni applicate: {name}",
+        toast_error: "✗ Errore: {detail}",
+        toast_persistent: "✓ Persistente — riavvia Steam una volta",
+        toast_partial_compat: "⚠ Parziale: Proton OK — Opzioni lancio fallite",
+        toast_partial_launch: "⚠ Parziale: Opzioni OK — Proton fallito",
+        cu_title: "Stato CU", cu_live: "CU attivi (live)",
+        cu_reading: "lettura...", cu_na: "N/D", cu_boot: "Avvio",
+        cu_no_umr: "⚠ umr non disponibile — richiesto per gestione CU",
+        cu_install_umr: "Installa umr automaticamente",
+        cu_installing_umr: "Installazione...",
+        cu_profiles: "Profili", cu_options: "Opzioni",
+        cu_save_boot: "Salva all'avvio",
+        cu_save_boot_desc: "Il profilo CU viene ripristinato automaticamente ad ogni avvio",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/fila × 4 file = 40 CU max\n36 CU = SE0 completo (10+10) + SE1 parziale (8+8)",
+        cu_applying: "Applicazione...",
+        cu_done_live: "✓ {count} CU applicati (live — non persistente)",
+        cu_done_boot: "✓ {count} CU applicati e salvati all'avvio",
+        toast_umr_start: "Installazione umr (~30s)...",
+        toast_umr_ok: "✓ umr installato — CU disponibile",
+        toast_umr_already: "✓ umr già disponibile",
+        toast_umr_fail: "✗ Installazione umr fallita: {error}",
+        cu_warn_title: "⚠ Sperimentale — A proprio rischio",
+        cu_warn_body: "Aumentare i CU oltre 24 CU (stock) è sperimentale. Può causare instabilità GPU, crash o surriscaldamento. Il team BC250 Toolkit non è responsabile per danni all'hardware.",
+        cu_tips_title: "Raccomandazioni",
+        cu_tips_body: "• Inizia con 32 CU e testa la stabilità\n• Monitora le temperature nella scheda Sistema\n• Salva all'avvio solo dopo aver confermato la stabilità\n• Torna a 24 CU (stock) in caso di problemi",
+        sys_temps: "Temperature", sys_status: "Stato", sys_scheduler: "Scheduler",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ attivo", sys_inactive: "✗ inattivo", sys_unknown: "sconosciuto",
+        sys_last_update: "Ultimo aggiornamento",
+        sys_btn_update: "Aggiorna tweaks", sys_btn_updating: "Aggiornamento...",
+        sys_toast_ok: "✓ Tweaks aggiornati", sys_toast_fail: "✗ Errore aggiornamento", sys_log: "Log",
+        set_auto: "Auto-applica all'avvio",
+        set_auto_desc: "Applica automaticamente le impostazioni quando viene avviato un gioco noto",
+        set_refresh_db: "Aggiorna DB da GitHub", set_refreshing: "Aggiornamento...",
+        set_db_date: "DB aggiornato il", set_contribute: "Contribuisci", toast_db_ok: "DB aggiornato",
+    },
+    pt: {
+        tab_games: "Jogos", tab_cu: "CU", tab_system: "Sistema", tab_settings: "Configurações",
+        db_optimized: "Jogos otimizados para BC-250",
+        db_count: "{count} jogos",
+        installed_compat: "Instalados e compatíveis",
+        no_games: "Nenhum jogo do BD instalado",
+        settings_title: "Configurações a aplicar",
+        label_proton: "Proton", label_launch: "Opções de lançamento", label_notes: "Notas",
+        btn_apply: "Aplicar configurações BC-250",
+        btn_applying: "Aplicando...",
+        btn_applied: "✓ Aplicado (reinicia Steam uma vez)",
+        btn_refresh: "Atualizar",
+        toast_applied: "✓ Configurações aplicadas: {name}",
+        toast_error: "✗ Erro: {detail}",
+        toast_persistent: "✓ Persistente — reinicia Steam uma vez",
+        toast_partial_compat: "⚠ Parcial: Proton OK — Opções de lançamento falharam",
+        toast_partial_launch: "⚠ Parcial: Opções OK — Proton falhou",
+        cu_title: "Estado CU", cu_live: "CU ativos (ao vivo)",
+        cu_reading: "lendo...", cu_na: "N/D", cu_boot: "Arranque",
+        cu_no_umr: "⚠ umr não disponível — necessário para gestão CU",
+        cu_install_umr: "Instalar umr automaticamente",
+        cu_installing_umr: "Instalando...",
+        cu_profiles: "Perfis", cu_options: "Opções",
+        cu_save_boot: "Guardar no arranque",
+        cu_save_boot_desc: "O perfil CU é restaurado automaticamente a cada arranque",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/linha × 4 linhas = 40 CU máx\n36 CU = SE0 completo (10+10) + SE1 parcial (8+8)",
+        cu_applying: "Aplicando...",
+        cu_done_live: "✓ {count} CU aplicados (ao vivo — não persistente)",
+        cu_done_boot: "✓ {count} CU aplicados e guardados no arranque",
+        toast_umr_start: "Instalando umr (~30s)...",
+        toast_umr_ok: "✓ umr instalado — CU disponível",
+        toast_umr_already: "✓ umr já disponível",
+        toast_umr_fail: "✗ Instalação de umr falhou: {error}",
+        cu_warn_title: "⚠ Experimental — Por conta e risco",
+        cu_warn_body: "Aumentar os CU além de 24 CU (stock) é experimental. Pode causar instabilidade de GPU, crashes ou sobreaquecimento. A equipa BC250 Toolkit não se responsabiliza por danos ao hardware.",
+        cu_tips_title: "Recomendações",
+        cu_tips_body: "• Comece com 32 CU e teste a estabilidade\n• Monitorize temperaturas no separador Sistema\n• Guarde no arranque só após confirmar estabilidade\n• Volte a 24 CU (stock) em caso de problemas",
+        sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Scheduler",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ ativo", sys_inactive: "✗ inativo", sys_unknown: "desconhecido",
+        sys_last_update: "Última atualização",
+        sys_btn_update: "Atualizar tweaks", sys_btn_updating: "Atualizando...",
+        sys_toast_ok: "✓ Tweaks atualizados", sys_toast_fail: "✗ Erro de atualização", sys_log: "Log",
+        set_auto: "Auto-aplicar ao iniciar",
+        set_auto_desc: "Aplica configurações automaticamente quando um jogo conhecido é lançado",
+        set_refresh_db: "Atualizar BD do GitHub", set_refreshing: "Atualizando...",
+        set_db_date: "BD atualizado em", set_contribute: "Contribuir", toast_db_ok: "BD atualizado",
+    },
+    nl: {
+        tab_games: "Spellen", tab_cu: "CU", tab_system: "Systeem", tab_settings: "Instellingen",
+        db_optimized: "Geoptimaliseerde spellen voor BC-250",
+        db_count: "{count} spellen",
+        installed_compat: "Geïnstalleerd & compatibel",
+        no_games: "Geen spellen uit de DB geïnstalleerd",
+        settings_title: "Toe te passen instellingen",
+        label_proton: "Proton", label_launch: "Startopties", label_notes: "Notities",
+        btn_apply: "BC-250 instellingen toepassen",
+        btn_applying: "Toepassen...",
+        btn_applied: "✓ Toegepast (herstart Steam eenmaal)",
+        btn_refresh: "Vernieuwen",
+        toast_applied: "✓ Instellingen toegepast: {name}",
+        toast_error: "✗ Fout: {detail}",
+        toast_persistent: "✓ Blijvend — herstart Steam eenmaal",
+        toast_partial_compat: "⚠ Gedeeltelijk: Proton OK — Startopties mislukt",
+        toast_partial_launch: "⚠ Gedeeltelijk: Startopties OK — Proton mislukt",
+        cu_title: "CU-status", cu_live: "Actieve CU (live)",
+        cu_reading: "lezen...", cu_na: "N.v.t.", cu_boot: "Opstarten",
+        cu_no_umr: "⚠ umr niet beschikbaar — vereist voor CU-beheer",
+        cu_install_umr: "umr automatisch installeren",
+        cu_installing_umr: "Installeren...",
+        cu_profiles: "Profielen", cu_options: "Opties",
+        cu_save_boot: "Opslaan bij opstarten",
+        cu_save_boot_desc: "CU-profiel wordt automatisch hersteld bij elke start",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/rij × 4 rijen = 40 CU max\n36 CU = SE0 volledig (10+10) + SE1 gedeeltelijk (8+8)",
+        cu_applying: "Toepassen...",
+        cu_done_live: "✓ {count} CU toegepast (live — niet blijvend)",
+        cu_done_boot: "✓ {count} CU toegepast en opgeslagen bij opstarten",
+        toast_umr_start: "umr installeren (~30s)...",
+        toast_umr_ok: "✓ umr geïnstalleerd — CU beschikbaar",
+        toast_umr_already: "✓ umr al beschikbaar",
+        toast_umr_fail: "✗ umr installatie mislukt: {error}",
+        cu_warn_title: "⚠ Experimenteel — Op eigen risico",
+        cu_warn_body: "Het verhogen van het CU-aantal boven 24 CU (standaard) is experimenteel. Het kan GPU-instabiliteit, crashes of oververhitting veroorzaken. Het BC250 Toolkit-team is niet aansprakelijk voor hardwareschade.",
+        cu_tips_title: "Aanbevelingen",
+        cu_tips_body: "• Begin met 32 CU en test stabiliteit\n• Monitor temperaturen in het Systeem-tabblad\n• Sla op bij opstarten alleen na stabiliteitstests\n• Keer terug naar 24 CU (standaard) bij problemen",
+        sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Planner",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ actief", sys_inactive: "✗ inactief", sys_unknown: "onbekend",
+        sys_last_update: "Laatste update",
+        sys_btn_update: "Tweaks bijwerken", sys_btn_updating: "Bijwerken...",
+        sys_toast_ok: "✓ Tweaks bijgewerkt", sys_toast_fail: "✗ Update fout", sys_log: "Log",
+        set_auto: "Automatisch toepassen bij start",
+        set_auto_desc: "Past instellingen automatisch toe wanneer een bekend spel wordt gestart",
+        set_refresh_db: "DB bijwerken van GitHub", set_refreshing: "Bijwerken...",
+        set_db_date: "DB bijgewerkt op", set_contribute: "Bijdragen", toast_db_ok: "DB bijgewerkt",
+    },
+    pl: {
+        tab_games: "Gry", tab_cu: "CU", tab_system: "System", tab_settings: "Ustawienia",
+        db_optimized: "Zoptymalizowane gry dla BC-250",
+        db_count: "{count} gier",
+        installed_compat: "Zainstalowane i kompatybilne",
+        no_games: "Brak zainstalowanych gier z bazy",
+        settings_title: "Ustawienia do zastosowania",
+        label_proton: "Proton", label_launch: "Opcje uruchomienia", label_notes: "Notatki",
+        btn_apply: "Zastosuj ustawienia BC-250",
+        btn_applying: "Stosowanie...",
+        btn_applied: "✓ Zastosowano (uruchom Steam ponownie)",
+        btn_refresh: "Odśwież",
+        toast_applied: "✓ Ustawienia zastosowane: {name}",
+        toast_error: "✗ Błąd: {detail}",
+        toast_persistent: "✓ Trwałe — uruchom Steam ponownie",
+        toast_partial_compat: "⚠ Częściowe: Proton OK — Opcje uruch. nie powiodły się",
+        toast_partial_launch: "⚠ Częściowe: Opcje OK — Proton nie powiódł się",
+        cu_title: "Status CU", cu_live: "Aktywne CU (live)",
+        cu_reading: "odczyt...", cu_na: "N/D", cu_boot: "Rozruch",
+        cu_no_umr: "⚠ umr niedostępny — wymagany do zarządzania CU",
+        cu_install_umr: "Zainstaluj umr automatycznie",
+        cu_installing_umr: "Instalowanie...",
+        cu_profiles: "Profile", cu_options: "Opcje",
+        cu_save_boot: "Zapisz przy rozruchu",
+        cu_save_boot_desc: "Profil CU jest automatycznie przywracany przy każdym uruchomieniu",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/wiersz × 4 wiersze = 40 CU maks\n36 CU = SE0 pełny (10+10) + SE1 częściowy (8+8)",
+        cu_applying: "Stosowanie...",
+        cu_done_live: "✓ {count} CU zastosowane (live — nietrwałe)",
+        cu_done_boot: "✓ {count} CU zastosowane i zapisane przy rozruchu",
+        toast_umr_start: "Instalowanie umr (~30s)...",
+        toast_umr_ok: "✓ umr zainstalowany — CU dostępne",
+        toast_umr_already: "✓ umr już dostępny",
+        toast_umr_fail: "✗ Instalacja umr nie powiodła się: {error}",
+        cu_warn_title: "⚠ Eksperymentalne — Na własne ryzyko",
+        cu_warn_body: "Zwiększenie CU powyżej 24 CU (standard) jest eksperymentalne. Może powodować niestabilność GPU, awarie lub przegrzanie. Zespół BC250 Toolkit nie ponosi odpowiedzialności za uszkodzenia sprzętu.",
+        cu_tips_title: "Zalecenia",
+        cu_tips_body: "• Zacznij od 32 CU i przetestuj stabilność\n• Monitoruj temperatury w zakładce System\n• Zapisuj przy rozruchu tylko po potwierdzeniu stabilności\n• Wróć do 24 CU (standard) w razie problemów",
+        sys_temps: "Temperatury", sys_status: "Status", sys_scheduler: "Harmonogram",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ aktywny", sys_inactive: "✗ nieaktywny", sys_unknown: "nieznany",
+        sys_last_update: "Ostatnia aktualizacja",
+        sys_btn_update: "Aktualizuj tweaki", sys_btn_updating: "Aktualizowanie...",
+        sys_toast_ok: "✓ Tweaki zaktualizowane", sys_toast_fail: "✗ Błąd aktualizacji", sys_log: "Log",
+        set_auto: "Automatyczne stosowanie przy uruchomieniu",
+        set_auto_desc: "Automatycznie stosuje ustawienia gdy uruchamiana jest znana gra",
+        set_refresh_db: "Odśwież bazę z GitHub", set_refreshing: "Odświeżanie...",
+        set_db_date: "Baza zaktualizowana", set_contribute: "Współtwórz", toast_db_ok: "Baza zaktualizowana",
+    },
+    ru: {
+        tab_games: "Игры", tab_cu: "CU", tab_system: "Система", tab_settings: "Настройки",
+        db_optimized: "Оптимизированные игры для BC-250",
+        db_count: "{count} игр",
+        installed_compat: "Установленные и совместимые",
+        no_games: "Нет установленных игр из базы",
+        settings_title: "Настройки для применения",
+        label_proton: "Proton", label_launch: "Параметры запуска", label_notes: "Заметки",
+        btn_apply: "Применить настройки BC-250",
+        btn_applying: "Применение...",
+        btn_applied: "✓ Применено (перезапустите Steam)",
+        btn_refresh: "Обновить",
+        toast_applied: "✓ Настройки применены: {name}",
+        toast_error: "✗ Ошибка: {detail}",
+        toast_persistent: "✓ Постоянно — перезапустите Steam",
+        toast_partial_compat: "⚠ Частично: Proton OK — Параметры запуска не удались",
+        toast_partial_launch: "⚠ Частично: Параметры OK — Proton не удался",
+        cu_title: "Состояние CU", cu_live: "Активных CU (live)",
+        cu_reading: "чтение...", cu_na: "Н/Д", cu_boot: "Загрузка",
+        cu_no_umr: "⚠ umr недоступен — требуется для управления CU",
+        cu_install_umr: "Установить umr автоматически",
+        cu_installing_umr: "Установка...",
+        cu_profiles: "Профили", cu_options: "Опции",
+        cu_save_boot: "Сохранить при загрузке",
+        cu_save_boot_desc: "Профиль CU автоматически восстанавливается при каждом запуске",
+        cu_legend: "1 WGP = 2 CU • 5 WGP/ряд × 4 ряда = 40 CU макс\n36 CU = SE0 полный (10+10) + SE1 частичный (8+8)",
+        cu_applying: "Применение...",
+        cu_done_live: "✓ {count} CU применено (live — не постоянно)",
+        cu_done_boot: "✓ {count} CU применено и сохранено при загрузке",
+        toast_umr_start: "Установка umr (~30s)...",
+        toast_umr_ok: "✓ umr установлен — CU доступно",
+        toast_umr_already: "✓ umr уже доступен",
+        toast_umr_fail: "✗ Установка umr не удалась: {error}",
+        cu_warn_title: "⚠ Экспериментально — На свой страх и риск",
+        cu_warn_body: "Увеличение CU выше 24 CU (стандарт) является экспериментальным. Это может вызвать нестабильность GPU, сбои или перегрев. Команда BC250 Toolkit не несёт ответственности за повреждение оборудования.",
+        cu_tips_title: "Рекомендации",
+        cu_tips_body: "• Начните с 32 CU и проверьте стабильность\n• Следите за температурами на вкладке Система\n• Сохраняйте при загрузке только после подтверждения стабильности\n• Вернитесь к 24 CU (стандарт) при проблемах",
+        sys_temps: "Температуры", sys_status: "Состояние", sys_scheduler: "Планировщик",
+        sys_tuned: "Tuned", sys_gamemode: "Gamemode",
+        sys_active: "✓ активен", sys_inactive: "✗ неактивен", sys_unknown: "неизвестно",
+        sys_last_update: "Последнее обновление",
+        sys_btn_update: "Обновить твики", sys_btn_updating: "Обновление...",
+        sys_toast_ok: "✓ Твики обновлены", sys_toast_fail: "✗ Ошибка обновления", sys_log: "Log",
+        set_auto: "Авто-применение при запуске",
+        set_auto_desc: "Автоматически применяет настройки при запуске известной игры",
+        set_refresh_db: "Обновить базу с GitHub", set_refreshing: "Обновление...",
+        set_db_date: "База обновлена", set_contribute: "Внести вклад", toast_db_ok: "База обновлена",
+    },
+};
+function t(key, vars) {
+    if (!_locale)
+        _locale = detectLocale();
+    const dict = T[_locale] ?? T.en;
+    let s = dict[key] ?? T.en[key] ?? key;
+    if (vars)
+        for (const [k, v] of Object.entries(vars))
+            s = s.replace(`{${k}}`, String(v));
+    return s;
+}
+
 // ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
 async function applyGameSettings(appId, toolName, launchOpts) {
     const [compatResult, launchResult] = await Promise.all([
@@ -132,10 +634,9 @@ function GamesTab({ gamesDb, autoApply }) {
     }, [gamesDb]);
     SP_REACT.useEffect(() => {
         refresh();
-        const t = setInterval(refresh, 5000);
-        return () => clearInterval(t);
+        const timer = setInterval(refresh, 5000);
+        return () => clearInterval(timer);
     }, [refresh]);
-    // Auto-apply au lancement d'un jeu de la DB
     SP_REACT.useEffect(() => {
         if (!autoApply)
             return;
@@ -155,7 +656,7 @@ function GamesTab({ gamesDb, autoApply }) {
                 const ok = r.compatOk || r.launchOk;
                 toaster.toast({
                     title: "BC250 Toolkit",
-                    body: ok ? `✓ Settings appliqués : ${g.name}` : `✗ Erreur : ${r.compatDetail}`,
+                    body: ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.compatDetail }),
                     duration: 3000,
                 });
             });
@@ -176,14 +677,13 @@ function GamesTab({ gamesDb, autoApply }) {
             const partialOk = r.compatOk || r.launchOk;
             setApplied(allOk || partialOk);
             if (allOk) {
-                toaster.toast({ title: "BC250 Toolkit", body: "✓ Persistant — redémarre Steam une fois", duration: 4000 });
+                toaster.toast({ title: "BC250 Toolkit", body: t("toast_persistent"), duration: 4000 });
             }
             else if (partialOk) {
-                const msg = r.compatOk ? "Proton OK — Launch options KO" : "Launch options OK — Proton KO";
-                toaster.toast({ title: "BC250 Toolkit", body: `⚠ Partiel : ${msg}`, duration: 5000 });
+                toaster.toast({ title: "BC250 Toolkit", body: r.compatOk ? t("toast_partial_compat") : t("toast_partial_launch"), duration: 5000 });
             }
             else {
-                toaster.toast({ title: "BC250 Toolkit", body: `✗ ${r.compatDetail}`, duration: 5000 });
+                toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail: r.compatDetail }), duration: 5000 });
                 setApplied(false);
             }
         }
@@ -191,10 +691,10 @@ function GamesTab({ gamesDb, autoApply }) {
             setApplying(false);
         }
     };
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB", description: "Jeux optimis\u00E9s pour BC-250", children: SP_JSX.jsxs("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: [gameCount, " jeux"] }) }) }) }), installed.length > 0 ? (SP_JSX.jsx(DFL.PanelSection, { title: "Install\u00E9s et compatibles", children: installed.map((entry) => {
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB", description: t("db_optimized"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: t("db_count", { count: gameCount }) }) }) }) }), installed.length > 0 ? (SP_JSX.jsx(DFL.PanelSection, { title: t("installed_compat"), children: installed.map((entry) => {
                     const isSelected = selected?.appid === entry.appid;
                     return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => { setSelected(isSelected ? null : entry); setApplied(false); }, style: isSelected ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.8 }, children: isSelected ? `▶ ${entry.name}` : entry.name }) }, entry.appid));
-                }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: "Aucun jeu de la DB install\u00E9" }) }) }) })), selected && (SP_JSX.jsxs(DFL.PanelSection, { title: "Settings \u00E0 appliquer", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Proton", children: SP_JSX.jsxs("span", { style: { fontSize: "12px" }, children: [selected.game.proton, selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }) }) }), selected.game.proton_note && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: selected.game.proton_note }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Launch options", children: SP_JSX.jsx("div", { style: { fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }, children: selected.game.launch_options }) }) }), selected.game.notes && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Notes", children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ccc" }, children: selected.game.notes }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: applying || applied, onClick: handleApply, children: applying ? "Application..." : applied ? "✓ Appliqué (persistant)" : "Appliquer les settings BC-250" }) })] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: "Rafra\u00EEchir" }) }) })] }));
+                }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: t("no_games") }) }) }) })), selected && (SP_JSX.jsxs(DFL.PanelSection, { title: t("settings_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_proton"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px" }, children: [selected.game.proton, selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }) }) }), selected.game.proton_note && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: selected.game.proton_note }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_launch"), children: SP_JSX.jsx("div", { style: { fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }, children: selected.game.launch_options }) }) }), selected.game.notes && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_notes"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ccc" }, children: selected.game.notes }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: applying || applied, onClick: handleApply, children: applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply") }) })] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: t("btn_refresh") }) }) })] }));
 }
 // ── Onglet CU ─────────────────────────────────────────────────────────────────
 const CU_PROFILE_LIST = [
@@ -214,23 +714,23 @@ function CuTab() {
     }, []);
     SP_REACT.useEffect(() => {
         refresh();
-        const t = setInterval(refresh, 10000);
-        return () => clearInterval(t);
+        const timer = setInterval(refresh, 10000);
+        return () => clearInterval(timer);
     }, [refresh]);
     const handleInstallUmr = async () => {
         setInstallingUmr(true);
         setLastMsg(null);
-        toaster.toast({ title: "BC250 Toolkit", body: "Installation de umr en cours (~30s)...", duration: 5000 });
+        toaster.toast({ title: "BC250 Toolkit", body: t("toast_umr_start"), duration: 5000 });
         try {
             const r = await call("install_umr");
             if (r.ok) {
-                const msg = r.already ? "✓ umr déjà disponible" : "✓ umr installé — CU disponible";
+                const msg = r.already ? t("toast_umr_already") : t("toast_umr_ok");
                 setLastMsg(msg);
                 toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
                 refresh();
             }
             else {
-                const msg = `✗ Échec install umr: ${r.error}`;
+                const msg = t("toast_umr_fail", { error: r.error ?? "" });
                 setLastMsg(msg);
                 toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 6000 });
             }
@@ -246,8 +746,8 @@ function CuTab() {
             const r = await call("apply_cu_profile", profileKey, saveBoot);
             if (r.ok) {
                 const msg = saveBoot
-                    ? `✓ ${r.cu_count} CU appliqués et sauvegardés au boot`
-                    : `✓ ${r.cu_count} CU appliqués (live — non persistant)`;
+                    ? t("cu_done_boot", { count: r.cu_count ?? 0 })
+                    : t("cu_done_live", { count: r.cu_count ?? 0 });
                 setLastMsg(msg);
                 toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 3000 });
                 refresh();
@@ -264,23 +764,21 @@ function CuTab() {
     };
     if (!status)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: "Statut CU", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CU actifs (live)", children: SP_JSX.jsx("span", { style: { fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }, children: status.cu_count != null
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("cu_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cu_live"), children: SP_JSX.jsx("span", { style: { fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }, children: status.cu_count != null && status.cu_count > 0
                                     ? `${status.cu_count} / 40 CU`
                                     : status.umr_available
-                                        ? "lecture..."
-                                        : "N/A" }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Boot", children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: "\u26A0 umr non disponible \u2014 requis pour la gestion CU" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: installingUmr, onClick: handleInstallUmr, children: installingUmr ? "Installation en cours..." : "Installer umr automatiquement" }) })] }))] }), SP_JSX.jsx(DFL.PanelSection, { title: "Profils", children: CU_PROFILE_LIST.map(({ key, label, color }) => {
+                                        ? t("cu_reading")
+                                        : t("cu_na") }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cu_boot"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: t("cu_no_umr") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: installingUmr, onClick: handleInstallUmr, children: installingUmr ? t("cu_installing_umr") : t("cu_install_umr") }) })] }))] }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_warn_title"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.5" }, children: t("cu_warn_body") }) }) }) }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_tips_title"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#aaa", lineHeight: "1.6", whiteSpace: "pre-line" }, children: t("cu_tips_body") }) }) }) }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_profiles"), children: CU_PROFILE_LIST.map(({ key, label, color }) => {
                     const isActive = status.current_profile === key;
                     const isBoot = status.boot_profile === key;
                     const isApplying = applying === key;
                     const suffix = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
-                    return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => applyProfile(key), disabled: !!applying || !status.umr_available, style: isActive ? { color, fontWeight: "bold" } : { opacity: 0.75 }, children: isApplying
-                                ? "Application..."
-                                : `${isActive ? "▶ " : ""}${label}${suffix}` }) }, key));
-                }) }), SP_JSX.jsxs(DFL.PanelSection, { title: "Options", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: "Sauvegarder au boot", description: "Le profil CU est restaur\u00E9 automatiquement \u00E0 chaque d\u00E9marrage", checked: saveBoot, onChange: setSaveBoot }) }), lastMsg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                    return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => applyProfile(key), disabled: !!applying || !status.umr_available, style: isActive ? { color, fontWeight: "bold" } : { opacity: 0.75 }, children: isApplying ? t("cu_applying") : `${isActive ? "▶ " : ""}${label}${suffix}` }) }, key));
+                }) }), SP_JSX.jsxs(DFL.PanelSection, { title: t("cu_options"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("cu_save_boot"), description: t("cu_save_boot_desc"), checked: saveBoot, onChange: setSaveBoot }) }), lastMsg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
                                     fontSize: "11px",
                                     color: lastMsg.startsWith("✓") ? "#4caf50" : "#f44336",
                                     lineHeight: "1.4",
-                                }, children: lastMsg }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsxs("div", { style: { fontSize: "10px", color: "#555", lineHeight: "1.4" }, children: ["1 WGP = 2 CU \u2022 5 WGP/rang\u00E9e \u00D7 4 rang\u00E9es = 40 CU max", "\n", "36 CU = SE0 full (10+10) + SE1 partial (8+8)"] }) }) }) })] }));
+                                }, children: lastMsg }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "10px", color: "#555", lineHeight: "1.4", whiteSpace: "pre-line" }, children: t("cu_legend") }) }) }) })] }));
 }
 // ── Onglet Système ────────────────────────────────────────────────────────────
 function SystemTab() {
@@ -289,8 +787,8 @@ function SystemTab() {
     const [updateLog, setUpdateLog] = SP_REACT.useState(null);
     SP_REACT.useEffect(() => {
         call("get_system_status").then(setStatus);
-        const t = setInterval(() => call("get_system_status").then(setStatus), 5000);
-        return () => clearInterval(t);
+        const timer = setInterval(() => call("get_system_status").then(setStatus), 5000);
+        return () => clearInterval(timer);
     }, []);
     const handleUpdate = async () => {
         setUpdating(true);
@@ -300,7 +798,7 @@ function SystemTab() {
             setUpdateLog(r.success ? (r.stdout ?? "OK") : (r.error ?? "Erreur inconnue"));
             toaster.toast({
                 title: "BC250 Toolkit",
-                body: r.success ? "✓ Tweaks mis à jour" : "✗ Erreur mise à jour",
+                body: r.success ? t("sys_toast_ok") : t("sys_toast_fail"),
                 duration: 4000,
             });
         }
@@ -311,9 +809,9 @@ function SystemTab() {
     if (!status)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
     const tempColor = (v) => !v ? "#888" : v > 85 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: "Temp\u00E9ratures", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp), fontWeight: "bold" }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : "N/A" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "GPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp), fontWeight: "bold" }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : "N/A" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: "Statut", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Scheduler", children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
-                                    ? `✓ ${status.scx_sched ?? "scx actif"}`
-                                    : `✗ ${status.scx_state ?? "inconnu"}` }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Tuned", children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? "inconnu" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Gamemode", children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? "✓ actif" : "✗ inactif" }) }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Dernier update", children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: updating, onClick: handleUpdate, children: updating ? "Mise à jour..." : "Mettre à jour les tweaks" }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Log", children: SP_JSX.jsx("div", { style: {
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_temps"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp), fontWeight: "bold" }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "GPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp), fontWeight: "bold" }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na") }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_status"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_scheduler"), children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
+                                    ? `✓ ${status.scx_sched ?? "scx"}`
+                                    : `✗ ${status.scx_state ?? t("sys_unknown")}` }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_tuned"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? t("sys_unknown") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_gamemode"), children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? t("sys_active") : t("sys_inactive") }) }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_last_update"), children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: updating, onClick: handleUpdate, children: updating ? t("sys_btn_updating") : t("sys_btn_update") }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_log"), children: SP_JSX.jsx("div", { style: {
                                     fontSize: "10px", fontFamily: "monospace", color: "#aaa",
                                     maxHeight: "100px", overflow: "auto", whiteSpace: "pre-wrap",
                                 }, children: updateLog.slice(-1500) }) }) }))] }))] }));
@@ -331,17 +829,16 @@ function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
             setRefreshing(false);
         }
     };
-    return (SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: "Auto-apply au lancement", description: "Applique automatiquement les settings quand un jeu connu est lanc\u00E9", checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: refreshing, onClick: doRefresh, children: refreshing ? "Rafraîchissement..." : "Rafraîchir DB depuis GitHub" }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB mise \u00E0 jour le", children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Contribuer", children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }));
+    return (SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("set_auto"), description: t("set_auto_desc"), checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: refreshing, onClick: doRefresh, children: refreshing ? t("set_refreshing") : t("set_refresh_db") }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_db_date"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_contribute"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }));
 }
-// ── Barre d'onglets ───────────────────────────────────────────────────────────
 const TAB_DEFS = [
-    { id: "games", label: "Jeux" },
-    { id: "cu", label: "CU" },
-    { id: "system", label: "Système" },
-    { id: "settings", label: "Réglages" },
+    { id: "games", tKey: "tab_games" },
+    { id: "cu", tKey: "tab_cu" },
+    { id: "system", tKey: "tab_system" },
+    { id: "settings", tKey: "tab_settings" },
 ];
 function TabBar({ tab, setTab }) {
-    return (SP_JSX.jsx(DFL.PanelSection, { children: TAB_DEFS.map(({ id, label }) => (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => setTab(id), style: tab === id ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.6 }, children: tab === id ? `▶ ${label}` : label }) }, id))) }));
+    return (SP_JSX.jsx(DFL.PanelSection, { children: TAB_DEFS.map(({ id, tKey }) => (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => setTab(id), style: tab === id ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.6 }, children: tab === id ? `▶ ${t(tKey)}` : t(tKey) }) }, id))) }));
 }
 // ── Plugin principal ──────────────────────────────────────────────────────────
 function Content() {
@@ -358,7 +855,7 @@ function Content() {
     const refreshDb = async () => {
         const db = await call("refresh_games_db");
         setGamesDb(db);
-        toaster.toast({ title: "BC250 Toolkit", body: "DB mise à jour", duration: 2000 });
+        toaster.toast({ title: "BC250 Toolkit", body: t("toast_db_ok"), duration: 2000 });
     };
     if (!dbLoaded)
         return SP_JSX.jsx(DFL.SteamSpinner, {});

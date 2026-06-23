@@ -10,6 +10,7 @@ import {
   SteamSpinner,
 } from "@decky/ui";
 import { definePlugin, call, toaster } from "@decky/api";
+import { t } from "./i18n";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -113,11 +114,10 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
 
   useEffect(() => {
     refresh();
-    const t = setInterval(refresh, 5000);
-    return () => clearInterval(t);
+    const timer = setInterval(refresh, 5000);
+    return () => clearInterval(timer);
   }, [refresh]);
 
-  // Auto-apply au lancement d'un jeu de la DB
   useEffect(() => {
     if (!autoApply) return;
     let unreg: (() => void) | undefined;
@@ -133,7 +133,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
         const ok = r.compatOk || r.launchOk;
         toaster.toast({
           title: "BC250 Toolkit",
-          body: ok ? `✓ Settings appliqués : ${g.name}` : `✗ Erreur : ${r.compatDetail}`,
+          body: ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.compatDetail }),
           duration: 3000,
         });
       });
@@ -154,12 +154,11 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
       const partialOk = r.compatOk || r.launchOk;
       setApplied(allOk || partialOk);
       if (allOk) {
-        toaster.toast({ title: "BC250 Toolkit", body: "✓ Persistant — redémarre Steam une fois", duration: 4000 });
+        toaster.toast({ title: "BC250 Toolkit", body: t("toast_persistent"), duration: 4000 });
       } else if (partialOk) {
-        const msg = r.compatOk ? "Proton OK — Launch options KO" : "Launch options OK — Proton KO";
-        toaster.toast({ title: "BC250 Toolkit", body: `⚠ Partiel : ${msg}`, duration: 5000 });
+        toaster.toast({ title: "BC250 Toolkit", body: r.compatOk ? t("toast_partial_compat") : t("toast_partial_launch"), duration: 5000 });
       } else {
-        toaster.toast({ title: "BC250 Toolkit", body: `✗ ${r.compatDetail}`, duration: 5000 });
+        toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail: r.compatDetail }), duration: 5000 });
         setApplied(false);
       }
     } finally {
@@ -171,14 +170,14 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
     <>
       <PanelSection>
         <PanelSectionRow>
-          <Field label="DB" description="Jeux optimisés pour BC-250">
-            <span style={{ color: "#67a3ff", fontWeight: "bold" }}>{gameCount} jeux</span>
+          <Field label="DB" description={t("db_optimized")}>
+            <span style={{ color: "#67a3ff", fontWeight: "bold" }}>{t("db_count", { count: gameCount })}</span>
           </Field>
         </PanelSectionRow>
       </PanelSection>
 
       {installed.length > 0 ? (
-        <PanelSection title="Installés et compatibles">
+        <PanelSection title={t("installed_compat")}>
           {installed.map((entry) => {
             const isSelected = selected?.appid === entry.appid;
             return (
@@ -199,7 +198,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
           <PanelSectionRow>
             <Field>
               <div style={{ color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }}>
-                Aucun jeu de la DB installé
+                {t("no_games")}
               </div>
             </Field>
           </PanelSectionRow>
@@ -207,9 +206,9 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
       )}
 
       {selected && (
-        <PanelSection title="Settings à appliquer">
+        <PanelSection title={t("settings_title")}>
           <PanelSectionRow>
-            <Field label="Proton">
+            <Field label={t("label_proton")}>
               <span style={{ fontSize: "12px" }}>
                 {selected.game.proton}{selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""}
               </span>
@@ -225,7 +224,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
             </PanelSectionRow>
           )}
           <PanelSectionRow>
-            <Field label="Launch options">
+            <Field label={t("label_launch")}>
               <div style={{ fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }}>
                 {selected.game.launch_options}
               </div>
@@ -233,14 +232,14 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
           </PanelSectionRow>
           {selected.game.notes && (
             <PanelSectionRow>
-              <Field label="Notes">
+              <Field label={t("label_notes")}>
                 <div style={{ fontSize: "11px", color: "#ccc" }}>{selected.game.notes}</div>
               </Field>
             </PanelSectionRow>
           )}
           <PanelSectionRow>
             <ButtonItem layout="below" disabled={applying || applied} onClick={handleApply}>
-              {applying ? "Application..." : applied ? "✓ Appliqué (persistant)" : "Appliquer les settings BC-250"}
+              {applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply")}
             </ButtonItem>
           </PanelSectionRow>
         </PanelSection>
@@ -248,7 +247,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
 
       <PanelSection>
         <PanelSectionRow>
-          <ButtonItem layout="below" onClick={refresh}>Rafraîchir</ButtonItem>
+          <ButtonItem layout="below" onClick={refresh}>{t("btn_refresh")}</ButtonItem>
         </PanelSectionRow>
       </PanelSection>
     </>
@@ -277,23 +276,23 @@ function CuTab() {
 
   useEffect(() => {
     refresh();
-    const t = setInterval(refresh, 10000);
-    return () => clearInterval(t);
+    const timer = setInterval(refresh, 10000);
+    return () => clearInterval(timer);
   }, [refresh]);
 
   const handleInstallUmr = async () => {
     setInstallingUmr(true);
     setLastMsg(null);
-    toaster.toast({ title: "BC250 Toolkit", body: "Installation de umr en cours (~30s)...", duration: 5000 });
+    toaster.toast({ title: "BC250 Toolkit", body: t("toast_umr_start"), duration: 5000 });
     try {
       const r = await call<[], { ok: boolean; already?: boolean; error?: string }>("install_umr");
       if (r.ok) {
-        const msg = r.already ? "✓ umr déjà disponible" : "✓ umr installé — CU disponible";
+        const msg = r.already ? t("toast_umr_already") : t("toast_umr_ok");
         setLastMsg(msg);
         toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
         refresh();
       } else {
-        const msg = `✗ Échec install umr: ${r.error}`;
+        const msg = t("toast_umr_fail", { error: r.error ?? "" });
         setLastMsg(msg);
         toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 6000 });
       }
@@ -311,8 +310,8 @@ function CuTab() {
       );
       if (r.ok) {
         const msg = saveBoot
-          ? `✓ ${r.cu_count} CU appliqués et sauvegardés au boot`
-          : `✓ ${r.cu_count} CU appliqués (live — non persistant)`;
+          ? t("cu_done_boot", { count: r.cu_count ?? 0 })
+          : t("cu_done_live", { count: r.cu_count ?? 0 });
         setLastMsg(msg);
         toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 3000 });
         refresh();
@@ -330,24 +329,24 @@ function CuTab() {
 
   return (
     <>
-      <PanelSection title="Statut CU">
+      {/* Statut CU */}
+      <PanelSection title={t("cu_title")}>
         <PanelSectionRow>
-          <Field label="CU actifs (live)">
+          <Field label={t("cu_live")}>
             <span style={{ fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }}>
-              {status.cu_count != null
+              {status.cu_count != null && status.cu_count > 0
                 ? `${status.cu_count} / 40 CU`
                 : status.umr_available
-                  ? "lecture..."
-                  : "N/A"}
+                  ? t("cu_reading")
+                  : t("cu_na")}
             </span>
           </Field>
         </PanelSectionRow>
         {status.boot_cu != null && (
           <PanelSectionRow>
-            <Field label="Boot">
+            <Field label={t("cu_boot")}>
               <span style={{ fontSize: "12px", color: "#aaa" }}>
-                {status.boot_cu} CU
-                {status.boot_profile ? ` (${status.boot_profile})` : ""}
+                {status.boot_cu} CU{status.boot_profile ? ` (${status.boot_profile})` : ""}
               </span>
             </Field>
           </PanelSectionRow>
@@ -357,29 +356,48 @@ function CuTab() {
             <PanelSectionRow>
               <Field>
                 <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>
-                  ⚠ umr non disponible — requis pour la gestion CU
+                  {t("cu_no_umr")}
                 </div>
               </Field>
             </PanelSectionRow>
             <PanelSectionRow>
-              <ButtonItem
-                layout="below"
-                disabled={installingUmr}
-                onClick={handleInstallUmr}
-              >
-                {installingUmr ? "Installation en cours..." : "Installer umr automatiquement"}
+              <ButtonItem layout="below" disabled={installingUmr} onClick={handleInstallUmr}>
+                {installingUmr ? t("cu_installing_umr") : t("cu_install_umr")}
               </ButtonItem>
             </PanelSectionRow>
           </>
         )}
       </PanelSection>
 
-      <PanelSection title="Profils">
+      {/* Avertissement */}
+      <PanelSection title={t("cu_warn_title")}>
+        <PanelSectionRow>
+          <Field>
+            <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.5" }}>
+              {t("cu_warn_body")}
+            </div>
+          </Field>
+        </PanelSectionRow>
+      </PanelSection>
+
+      {/* Recommandations */}
+      <PanelSection title={t("cu_tips_title")}>
+        <PanelSectionRow>
+          <Field>
+            <div style={{ fontSize: "11px", color: "#aaa", lineHeight: "1.6", whiteSpace: "pre-line" }}>
+              {t("cu_tips_body")}
+            </div>
+          </Field>
+        </PanelSectionRow>
+      </PanelSection>
+
+      {/* Profils */}
+      <PanelSection title={t("cu_profiles")}>
         {CU_PROFILE_LIST.map(({ key, label, color }) => {
-          const isActive = status.current_profile === key;
-          const isBoot  = status.boot_profile === key;
+          const isActive   = status.current_profile === key;
+          const isBoot     = status.boot_profile === key;
           const isApplying = applying === key;
-          const suffix = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
+          const suffix     = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
           return (
             <PanelSectionRow key={key}>
               <ButtonItem
@@ -388,20 +406,19 @@ function CuTab() {
                 disabled={!!applying || !status.umr_available}
                 style={isActive ? { color, fontWeight: "bold" } : { opacity: 0.75 }}
               >
-                {isApplying
-                  ? "Application..."
-                  : `${isActive ? "▶ " : ""}${label}${suffix}`}
+                {isApplying ? t("cu_applying") : `${isActive ? "▶ " : ""}${label}${suffix}`}
               </ButtonItem>
             </PanelSectionRow>
           );
         })}
       </PanelSection>
 
-      <PanelSection title="Options">
+      {/* Options */}
+      <PanelSection title={t("cu_options")}>
         <PanelSectionRow>
           <ToggleField
-            label="Sauvegarder au boot"
-            description="Le profil CU est restauré automatiquement à chaque démarrage"
+            label={t("cu_save_boot")}
+            description={t("cu_save_boot_desc")}
             checked={saveBoot}
             onChange={setSaveBoot}
           />
@@ -424,9 +441,8 @@ function CuTab() {
       <PanelSection>
         <PanelSectionRow>
           <Field>
-            <div style={{ fontSize: "10px", color: "#555", lineHeight: "1.4" }}>
-              1 WGP = 2 CU • 5 WGP/rangée × 4 rangées = 40 CU max
-              {"\n"}36 CU = SE0 full (10+10) + SE1 partial (8+8)
+            <div style={{ fontSize: "10px", color: "#555", lineHeight: "1.4", whiteSpace: "pre-line" }}>
+              {t("cu_legend")}
             </div>
           </Field>
         </PanelSectionRow>
@@ -444,8 +460,8 @@ function SystemTab() {
 
   useEffect(() => {
     call<[], SystemStatus>("get_system_status").then(setStatus);
-    const t = setInterval(() => call<[], SystemStatus>("get_system_status").then(setStatus), 5000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => call<[], SystemStatus>("get_system_status").then(setStatus), 5000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleUpdate = async () => {
@@ -456,7 +472,7 @@ function SystemTab() {
       setUpdateLog(r.success ? (r.stdout ?? "OK") : (r.error ?? "Erreur inconnue"));
       toaster.toast({
         title: "BC250 Toolkit",
-        body: r.success ? "✓ Tweaks mis à jour" : "✗ Erreur mise à jour",
+        body: r.success ? t("sys_toast_ok") : t("sys_toast_fail"),
         duration: 4000,
       });
     } finally {
@@ -471,42 +487,42 @@ function SystemTab() {
 
   return (
     <>
-      <PanelSection title="Températures">
+      <PanelSection title={t("sys_temps")}>
         <PanelSectionRow>
           <Field label="CPU">
             <span style={{ color: tempColor(status.cpu_temp), fontWeight: "bold" }}>
-              {status.cpu_temp != null ? `${status.cpu_temp}°C` : "N/A"}
+              {status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na")}
             </span>
           </Field>
         </PanelSectionRow>
         <PanelSectionRow>
           <Field label="GPU">
             <span style={{ color: tempColor(status.gpu_temp), fontWeight: "bold" }}>
-              {status.gpu_temp != null ? `${status.gpu_temp}°C` : "N/A"}
+              {status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na")}
             </span>
           </Field>
         </PanelSectionRow>
       </PanelSection>
 
-      <PanelSection title="Statut">
+      <PanelSection title={t("sys_status")}>
         <PanelSectionRow>
-          <Field label="Scheduler">
+          <Field label={t("sys_scheduler")}>
             <span style={{ color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }}>
               {status.scx_state === "enabled"
-                ? `✓ ${status.scx_sched ?? "scx actif"}`
-                : `✗ ${status.scx_state ?? "inconnu"}`}
+                ? `✓ ${status.scx_sched ?? "scx"}`
+                : `✗ ${status.scx_state ?? t("sys_unknown")}`}
             </span>
           </Field>
         </PanelSectionRow>
         <PanelSectionRow>
-          <Field label="Tuned">
-            <span style={{ fontSize: "11px", color: "#ccc" }}>{status.tuned_profile ?? "inconnu"}</span>
+          <Field label={t("sys_tuned")}>
+            <span style={{ fontSize: "11px", color: "#ccc" }}>{status.tuned_profile ?? t("sys_unknown")}</span>
           </Field>
         </PanelSectionRow>
         <PanelSectionRow>
-          <Field label="Gamemode">
+          <Field label={t("sys_gamemode")}>
             <span style={{ color: status.gamemode_active ? "#4caf50" : "#f44336" }}>
-              {status.gamemode_active ? "✓ actif" : "✗ inactif"}
+              {status.gamemode_active ? t("sys_active") : t("sys_inactive")}
             </span>
           </Field>
         </PanelSectionRow>
@@ -516,19 +532,19 @@ function SystemTab() {
         <PanelSection title="bc250-tweaks">
           {status.tweaks_last_update && (
             <PanelSectionRow>
-              <Field label="Dernier update">
+              <Field label={t("sys_last_update")}>
                 <span style={{ fontSize: "10px", color: "#aaa" }}>{status.tweaks_last_update}</span>
               </Field>
             </PanelSectionRow>
           )}
           <PanelSectionRow>
             <ButtonItem layout="below" disabled={updating} onClick={handleUpdate}>
-              {updating ? "Mise à jour..." : "Mettre à jour les tweaks"}
+              {updating ? t("sys_btn_updating") : t("sys_btn_update")}
             </ButtonItem>
           </PanelSectionRow>
           {updateLog && (
             <PanelSectionRow>
-              <Field label="Log">
+              <Field label={t("sys_log")}>
                 <div style={{
                   fontSize: "10px", fontFamily: "monospace", color: "#aaa",
                   maxHeight: "100px", overflow: "auto", whiteSpace: "pre-wrap",
@@ -569,26 +585,26 @@ function SettingsTab({
     <PanelSection>
       <PanelSectionRow>
         <ToggleField
-          label="Auto-apply au lancement"
-          description="Applique automatiquement les settings quand un jeu connu est lancé"
+          label={t("set_auto")}
+          description={t("set_auto_desc")}
           checked={autoApply}
           onChange={setAutoApply}
         />
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem layout="below" disabled={refreshing} onClick={doRefresh}>
-          {refreshing ? "Rafraîchissement..." : "Rafraîchir DB depuis GitHub"}
+          {refreshing ? t("set_refreshing") : t("set_refresh_db")}
         </ButtonItem>
       </PanelSectionRow>
       {meta?.updated && (
         <PanelSectionRow>
-          <Field label="DB mise à jour le">
+          <Field label={t("set_db_date")}>
             <span style={{ fontSize: "11px", color: "#888" }}>{meta.updated}</span>
           </Field>
         </PanelSectionRow>
       )}
       <PanelSectionRow>
-        <Field label="Contribuer">
+        <Field label={t("set_contribute")}>
           <div style={{ fontSize: "11px", color: "#67a3ff" }}>
             github.com/Necrosiak/bc250-toolkit-decky
           </div>
@@ -600,24 +616,26 @@ function SettingsTab({
 
 // ── Barre d'onglets ───────────────────────────────────────────────────────────
 
-const TAB_DEFS: Array<{ id: TabId; label: string }> = [
-  { id: "games",    label: "Jeux" },
-  { id: "cu",       label: "CU" },
-  { id: "system",   label: "Système" },
-  { id: "settings", label: "Réglages" },
+type TabDef = { id: TabId; tKey: string };
+
+const TAB_DEFS: TabDef[] = [
+  { id: "games",    tKey: "tab_games" },
+  { id: "cu",       tKey: "tab_cu" },
+  { id: "system",   tKey: "tab_system" },
+  { id: "settings", tKey: "tab_settings" },
 ];
 
 function TabBar({ tab, setTab }: { tab: TabId; setTab: (t: TabId) => void }) {
   return (
     <PanelSection>
-      {TAB_DEFS.map(({ id, label }) => (
+      {TAB_DEFS.map(({ id, tKey }) => (
         <PanelSectionRow key={id}>
           <ButtonItem
             layout="below"
             onClick={() => setTab(id)}
             style={tab === id ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.6 }}
           >
-            {tab === id ? `▶ ${label}` : label}
+            {tab === id ? `▶ ${t(tKey)}` : t(tKey)}
           </ButtonItem>
         </PanelSectionRow>
       ))}
@@ -643,7 +661,7 @@ function Content() {
   const refreshDb = async () => {
     const db = await call<[], GamesDB>("refresh_games_db");
     setGamesDb(db);
-    toaster.toast({ title: "BC250 Toolkit", body: "DB mise à jour", duration: 2000 });
+    toaster.toast({ title: "BC250 Toolkit", body: t("toast_db_ok"), duration: 2000 });
   };
 
   if (!dbLoaded) return <SteamSpinner />;
