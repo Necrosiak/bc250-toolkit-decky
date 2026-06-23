@@ -1,3 +1,5 @@
+import asyncio
+import concurrent.futures
 import json
 import os
 import re
@@ -90,7 +92,7 @@ def _umr_write(umr: str, reg: str, value: int,
         cmd += ["-b", str(se), str(sh), "0xffffffff"]
     cmd += ["-w", f"{CU_ASIC}.{reg}", hex(value)]
     try:
-        subprocess.run(cmd, capture_output=True, timeout=5)
+        subprocess.run(cmd, capture_output=True, timeout=15)
         return True
     except Exception:
         return False
@@ -105,7 +107,7 @@ def _umr_read(umr: str, reg: str,
         cmd += ["-b", str(se), str(sh), "0xffffffff"]
     cmd += ["-r", f"{CU_ASIC}.{reg}"]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
         m = re.search(r'0x[0-9a-fA-F]+', result.stdout)
         return int(m.group(), 16) if m else None
     except Exception:
@@ -458,7 +460,14 @@ class Plugin:
         }
 
         if umr:
-            masks = [_umr_read(umr, CU_REG_SPI, se, sh) or 0 for se, sh in CU_SE_SH]
+            loop = asyncio.get_running_loop()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+                tasks = [
+                    loop.run_in_executor(pool, _umr_read, umr, CU_REG_SPI, se, sh)
+                    for se, sh in CU_SE_SH
+                ]
+                masks_raw = await asyncio.gather(*tasks)
+            masks = [v or 0 for v in masks_raw]
             result["cu_count"] = _masks_cu_count(masks)
             result["current_profile"] = _identify_profile(masks)
 
