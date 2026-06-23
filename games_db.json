@@ -1,39 +1,95 @@
 {
   "_meta": {
-    "version": "2",
+    "version": "3",
     "description": "BC-250 community game database. PRs welcome at github.com/Necrosiak/bc250-toolkit-decky",
-    "hardware": "ASRock BC-250 (AMD Ryzen Embedded V2000 / Cyan Skillfish GPU)",
-    "updated": "2026-06-23"
+    "hardware": "ASRock BC-250 (AMD Ryzen Embedded V2000 / Cyan Skillfish GPU — device ID 731F)",
+    "updated": "2026-06-23",
+    "sources": ["elektricm.github.io/amd-bc250-docs", "bc250.info", "ProtonDB", "Reddit r/linux_gaming"]
   },
   "3321460": {
     "name": "Crimson Desert",
     "proton": "Proton Experimental",
     "proton_branch": "bleeding-edge",
-    "proton_note": "⚠ Activer la branche bleeding-edge : Bibliothèque Steam > Outils > Proton Experimental > Propriétés > Versions du jeu et bêtas > bleeding-edge",
+    "proton_note": "⚠ Activer bleeding-edge : Bibliothèque > Outils > Proton Experimental > Propriétés > Versions du jeu et bêtas > bleeding-edge",
     "launch_options": "DXVK_CONFIG=\"dxgi.customDeviceId=731F dxgi.customVendorId=1002\" MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
-    "notes": "Le spoofing GPU (731F/1002) contourne la non-reconnaissance du Cyan Skillfish par le jeu. Depuis le bleeding-edge du 01/04/2026, le jeu tourne sans args supplémentaires — les options restent utiles pour MangoHud/vkBasalt.",
-    "source": "https://www.youtube.com/watch?v=OjO2Vd0Lu1U — commentaires communauté BC-250",
+    "notes": "Spoof GPU nécessaire (Cyan Skillfish non reconnu). Depuis bleeding-edge 01/04/2026 : tourne sans args — MangoHud/vkBasalt restent utiles.",
     "tested_on": "BC-250"
   },
   "1091500": {
     "name": "Cyberpunk 2077",
     "proton": "GE-Proton10-34",
     "launch_options": "RADV_PERFTEST=gpl,sam MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
-    "notes": "RT désactivé recommandé. FSR + CAS donne de bons résultats sur BC-250.",
+    "notes": "RT désactivé recommandé. FSR 3.1 Ultra Quality. Surveiller les températures (peut tirer fort).",
     "tested_on": "BC-250"
   },
   "1174180": {
     "name": "Red Dead Redemption 2",
     "proton": "GE-Proton10-34",
     "launch_options": "WINE_FULLSCREEN_FSR=1 WINE_FULLSCREEN_FSR_STRENGTH=3 MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
-    "notes": "Vulkan natif recommandé. Réduire le budget mémoire graphique dans les options du jeu.",
+    "notes": "Mode graphique Vulkan recommandé. Si 'software rendering' détecté : changer l'adaptateur dans les options graphiques du jeu. Réduire le budget mémoire graphique.",
     "tested_on": "BC-250"
   },
-  "1172470": {
-    "name": "Apex Legends",
+  "1245620": {
+    "name": "Elden Ring",
     "proton": "GE-Proton10-34",
-    "launch_options": "+fps_max 60 MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
-    "notes": "Limiter à 60 FPS pour la stabilité. EAC fonctionne via Proton.",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "Jouable ~60 FPS. Ajuster les settings graphiques selon la résolution cible.",
+    "tested_on": "BC-250"
+  },
+  "870780": {
+    "name": "Control",
+    "proton": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
+    "notes": "RT fonctionne (~40 FPS) grâce au support RDNA 1.5 du Cyan Skillfish. DX12 recommandé.",
+    "tested_on": "BC-250"
+  },
+  "730": {
+    "name": "Counter-Strike 2",
+    "proton": "Proton Experimental",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
+    "notes": "100+ FPS en 1080p. Natif Linux via Proton. Très stable.",
+    "tested_on": "BC-250"
+  },
+  "252950": {
+    "name": "Rocket League",
+    "proton": "Proton Experimental",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
+    "notes": "120+ FPS en 1080p. Très bien optimisé sur BC-250.",
+    "tested_on": "BC-250"
+  },
+  "601150": {
+    "name": "Devil May Cry 5",
+    "proton": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "~100 FPS en High. Latence très basse — l'un des jeux les mieux optimisés sur BC-250.",
+    "tested_on": "BC-250"
+  },
+  "1738780": {
+    "name": "Company of Heroes 3",
+    "proton": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
+    "notes": "⚠ IMPORTANT : régler le split VRAM à 4 Go minimum dans le BIOS (512 Mo = artifacts et crashes).",
+    "tested_on": "BC-250"
+  },
+  "1222140": {
+    "name": "Detroit: Become Human",
+    "proton": "Proton - Experimental",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "60 FPS stable en Medium. Très bien optimisé, peu de config nécessaire.",
+    "tested_on": "BC-250"
+  },
+  "1888930": {
+    "name": "The Last of Us Part I",
+    "proton": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "60 FPS en Medium-High. Compilation shaders longue au premier lancement (températures élevées — normal).",
+    "tested_on": "BC-250"
+  },
+  "2358720": {
+    "name": "Black Myth: Wukong",
+    "proton": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "notes": "Utiliser les fichiers de jeu non modifiés (version 'nettoyée' → erreur CreateProcess). FSR recommandé.",
     "tested_on": "BC-250"
   },
   "413150": {
@@ -42,5 +98,13 @@
     "launch_options": "gamemoderun %command%",
     "notes": "Fonctionne parfaitement nativement ou via Proton.",
     "tested_on": "BC-250"
+  },
+  "_incompatible": {
+    "note": "Jeux non fonctionnels sur BC-250 Linux (pour info communauté)",
+    "list": [
+      "Fortnite (1665460) — EAC kernel-level, incompatible Linux",
+      "Valorant (2181867) — même problème",
+      "Final Fantasy VII Rebirth (2749600) — vérifie l'ID GPU, Cyan Skillfish non reconnu, pas de fix actuellement"
+    ]
   }
 }
