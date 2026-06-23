@@ -16,6 +16,7 @@ import { definePlugin, call, toaster } from "@decky/api";
 interface GameEntry {
   name: string;
   proton: string;
+  compat_tool?: string;
   proton_branch?: string;
   proton_note?: string;
   launch_options: string;
@@ -38,9 +39,18 @@ interface SystemStatus {
   tweaks_last_update?: string;
 }
 
-type TabId = "games" | "system" | "settings";
+interface CuStatus {
+  umr_available: boolean;
+  current_profile: string | null;
+  cu_count: number | null;
+  boot_profile: string | null;
+  boot_cu: number | null;
+  profiles: Record<string, { label: string; cu: number }>;
+}
 
-// ── Steam helpers (via Python backend — SteamClient API cassée dans QAM) ───────
+type TabId = "games" | "cu" | "system" | "settings";
+
+// ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
 
 async function applyGameSettings(
   appId: number,
@@ -97,8 +107,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
   const refresh = useCallback(() => {
     const list = getInstalledDbGames(gamesDb);
     setInstalled(list);
-    // Si le jeu sélectionné n'est plus dans la liste, désélectionner
-    setSelected((prev) => prev && list.find((e) => e.appid === prev.appid) ? prev : null);
+    setSelected((prev) => (prev && list.find((e) => e.appid === prev.appid) ? prev : null));
     setApplied(false);
   }, [gamesDb]);
 
@@ -108,7 +117,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
     return () => clearInterval(t);
   }, [refresh]);
 
-  // Auto-apply au lancement d'un jeu
+  // Auto-apply au lancement d'un jeu de la DB
   useEffect(() => {
     if (!autoApply) return;
     let unreg: (() => void) | undefined;
@@ -120,7 +129,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
         const entry = gamesDb[String(e.unAppID)];
         if (!entry || !("proton" in entry)) return;
         const g = entry as GameEntry;
-        const r = await applyGameSettings(e.unAppID, g.proton, g.launch_options);
+        const r = await applyGameSettings(e.unAppID, g.compat_tool ?? g.proton, g.launch_options);
         const ok = r.compatOk || r.launchOk;
         toaster.toast({
           title: "BC250 Toolkit",
@@ -136,22 +145,22 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
     if (!selected) return;
     setApplying(true);
     try {
-      const r = await applyGameSettings(selected.appid, selected.game.proton, selected.game.launch_options);
+      const r = await applyGameSettings(
+        selected.appid,
+        selected.game.compat_tool ?? selected.game.proton,
+        selected.game.launch_options
+      );
       const allOk = r.compatOk && r.launchOk;
       const partialOk = r.compatOk || r.launchOk;
-      setApplied(allOk);
+      setApplied(allOk || partialOk);
       if (allOk) {
-        toaster.toast({ title: "BC250 Toolkit", body: "✓ Settings BC-250 appliqués (redémarre Steam)", duration: 4000 });
+        toaster.toast({ title: "BC250 Toolkit", body: "✓ Persistant — redémarre Steam une fois", duration: 4000 });
       } else if (partialOk) {
         const msg = r.compatOk ? "Proton OK — Launch options KO" : "Launch options OK — Proton KO";
         toaster.toast({ title: "BC250 Toolkit", body: `⚠ Partiel : ${msg}`, duration: 5000 });
-        setApplied(true);
       } else {
-        toaster.toast({
-          title: "BC250 Toolkit",
-          body: `✗ Erreur — ${r.compatDetail}`,
-          duration: 5000,
-        });
+        toaster.toast({ title: "BC250 Toolkit", body: `✗ ${r.compatDetail}`, duration: 5000 });
+        setApplied(false);
       }
     } finally {
       setApplying(false);
@@ -209,7 +218,9 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
           {selected.game.proton_note && (
             <PanelSectionRow>
               <Field>
-                <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>{selected.game.proton_note}</div>
+                <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>
+                  {selected.game.proton_note}
+                </div>
               </Field>
             </PanelSectionRow>
           )}
@@ -229,7 +240,7 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
           )}
           <PanelSectionRow>
             <ButtonItem layout="below" disabled={applying || applied} onClick={handleApply}>
-              {applying ? "Application..." : applied ? "✓ Appliqué" : "Appliquer les settings BC-250"}
+              {applying ? "Application..." : applied ? "✓ Appliqué (persistant)" : "Appliquer les settings BC-250"}
             </ButtonItem>
           </PanelSectionRow>
         </PanelSection>
@@ -238,6 +249,154 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
       <PanelSection>
         <PanelSectionRow>
           <ButtonItem layout="below" onClick={refresh}>Rafraîchir</ButtonItem>
+        </PanelSectionRow>
+      </PanelSection>
+    </>
+  );
+}
+
+// ── Onglet CU ─────────────────────────────────────────────────────────────────
+
+const CU_PROFILE_LIST = [
+  { key: "stock", label: "24 CU (stock)",  color: "#4caf50" },
+  { key: "32cu",  label: "32 CU",          color: "#67a3ff" },
+  { key: "36cu",  label: "36 CU",          color: "#ff9800" },
+  { key: "40cu",  label: "40 CU (full)",   color: "#f44336" },
+] as const;
+
+function CuTab() {
+  const [status, setStatus] = useState<CuStatus | null>(null);
+  const [applying, setApplying] = useState<string | null>(null);
+  const [saveBoot, setSaveBoot] = useState(false);
+  const [lastMsg, setLastMsg] = useState<string | null>(null);
+
+  const refresh = useCallback(() => {
+    call<[], CuStatus>("get_cu_status").then(setStatus);
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    const t = setInterval(refresh, 10000);
+    return () => clearInterval(t);
+  }, [refresh]);
+
+  const applyProfile = async (profileKey: string) => {
+    setApplying(profileKey);
+    setLastMsg(null);
+    try {
+      const r = await call<[string, boolean], { ok: boolean; error?: string; cu_count?: number }>(
+        "apply_cu_profile", profileKey, saveBoot
+      );
+      if (r.ok) {
+        const msg = saveBoot
+          ? `✓ ${r.cu_count} CU appliqués et sauvegardés au boot`
+          : `✓ ${r.cu_count} CU appliqués (live — non persistant)`;
+        setLastMsg(msg);
+        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 3000 });
+        refresh();
+      } else {
+        const msg = `✗ ${r.error}`;
+        setLastMsg(msg);
+        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+      }
+    } finally {
+      setApplying(null);
+    }
+  };
+
+  if (!status) return <SteamSpinner />;
+
+  return (
+    <>
+      <PanelSection title="Statut CU">
+        <PanelSectionRow>
+          <Field label="CU actifs (live)">
+            <span style={{ fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }}>
+              {status.cu_count != null
+                ? `${status.cu_count} / 40 CU`
+                : status.umr_available
+                  ? "lecture..."
+                  : "N/A"}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        {status.boot_cu != null && (
+          <PanelSectionRow>
+            <Field label="Boot">
+              <span style={{ fontSize: "12px", color: "#aaa" }}>
+                {status.boot_cu} CU
+                {status.boot_profile ? ` (${status.boot_profile})` : ""}
+              </span>
+            </Field>
+          </PanelSectionRow>
+        )}
+        {!status.umr_available && (
+          <PanelSectionRow>
+            <Field>
+              <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>
+                ⚠ umr non disponible{"\n"}
+                Installer : rpm-ostree install umr
+              </div>
+            </Field>
+          </PanelSectionRow>
+        )}
+      </PanelSection>
+
+      <PanelSection title="Profils">
+        {CU_PROFILE_LIST.map(({ key, label, color }) => {
+          const isActive = status.current_profile === key;
+          const isBoot  = status.boot_profile === key;
+          const isApplying = applying === key;
+          const suffix = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
+          return (
+            <PanelSectionRow key={key}>
+              <ButtonItem
+                layout="below"
+                onClick={() => applyProfile(key)}
+                disabled={!!applying || !status.umr_available}
+                style={isActive ? { color, fontWeight: "bold" } : { opacity: 0.75 }}
+              >
+                {isApplying
+                  ? "Application..."
+                  : `${isActive ? "▶ " : ""}${label}${suffix}`}
+              </ButtonItem>
+            </PanelSectionRow>
+          );
+        })}
+      </PanelSection>
+
+      <PanelSection title="Options">
+        <PanelSectionRow>
+          <ToggleField
+            label="Sauvegarder au boot"
+            description="Le profil CU est restauré automatiquement à chaque démarrage"
+            checked={saveBoot}
+            onChange={setSaveBoot}
+          />
+        </PanelSectionRow>
+        {lastMsg && (
+          <PanelSectionRow>
+            <Field>
+              <div style={{
+                fontSize: "11px",
+                color: lastMsg.startsWith("✓") ? "#4caf50" : "#f44336",
+                lineHeight: "1.4",
+              }}>
+                {lastMsg}
+              </div>
+            </Field>
+          </PanelSectionRow>
+        )}
+      </PanelSection>
+
+      <PanelSection>
+        <PanelSectionRow>
+          <Field>
+            <div style={{ fontSize: "10px", color: "#555", lineHeight: "1.4" }}>
+              1 WGP = 2 CU • 5 WGP/rangée × 4 rangées = 40 CU max
+              {"\n"}36 CU = SE0 full (10+10) + SE1 partial (8+8)
+            </div>
+          </Field>
         </PanelSectionRow>
       </PanelSection>
     </>
@@ -253,9 +412,7 @@ function SystemTab() {
 
   useEffect(() => {
     call<[], SystemStatus>("get_system_status").then(setStatus);
-    const t = setInterval(() => {
-      call<[], SystemStatus>("get_system_status").then(setStatus);
-    }, 5000);
+    const t = setInterval(() => call<[], SystemStatus>("get_system_status").then(setStatus), 5000);
     return () => clearInterval(t);
   }, []);
 
@@ -277,7 +434,8 @@ function SystemTab() {
 
   if (!status) return <SteamSpinner />;
 
-  const tempColor = (v?: number) => !v ? "#888" : v > 85 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
+  const tempColor = (v?: number) =>
+    !v ? "#888" : v > 85 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
 
   return (
     <>
@@ -302,7 +460,9 @@ function SystemTab() {
         <PanelSectionRow>
           <Field label="Scheduler">
             <span style={{ color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }}>
-              {status.scx_state === "enabled" ? `✓ ${status.scx_sched ?? "scx actif"}` : `✗ ${status.scx_state ?? "inconnu"}`}
+              {status.scx_state === "enabled"
+                ? `✓ ${status.scx_sched ?? "scx actif"}`
+                : `✗ ${status.scx_state ?? "inconnu"}`}
             </span>
           </Field>
         </PanelSectionRow>
@@ -337,7 +497,10 @@ function SystemTab() {
           {updateLog && (
             <PanelSectionRow>
               <Field label="Log">
-                <div style={{ fontSize: "10px", fontFamily: "monospace", color: "#aaa", maxHeight: "100px", overflow: "auto", whiteSpace: "pre-wrap" }}>
+                <div style={{
+                  fontSize: "10px", fontFamily: "monospace", color: "#aaa",
+                  maxHeight: "100px", overflow: "auto", whiteSpace: "pre-wrap",
+                }}>
                   {updateLog.slice(-1500)}
                 </div>
               </Field>
@@ -403,11 +566,12 @@ function SettingsTab({
   );
 }
 
-// ── Barre d'onglets (ButtonItem = navigation manette garantie) ────────────────
+// ── Barre d'onglets ───────────────────────────────────────────────────────────
 
 const TAB_DEFS: Array<{ id: TabId; label: string }> = [
-  { id: "games", label: "Jeux" },
-  { id: "system", label: "Système" },
+  { id: "games",    label: "Jeux" },
+  { id: "cu",       label: "CU" },
+  { id: "system",   label: "Système" },
   { id: "settings", label: "Réglages" },
 ];
 
@@ -455,8 +619,9 @@ function Content() {
   return (
     <>
       <TabBar tab={tab} setTab={setTab} />
-      {tab === "games" && <GamesTab gamesDb={gamesDb} autoApply={autoApply} />}
-      {tab === "system" && <SystemTab />}
+      {tab === "games"    && <GamesTab gamesDb={gamesDb} autoApply={autoApply} />}
+      {tab === "cu"       && <CuTab />}
+      {tab === "system"   && <SystemTab />}
       {tab === "settings" && (
         <SettingsTab
           autoApply={autoApply}

@@ -85,7 +85,7 @@ const definePlugin = (fn) => {
     };
 };
 
-// ── Steam helpers (via Python backend — SteamClient API cassée dans QAM) ───────
+// ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
 async function applyGameSettings(appId, toolName, launchOpts) {
     const [compatResult, launchResult] = await Promise.all([
         call("apply_compat_tool", appId, toolName),
@@ -127,8 +127,7 @@ function GamesTab({ gamesDb, autoApply }) {
     const refresh = SP_REACT.useCallback(() => {
         const list = getInstalledDbGames(gamesDb);
         setInstalled(list);
-        // Si le jeu sélectionné n'est plus dans la liste, désélectionner
-        setSelected((prev) => prev && list.find((e) => e.appid === prev.appid) ? prev : null);
+        setSelected((prev) => (prev && list.find((e) => e.appid === prev.appid) ? prev : null));
         setApplied(false);
     }, [gamesDb]);
     SP_REACT.useEffect(() => {
@@ -136,7 +135,7 @@ function GamesTab({ gamesDb, autoApply }) {
         const t = setInterval(refresh, 5000);
         return () => clearInterval(t);
     }, [refresh]);
-    // Auto-apply au lancement d'un jeu
+    // Auto-apply au lancement d'un jeu de la DB
     SP_REACT.useEffect(() => {
         if (!autoApply)
             return;
@@ -152,7 +151,7 @@ function GamesTab({ gamesDb, autoApply }) {
                 if (!entry || !("proton" in entry))
                     return;
                 const g = entry;
-                const r = await applyGameSettings(e.unAppID, g.proton, g.launch_options);
+                const r = await applyGameSettings(e.unAppID, g.compat_tool ?? g.proton, g.launch_options);
                 const ok = r.compatOk || r.launchOk;
                 toaster.toast({
                     title: "BC250 Toolkit",
@@ -172,24 +171,20 @@ function GamesTab({ gamesDb, autoApply }) {
             return;
         setApplying(true);
         try {
-            const r = await applyGameSettings(selected.appid, selected.game.proton, selected.game.launch_options);
+            const r = await applyGameSettings(selected.appid, selected.game.compat_tool ?? selected.game.proton, selected.game.launch_options);
             const allOk = r.compatOk && r.launchOk;
             const partialOk = r.compatOk || r.launchOk;
-            setApplied(allOk);
+            setApplied(allOk || partialOk);
             if (allOk) {
-                toaster.toast({ title: "BC250 Toolkit", body: "✓ Settings BC-250 appliqués (redémarre Steam)", duration: 4000 });
+                toaster.toast({ title: "BC250 Toolkit", body: "✓ Persistant — redémarre Steam une fois", duration: 4000 });
             }
             else if (partialOk) {
                 const msg = r.compatOk ? "Proton OK — Launch options KO" : "Launch options OK — Proton KO";
                 toaster.toast({ title: "BC250 Toolkit", body: `⚠ Partiel : ${msg}`, duration: 5000 });
-                setApplied(true);
             }
             else {
-                toaster.toast({
-                    title: "BC250 Toolkit",
-                    body: `✗ Erreur — ${r.compatDetail}`,
-                    duration: 5000,
-                });
+                toaster.toast({ title: "BC250 Toolkit", body: `✗ ${r.compatDetail}`, duration: 5000 });
+                setApplied(false);
             }
         }
         finally {
@@ -199,7 +194,70 @@ function GamesTab({ gamesDb, autoApply }) {
     return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB", description: "Jeux optimis\u00E9s pour BC-250", children: SP_JSX.jsxs("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: [gameCount, " jeux"] }) }) }) }), installed.length > 0 ? (SP_JSX.jsx(DFL.PanelSection, { title: "Install\u00E9s et compatibles", children: installed.map((entry) => {
                     const isSelected = selected?.appid === entry.appid;
                     return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => { setSelected(isSelected ? null : entry); setApplied(false); }, style: isSelected ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.8 }, children: isSelected ? `▶ ${entry.name}` : entry.name }) }, entry.appid));
-                }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: "Aucun jeu de la DB install\u00E9" }) }) }) })), selected && (SP_JSX.jsxs(DFL.PanelSection, { title: "Settings \u00E0 appliquer", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Proton", children: SP_JSX.jsxs("span", { style: { fontSize: "12px" }, children: [selected.game.proton, selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }) }) }), selected.game.proton_note && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: selected.game.proton_note }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Launch options", children: SP_JSX.jsx("div", { style: { fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }, children: selected.game.launch_options }) }) }), selected.game.notes && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Notes", children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ccc" }, children: selected.game.notes }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: applying || applied, onClick: handleApply, children: applying ? "Application..." : applied ? "✓ Appliqué" : "Appliquer les settings BC-250" }) })] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: "Rafra\u00EEchir" }) }) })] }));
+                }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: "Aucun jeu de la DB install\u00E9" }) }) }) })), selected && (SP_JSX.jsxs(DFL.PanelSection, { title: "Settings \u00E0 appliquer", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Proton", children: SP_JSX.jsxs("span", { style: { fontSize: "12px" }, children: [selected.game.proton, selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }) }) }), selected.game.proton_note && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: selected.game.proton_note }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Launch options", children: SP_JSX.jsx("div", { style: { fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }, children: selected.game.launch_options }) }) }), selected.game.notes && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Notes", children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ccc" }, children: selected.game.notes }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: applying || applied, onClick: handleApply, children: applying ? "Application..." : applied ? "✓ Appliqué (persistant)" : "Appliquer les settings BC-250" }) })] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: "Rafra\u00EEchir" }) }) })] }));
+}
+// ── Onglet CU ─────────────────────────────────────────────────────────────────
+const CU_PROFILE_LIST = [
+    { key: "stock", label: "24 CU (stock)", color: "#4caf50" },
+    { key: "32cu", label: "32 CU", color: "#67a3ff" },
+    { key: "36cu", label: "36 CU", color: "#ff9800" },
+    { key: "40cu", label: "40 CU (full)", color: "#f44336" },
+];
+function CuTab() {
+    const [status, setStatus] = SP_REACT.useState(null);
+    const [applying, setApplying] = SP_REACT.useState(null);
+    const [saveBoot, setSaveBoot] = SP_REACT.useState(false);
+    const [lastMsg, setLastMsg] = SP_REACT.useState(null);
+    const refresh = SP_REACT.useCallback(() => {
+        call("get_cu_status").then(setStatus);
+    }, []);
+    SP_REACT.useEffect(() => {
+        refresh();
+        const t = setInterval(refresh, 10000);
+        return () => clearInterval(t);
+    }, [refresh]);
+    const applyProfile = async (profileKey) => {
+        setApplying(profileKey);
+        setLastMsg(null);
+        try {
+            const r = await call("apply_cu_profile", profileKey, saveBoot);
+            if (r.ok) {
+                const msg = saveBoot
+                    ? `✓ ${r.cu_count} CU appliqués et sauvegardés au boot`
+                    : `✓ ${r.cu_count} CU appliqués (live — non persistant)`;
+                setLastMsg(msg);
+                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 3000 });
+                refresh();
+            }
+            else {
+                const msg = `✗ ${r.error}`;
+                setLastMsg(msg);
+                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+            }
+        }
+        finally {
+            setApplying(null);
+        }
+    };
+    if (!status)
+        return SP_JSX.jsx(DFL.SteamSpinner, {});
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: "Statut CU", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CU actifs (live)", children: SP_JSX.jsx("span", { style: { fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }, children: status.cu_count != null
+                                    ? `${status.cu_count} / 40 CU`
+                                    : status.umr_available
+                                        ? "lecture..."
+                                        : "N/A" }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Boot", children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsxs("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: ["\u26A0 umr non disponible", "\n", "Installer : rpm-ostree install umr"] }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { title: "Profils", children: CU_PROFILE_LIST.map(({ key, label, color }) => {
+                    const isActive = status.current_profile === key;
+                    const isBoot = status.boot_profile === key;
+                    const isApplying = applying === key;
+                    const suffix = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
+                    return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => applyProfile(key), disabled: !!applying || !status.umr_available, style: isActive ? { color, fontWeight: "bold" } : { opacity: 0.75 }, children: isApplying
+                                ? "Application..."
+                                : `${isActive ? "▶ " : ""}${label}${suffix}` }) }, key));
+                }) }), SP_JSX.jsxs(DFL.PanelSection, { title: "Options", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: "Sauvegarder au boot", description: "Le profil CU est restaur\u00E9 automatiquement \u00E0 chaque d\u00E9marrage", checked: saveBoot, onChange: setSaveBoot }) }), lastMsg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                    fontSize: "11px",
+                                    color: lastMsg.startsWith("✓") ? "#4caf50" : "#f44336",
+                                    lineHeight: "1.4",
+                                }, children: lastMsg }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsxs("div", { style: { fontSize: "10px", color: "#555", lineHeight: "1.4" }, children: ["1 WGP = 2 CU \u2022 5 WGP/rang\u00E9e \u00D7 4 rang\u00E9es = 40 CU max", "\n", "36 CU = SE0 full (10+10) + SE1 partial (8+8)"] }) }) }) })] }));
 }
 // ── Onglet Système ────────────────────────────────────────────────────────────
 function SystemTab() {
@@ -208,9 +266,7 @@ function SystemTab() {
     const [updateLog, setUpdateLog] = SP_REACT.useState(null);
     SP_REACT.useEffect(() => {
         call("get_system_status").then(setStatus);
-        const t = setInterval(() => {
-            call("get_system_status").then(setStatus);
-        }, 5000);
+        const t = setInterval(() => call("get_system_status").then(setStatus), 5000);
         return () => clearInterval(t);
     }, []);
     const handleUpdate = async () => {
@@ -232,7 +288,12 @@ function SystemTab() {
     if (!status)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
     const tempColor = (v) => !v ? "#888" : v > 85 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: "Temp\u00E9ratures", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp), fontWeight: "bold" }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : "N/A" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "GPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp), fontWeight: "bold" }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : "N/A" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: "Statut", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Scheduler", children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled" ? `✓ ${status.scx_sched ?? "scx actif"}` : `✗ ${status.scx_state ?? "inconnu"}` }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Tuned", children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? "inconnu" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Gamemode", children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? "✓ actif" : "✗ inactif" }) }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Dernier update", children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: updating, onClick: handleUpdate, children: updating ? "Mise à jour..." : "Mettre à jour les tweaks" }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Log", children: SP_JSX.jsx("div", { style: { fontSize: "10px", fontFamily: "monospace", color: "#aaa", maxHeight: "100px", overflow: "auto", whiteSpace: "pre-wrap" }, children: updateLog.slice(-1500) }) }) }))] }))] }));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: "Temp\u00E9ratures", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp), fontWeight: "bold" }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : "N/A" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "GPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp), fontWeight: "bold" }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : "N/A" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: "Statut", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Scheduler", children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
+                                    ? `✓ ${status.scx_sched ?? "scx actif"}`
+                                    : `✗ ${status.scx_state ?? "inconnu"}` }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Tuned", children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? "inconnu" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Gamemode", children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? "✓ actif" : "✗ inactif" }) }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Dernier update", children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: updating, onClick: handleUpdate, children: updating ? "Mise à jour..." : "Mettre à jour les tweaks" }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Log", children: SP_JSX.jsx("div", { style: {
+                                    fontSize: "10px", fontFamily: "monospace", color: "#aaa",
+                                    maxHeight: "100px", overflow: "auto", whiteSpace: "pre-wrap",
+                                }, children: updateLog.slice(-1500) }) }) }))] }))] }));
 }
 // ── Onglet Réglages ───────────────────────────────────────────────────────────
 function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
@@ -249,9 +310,10 @@ function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
     };
     return (SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: "Auto-apply au lancement", description: "Applique automatiquement les settings quand un jeu connu est lanc\u00E9", checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: refreshing, onClick: doRefresh, children: refreshing ? "Rafraîchissement..." : "Rafraîchir DB depuis GitHub" }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB mise \u00E0 jour le", children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "Contribuer", children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }));
 }
-// ── Barre d'onglets (ButtonItem = navigation manette garantie) ────────────────
+// ── Barre d'onglets ───────────────────────────────────────────────────────────
 const TAB_DEFS = [
     { id: "games", label: "Jeux" },
+    { id: "cu", label: "CU" },
     { id: "system", label: "Système" },
     { id: "settings", label: "Réglages" },
 ];
@@ -277,7 +339,7 @@ function Content() {
     };
     if (!dbLoaded)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(TabBar, { tab: tab, setTab: setTab }), tab === "games" && SP_JSX.jsx(GamesTab, { gamesDb: gamesDb, autoApply: autoApply }), tab === "system" && SP_JSX.jsx(SystemTab, {}), tab === "settings" && (SP_JSX.jsx(SettingsTab, { autoApply: autoApply, setAutoApply: setAutoApply, gamesDb: gamesDb, onRefreshDb: refreshDb }))] }));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(TabBar, { tab: tab, setTab: setTab }), tab === "games" && SP_JSX.jsx(GamesTab, { gamesDb: gamesDb, autoApply: autoApply }), tab === "cu" && SP_JSX.jsx(CuTab, {}), tab === "system" && SP_JSX.jsx(SystemTab, {}), tab === "settings" && (SP_JSX.jsx(SettingsTab, { autoApply: autoApply, setAutoApply: setAutoApply, gamesDb: gamesDb, onRefreshDb: refreshDb }))] }));
 }
 var index = definePlugin(() => ({
     name: "BC250 Toolkit",

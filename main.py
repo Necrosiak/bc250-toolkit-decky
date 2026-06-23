@@ -1,6 +1,6 @@
-import asyncio
 import json
 import os
+import re
 import subprocess
 import urllib.request
 import urllib.error
@@ -13,11 +13,111 @@ CACHE_DB_PATH = Path("/tmp/bc250_games_db_cache.json")
 TWEAKS_APPLY = "/opt/bc250-tweaks/apply.sh"
 TWEAKS_UPDATE = "/opt/bc250-tweaks/update.sh"
 
-BC250_DATA_DIR = Path.home() / ".local/share/bc250-toolkit"
+# ── User home resolution ───────────────────────────────────────────────────────
+# Le plugin tourne en root (HOME=/root). SUDO_HOME contient le vrai home user.
+
+def _get_user_home() -> Path:
+    sudo_home = os.environ.get("SUDO_HOME")
+    if sudo_home and Path(sudo_home).is_dir():
+        return Path(sudo_home)
+    try:
+        import decky  # injecté par DeckyLoader au runtime
+        h = getattr(decky, "DECKY_USER_HOME", None)
+        if h:
+            return Path(h)
+    except ImportError:
+        pass
+    try:
+        root_home = os.environ.get("HOME", "/root")
+        loader_json = Path(root_home) / "homebrew/settings/loader.json"
+        data = json.loads(loader_json.read_text())
+        h = data.get("user_info.user_home")
+        if h:
+            return Path(h)
+    except Exception:
+        pass
+    import pwd
+    for entry in pwd.getpwall():
+        if 1000 <= entry.pw_uid < 65000:
+            return Path(entry.pw_dir)
+    return Path.home()
+
+
+_USER_HOME = _get_user_home()
+
+BC250_DATA_DIR  = _USER_HOME / ".local/share/bc250-toolkit"
 PENDING_LO_FILE = BC250_DATA_DIR / "pending_launch_options.json"
 PRE_STEAM_SCRIPT = BC250_DATA_DIR / "bc250-apply-vdf.py"
-STEAM_DROPIN_DIR = Path.home() / ".config/systemd/user/app-steam@autostart.service.d"
-STEAM_DROPIN = STEAM_DROPIN_DIR / "bc250-vdf-apply.conf"
+STEAM_DROPIN_DIR = _USER_HOME / ".config/systemd/user/app-steam@autostart.service.d"
+STEAM_DROPIN     = STEAM_DROPIN_DIR / "bc250-vdf-apply.conf"
+
+# ── CU management ─────────────────────────────────────────────────────────────
+# Hardware : 5 WGPs × 2 CU × 4 rangées (SE0.SH0, SE0.SH1, SE1.SH0, SE1.SH1) = 40 CU max
+# Stock BC-250 : WGP0-2 actifs (mask 0x07) = 6 CU/rangée × 4 = 24 CU
+
+CU_PROFILES: dict = {
+    "stock": {"label": "24 CU (stock)",  "cu": 24, "masks": [0x07, 0x07, 0x07, 0x07]},
+    "32cu":  {"label": "32 CU",          "cu": 32, "masks": [0x0f, 0x0f, 0x0f, 0x0f]},
+    "36cu":  {"label": "36 CU",          "cu": 36, "masks": [0x1f, 0x1f, 0x0f, 0x0f]},
+    "40cu":  {"label": "40 CU (full)",   "cu": 40, "masks": [0x1f, 0x1f, 0x1f, 0x1f]},
+}
+CU_ASIC = "cyan_skillfish.gfx1013"
+CU_REG_CC  = "mmCC_GC_SHADER_ARRAY_CONFIG"
+CU_REG_SPI = "mmSPI_PG_ENABLE_STATIC_WGP_MASK"
+CU_REG_RLC = "mmRLC_PG_ALWAYS_ON_WGP_MASK"
+CU_SE_SH   = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+CU_RESTORE_SCRIPT = Path("/usr/local/bin/bc250-cu-restore")
+CU_SERVICE_NAME   = "bc250-cu-profile"
+CU_SERVICE_PATH   = Path(f"/etc/systemd/system/{CU_SERVICE_NAME}.service")
+CU_MANAGER        = Path("/usr/local/bin/bc250-cu-live-manager")
+
+
+def _find_umr() -> str | None:
+    for p in ("/usr/bin/umr", "/usr/local/bin/umr"):
+        if os.path.isfile(p):
+            return p
+    return None
+
+
+def _umr_write(umr: str, reg: str, value: int,
+               se: int | None = None, sh: int | None = None) -> bool:
+    cmd = [umr, "-w", f"{CU_ASIC}.{reg}", hex(value)]
+    if se is not None and sh is not None:
+        cmd += ["-b", str(se), str(sh), "0xffffffff"]
+    try:
+        subprocess.run(cmd, capture_output=True, timeout=5)
+        return True
+    except Exception:
+        return False
+
+
+def _umr_read(umr: str, reg: str,
+              se: int | None = None, sh: int | None = None) -> int | None:
+    cmd = [umr, "-r", f"{CU_ASIC}.{reg}"]
+    if se is not None and sh is not None:
+        cmd += ["-b", str(se), str(sh), "0xffffffff"]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        m = re.search(r'0x[0-9a-fA-F]+', result.stdout)
+        return int(m.group(), 16) if m else None
+    except Exception:
+        return None
+
+
+def _masks_cu_count(masks: list) -> int:
+    return sum(bin(m & 0x1f).count("1") * 2 for m in masks)
+
+
+def _identify_profile(masks: list) -> str | None:
+    clean = [m & 0x1f for m in masks]
+    for name, p in CU_PROFILES.items():
+        if clean == p["masks"]:
+            return name
+    return None
+
+
+# ── Script d'application des launch options VDF (ExecStartPre Steam) ──────────
 
 _APPLY_VDF_SCRIPT = r'''#!/usr/bin/env python3
 """Applique les launch options en attente dans localconfig.vdf.
@@ -105,22 +205,29 @@ class Plugin:
         await self._load_db()
 
     def _install_pre_steam_hook(self):
-        """Installe ExecStartPre dans le service Steam pour appliquer les VDF pending au démarrage."""
+        """Installe ExecStartPre dans le service Steam pour appliquer les VDF pending."""
         try:
             BC250_DATA_DIR.mkdir(parents=True, exist_ok=True)
             PRE_STEAM_SCRIPT.write_text(_APPLY_VDF_SCRIPT)
             PRE_STEAM_SCRIPT.chmod(0o755)
             STEAM_DROPIN_DIR.mkdir(parents=True, exist_ok=True)
             STEAM_DROPIN.write_text(f"[Service]\nExecStartPre=-{PRE_STEAM_SCRIPT}\n")
-            subprocess.run(["systemctl", "--user", "daemon-reload"],
-                           capture_output=True, timeout=5)
+            # daemon-reload dans le contexte user (plugin tourne en root)
+            user_uid = BC250_DATA_DIR.stat().st_uid if BC250_DATA_DIR.exists() else None
+            if user_uid:
+                subprocess.run(
+                    ["systemctl", "--user", "daemon-reload"],
+                    capture_output=True, timeout=5,
+                    env={**os.environ, "HOME": str(_USER_HOME),
+                         "XDG_RUNTIME_DIR": f"/run/user/{user_uid}"},
+                )
         except Exception:
             pass
 
     async def _unload(self):
         pass
 
-    # ── Games database ───────────────────────────────────────────────────────
+    # ── Games database ────────────────────────────────────────────────────────
 
     async def _load_db(self):
         try:
@@ -136,7 +243,6 @@ class Plugin:
         except Exception:
             pass
 
-        # Fallback: cache réseau
         if CACHE_DB_PATH.exists():
             try:
                 self._games_db = json.loads(CACHE_DB_PATH.read_text())
@@ -144,7 +250,6 @@ class Plugin:
             except Exception:
                 pass
 
-        # Fallback: DB bundlée avec le plugin
         if LOCAL_DB_PATH.exists():
             try:
                 self._games_db = json.loads(LOCAL_DB_PATH.read_text())
@@ -161,15 +266,13 @@ class Plugin:
     async def get_game_settings(self, app_id: str) -> dict | None:
         return self._games_db.get(str(app_id))
 
-    # ── System status ────────────────────────────────────────────────────────
+    # ── System status ─────────────────────────────────────────────────────────
 
     async def get_system_status(self) -> dict:
         status: dict = {}
 
-        # Températures
         try:
-            raw = Path("/sys/class/hwmon")
-            for hwmon in raw.iterdir():
+            for hwmon in Path("/sys/class/hwmon").iterdir():
                 name_f = hwmon / "name"
                 if not name_f.exists():
                     continue
@@ -185,41 +288,36 @@ class Plugin:
         except Exception:
             pass
 
-        # Scheduler SCX
         try:
             scx_state = Path("/sys/kernel/sched_ext/state").read_text().strip()
             status["scx_state"] = scx_state
             if scx_state == "enabled":
-                scx_sched = Path("/sys/kernel/sched_ext/root/ops").read_text().strip()
-                status["scx_sched"] = scx_sched
+                status["scx_sched"] = Path("/sys/kernel/sched_ext/root/ops").read_text().strip()
         except Exception:
             status["scx_state"] = "unknown"
 
-        # Tuned
         try:
             status["tuned_profile"] = Path("/etc/tuned/active_profile").read_text().strip()
         except Exception:
             status["tuned_profile"] = "unknown"
 
-        # Gamemode daemon actif
         try:
             r = subprocess.run(
                 ["systemctl", "--user", "is-active", "gamemoded"],
-                capture_output=True, text=True, timeout=2
+                capture_output=True, text=True, timeout=2,
+                env={**os.environ, "HOME": str(_USER_HOME),
+                     "XDG_RUNTIME_DIR": f"/run/user/{_user_uid()}"},
             )
             status["gamemode_active"] = r.stdout.strip() == "active"
         except Exception:
             status["gamemode_active"] = False
 
-        # bc250-tweaks installé
         status["tweaks_installed"] = os.path.isfile(TWEAKS_APPLY)
 
-        # Date du dernier update des tweaks
         try:
             log = Path("/var/log/bc250-tweaks.log")
             if log.exists():
-                lines = log.read_text().splitlines()
-                for line in reversed(lines):
+                for line in reversed(log.read_text().splitlines()):
                     if "══" in line and "update.sh" in line:
                         status["tweaks_last_update"] = line.strip().lstrip("═ ").replace(" — update.sh", "")
                         break
@@ -228,7 +326,7 @@ class Plugin:
 
         return status
 
-    # ── Tweaks update ────────────────────────────────────────────────────────
+    # ── Tweaks update ─────────────────────────────────────────────────────────
 
     async def run_tweaks_update(self) -> dict:
         if not os.path.isfile(TWEAKS_UPDATE):
@@ -236,7 +334,7 @@ class Plugin:
         try:
             result = subprocess.run(
                 ["sudo", TWEAKS_UPDATE],
-                capture_output=True, text=True, timeout=120
+                capture_output=True, text=True, timeout=120,
             )
             return {
                 "success": result.returncode == 0,
@@ -248,30 +346,22 @@ class Plugin:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    # ── Steam settings via VDF ───────────────────────────────────────────────
+    # ── Steam settings via VDF ────────────────────────────────────────────────
 
     def _find_steam_userid(self) -> str | None:
-        """Trouve l'userid Steam actif depuis loginusers.vdf."""
         try:
-            loginusers = Path.home() / ".steam" / "steam" / "config" / "loginusers.vdf"
+            loginusers = _USER_HOME / ".steam" / "steam" / "config" / "loginusers.vdf"
             data = _vdf.load(open(loginusers))
             users = data.get("users", {})
-            # Préférer le MostRecent
             for uid, info in users.items():
                 if info.get("MostRecent") == "1":
-                    # uid est le SteamID64, on veut le répertoire userdata (SteamID32)
-                    steamid64 = int(uid)
-                    steamid32 = steamid64 & 0xFFFFFFFF
-                    return str(steamid32)
-            # Sinon premier trouvé
+                    return str(int(uid) & 0xFFFFFFFF)
             for uid in users:
-                steamid64 = int(uid)
-                return str(steamid64 & 0xFFFFFFFF)
+                return str(int(uid) & 0xFFFFFFFF)
         except Exception:
             pass
-        # Fallback: lister userdata/
         try:
-            userdata = Path.home() / ".steam" / "steam" / "userdata"
+            userdata = _USER_HOME / ".steam" / "steam" / "userdata"
             dirs = [d for d in userdata.iterdir() if d.is_dir() and d.name.isdigit() and d.name != "0"]
             if dirs:
                 return dirs[0].name
@@ -280,8 +370,8 @@ class Plugin:
         return None
 
     async def apply_compat_tool(self, app_id: int, tool_name: str) -> dict:
-        """Écrit le compat tool dans config.vdf (CompatToolMapping)."""
-        config_path = Path.home() / ".steam" / "steam" / "config" / "config.vdf"
+        """Écrit le compat tool dans config.vdf (CompatToolMapping). Persistant — Steam ne l'écrase pas."""
+        config_path = _USER_HOME / ".steam" / "steam" / "config" / "config.vdf"
         try:
             with open(config_path) as f:
                 data = _vdf.load(f)
@@ -305,8 +395,8 @@ class Plugin:
             return {"ok": False, "error": str(e)}
 
     async def apply_launch_options(self, app_id: int, launch_options: str) -> dict:
-        """Écrit les launch options dans localconfig.vdf + fichier pending (ExecStartPre au prochain démarrage Steam)."""
-        # Sauvegarde dans le fichier pending — garantit la persistance même si Steam écrase le VDF à sa sortie
+        """Écrit les launch options dans localconfig.vdf + pending file (ExecStartPre au boot Steam)."""
+        # Pending file — garantit la persistance même si Steam écrase le VDF à sa sortie
         try:
             BC250_DATA_DIR.mkdir(parents=True, exist_ok=True)
             pending: dict = {}
@@ -320,12 +410,11 @@ class Plugin:
         except Exception:
             pass
 
-        # Écriture directe dans le VDF (sera écrasée par Steam à sa fermeture,
-        # mais le pending file garantit l'application au prochain démarrage Steam)
+        # Écriture directe dans le VDF (pour la session en cours)
         userid = self._find_steam_userid()
         if not userid:
             return {"ok": True, "detail": "pending only — Steam user introuvable"}
-        lc_path = Path.home() / ".steam" / "steam" / "userdata" / userid / "config" / "localconfig.vdf"
+        lc_path = _USER_HOME / ".steam" / "steam" / "userdata" / userid / "config" / "localconfig.vdf"
         try:
             with open(lc_path) as f:
                 data = _vdf.load(f)
@@ -345,12 +434,135 @@ class Plugin:
                 _vdf.dump(data, f)
             return {"ok": True}
         except Exception as e:
-            return {"ok": True, "detail": f"pending only: {str(e)}"}
+            return {"ok": True, "detail": f"pending only: {e}"}
 
-    # ── DB info ──────────────────────────────────────────────────────────────
+    # ── CU management ─────────────────────────────────────────────────────────
+
+    async def get_cu_status(self) -> dict:
+        """Retourne le statut CU actuel (registres SPI via umr + profil boot)."""
+        umr = _find_umr()
+        result: dict = {
+            "umr_available": umr is not None,
+            "current_profile": None,
+            "cu_count": None,
+            "boot_profile": None,
+            "boot_cu": None,
+            "profiles": {name: {"label": p["label"], "cu": p["cu"]} for name, p in CU_PROFILES.items()},
+        }
+
+        if umr:
+            masks = [_umr_read(umr, CU_REG_SPI, se, sh) or 0 for se, sh in CU_SE_SH]
+            result["cu_count"] = _masks_cu_count(masks)
+            result["current_profile"] = _identify_profile(masks)
+
+        # Lire le profil de boot depuis le conf existant
+        for conf_path in (CU_SERVICE_PATH.parent / "bc250-cu-live-manager.conf",
+                          Path("/etc/bc250-cu-live-manager.conf")):
+            if conf_path.exists():
+                try:
+                    for line in conf_path.read_text().splitlines():
+                        if line.startswith("BC250_WGP_MASKS="):
+                            csv = line.split("=", 1)[1]
+                            boot_masks = [int(x, 16) & 0x1f for x in csv.split(",")]
+                            result["boot_cu"] = _masks_cu_count(boot_masks)
+                            result["boot_profile"] = _identify_profile(boot_masks)
+                            break
+                    break
+                except Exception:
+                    pass
+
+        return result
+
+    async def apply_cu_profile(self, profile: str, save_boot: bool = False) -> dict:
+        """Applique un profil CU via umr (live) et optionnellement l'installe au boot."""
+        if profile not in CU_PROFILES:
+            return {"ok": False, "error": f"Profil inconnu: {profile}"}
+
+        umr = _find_umr()
+        if not umr:
+            return {"ok": False, "error": "umr non trouvé — installer: rpm-ostree install umr"}
+
+        masks = CU_PROFILES[profile]["masks"]
+        union = 0
+        for m in masks:
+            union |= m
+
+        # Clear CC harvest mask (global)
+        _umr_write(umr, CU_REG_CC, 0x0)
+
+        # Écriture des masques SPI par rangée
+        for idx, (se, sh) in enumerate(CU_SE_SH):
+            _umr_write(umr, CU_REG_CC, 0x0, se, sh)
+            _umr_write(umr, CU_REG_SPI, masks[idx], se, sh)
+            union |= masks[idx]
+
+        # RLC always-on mask
+        _umr_write(umr, CU_REG_RLC, union)
+
+        if save_boot:
+            self._write_cu_boot_service(profile, masks, umr)
+
+        return {"ok": True, "profile": profile, "cu_count": CU_PROFILES[profile]["cu"]}
+
+    def _write_cu_boot_service(self, profile: str, masks: list, umr: str):
+        """Crée un script de restauration CU + service systemd activé au boot."""
+        union = 0
+        for m in masks:
+            union |= m
+
+        script_lines = [
+            "#!/usr/bin/bash",
+            f"# BC-250 CU profile: {CU_PROFILES[profile]['label']} — BC250-Toolkit-Decky",
+            f"UMR={umr}",
+            f"ASIC={CU_ASIC}",
+            "",
+            f'"$UMR" -w "$ASIC".{CU_REG_CC} 0x0 || true',
+        ]
+        for idx, (se, sh) in enumerate(CU_SE_SH):
+            script_lines.append(f'"$UMR" -w "$ASIC".{CU_REG_CC} 0x0 -b {se} {sh} 0xffffffff')
+            script_lines.append(f'"$UMR" -w "$ASIC".{CU_REG_SPI} {hex(masks[idx])} -b {se} {sh} 0xffffffff')
+        script_lines.append(f'"$UMR" -w "$ASIC".{CU_REG_RLC} {hex(union)} || true')
+
+        try:
+            CU_RESTORE_SCRIPT.write_text("\n".join(script_lines) + "\n")
+            CU_RESTORE_SCRIPT.chmod(0o755)
+        except Exception:
+            return
+
+        wait_line = "for _ in {1..30}; do compgen -G '/dev/dri/renderD*' >/dev/null && exit 0; sleep 1; done; exit 1"
+        service_lines = [
+            "[Unit]",
+            f"Description=BC-250 CU {CU_PROFILES[profile]['label']} restore at boot",
+            "After=systemd-udev-settle.service",
+            "Wants=systemd-udev-settle.service",
+            "",
+            "[Service]",
+            "Type=oneshot",
+            f"ExecStartPre=/usr/bin/bash -c '{wait_line}'",
+            f"ExecStart={CU_RESTORE_SCRIPT}",
+            "RemainAfterExit=yes",
+            "",
+            "[Install]",
+            "WantedBy=multi-user.target",
+        ]
+        try:
+            CU_SERVICE_PATH.write_text("\n".join(service_lines) + "\n")
+            subprocess.run(["systemctl", "daemon-reload"], capture_output=True, timeout=5)
+            subprocess.run(["systemctl", "enable", CU_SERVICE_NAME], capture_output=True, timeout=5)
+        except Exception:
+            pass
+
+    # ── DB info ───────────────────────────────────────────────────────────────
 
     async def get_db_meta(self) -> dict:
         return self._games_db.get("_meta", {})
 
     async def get_db_game_count(self) -> int:
         return sum(1 for k in self._games_db if not k.startswith("_"))
+
+
+def _user_uid() -> int:
+    try:
+        return BC250_DATA_DIR.stat().st_uid if BC250_DATA_DIR.exists() else _USER_HOME.stat().st_uid
+    except Exception:
+        return 1000

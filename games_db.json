@@ -9,6 +9,7 @@
   "3321460": {
     "name": "Crimson Desert",
     "proton": "Proton Experimental",
+    "compat_tool": "proton_experimental",
     "proton_branch": "bleeding-edge",
     "proton_note": "⚠ Activer bleeding-edge : Bibliothèque > Outils > Proton Experimental > Propriétés > Versions du jeu et bêtas > bleeding-edge",
     "launch_options": "DXVK_CONFIG=\"dxgi.customDeviceId=731F dxgi.customVendorId=1002\" MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
@@ -46,6 +47,7 @@
   "730": {
     "name": "Counter-Strike 2",
     "proton": "Proton Experimental",
+    "compat_tool": "proton_experimental",
     "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
     "notes": "100+ FPS en 1080p. Natif Linux via Proton. Très stable.",
     "tested_on": "BC-250"
@@ -53,6 +55,7 @@
   "252950": {
     "name": "Rocket League",
     "proton": "Proton Experimental",
+    "compat_tool": "proton_experimental",
     "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display gamemoderun %command%",
     "notes": "120+ FPS en 1080p. Très bien optimisé sur BC-250.",
     "tested_on": "BC-250"
@@ -73,7 +76,8 @@
   },
   "1222140": {
     "name": "Detroit: Become Human",
-    "proton": "Proton - Experimental",
+    "proton": "Proton Experimental",
+    "compat_tool": "proton_experimental",
     "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
     "notes": "60 FPS stable en Medium. Très bien optimisé, peu de config nécessaire.",
     "tested_on": "BC-250"
@@ -95,6 +99,7 @@
   "413150": {
     "name": "Stardew Valley",
     "proton": "Proton Experimental",
+    "compat_tool": "proton_experimental",
     "launch_options": "gamemoderun %command%",
     "notes": "Fonctionne parfaitement nativement ou via Proton.",
     "tested_on": "BC-250"
