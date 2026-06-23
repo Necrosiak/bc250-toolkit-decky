@@ -358,7 +358,10 @@ function CuTab() {
           <>
             <PanelSectionRow>
               <Field>
-                <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>
+                <div style={{
+                  fontSize: "12px", color: "#ff9800", lineHeight: "1.4",
+                  borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                }}>
                   {t("cu_no_umr")}
                 </div>
               </Field>
@@ -372,25 +375,17 @@ function CuTab() {
         )}
       </PanelSection>
 
-      {/* Avertissement */}
+      {/* Avertissement + conseils fusionnés */}
       <PanelSection title={t("cu_warn_title")}>
         <PanelSectionRow>
-          <Field>
-            <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.5" }}>
-              {t("cu_warn_body")}
-            </div>
-          </Field>
-        </PanelSectionRow>
-      </PanelSection>
-
-      {/* Recommandations */}
-      <PanelSection title={t("cu_tips_title")}>
-        <PanelSectionRow>
-          <Field>
-            <div style={{ fontSize: "11px", color: "#aaa", lineHeight: "1.6", whiteSpace: "pre-line" }}>
-              {t("cu_tips_body")}
-            </div>
-          </Field>
+          <div style={{
+            fontSize: "13px", color: "#ff9800", lineHeight: "1.5",
+            borderLeft: "3px solid #ff9800", paddingLeft: "10px",
+            paddingTop: "6px", paddingBottom: "6px",
+            background: "rgba(255,152,0,0.08)", borderRadius: "0 4px 4px 0",
+          }}>
+            {t("cu_disclaimer")}
+          </div>
         </PanelSectionRow>
       </PanelSection>
 
@@ -444,7 +439,10 @@ function CuTab() {
       <PanelSection>
         <PanelSectionRow>
           <Field>
-            <div style={{ fontSize: "10px", color: "#555", lineHeight: "1.4", whiteSpace: "pre-line" }}>
+            <div style={{
+              fontSize: "10px", color: "#888", lineHeight: "1.5",
+              whiteSpace: "pre-line", textAlign: "center",
+            }}>
               {t("cu_legend")}
             </div>
           </Field>

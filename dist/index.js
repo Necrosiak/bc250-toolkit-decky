@@ -163,10 +163,8 @@ const T = {
         toast_umr_already: "✓ umr already available",
         toast_umr_fail: "✗ umr install failed: {error}",
         // CU disclaimer
-        cu_warn_title: "⚠ Experimental — Use at your own risk",
-        cu_warn_body: "Increasing the CU count beyond stock (24 CU) is experimental. It may cause GPU instability, crashes, or overheating. The BC250 Toolkit team is NOT responsible for any hardware damage.",
-        cu_tips_title: "Recommendations",
-        cu_tips_body: "• Start with 32 CU and test for stability\n• Monitor temps in the System tab\n• Save to boot only after confirming stability\n• Return to 24 CU (stock) if issues occur",
+        cu_warn_title: "⚠ Experimental",
+        cu_disclaimer: "Unlocking CUs beyond 24 may cause GPU instability or overheating. Start at 32 CU · Monitor temps · Revert to 24 CU if unstable.",
         // System
         sys_temps: "Temperatures",
         sys_status: "Status",
@@ -224,10 +222,8 @@ const T = {
         toast_umr_ok: "✓ umr installé — CU disponible",
         toast_umr_already: "✓ umr déjà disponible",
         toast_umr_fail: "✗ Échec install umr : {error}",
-        cu_warn_title: "⚠ Expérimental — Utilisation à vos risques",
-        cu_warn_body: "Augmenter le nombre de CU au-delà de 24 CU (stock) est expérimental. Cela peut provoquer instabilité GPU, crashs ou surchauffe. L'équipe BC250 Toolkit décline toute responsabilité en cas de dommages matériels.",
-        cu_tips_title: "Recommandations",
-        cu_tips_body: "• Commencez par 32 CU et testez la stabilité\n• Surveillez les temps dans l'onglet Système\n• Ne sauvegardez au boot qu'après avoir confirmé la stabilité\n• Revenez à 24 CU (stock) en cas de problème",
+        cu_warn_title: "⚠ Expérimental",
+        cu_disclaimer: "Dépasser 24 CU peut causer instabilité GPU ou surchauffe. Commencer par 32 CU · Surveiller les temps · Revenir à 24 CU si instable.",
         sys_temps: "Températures", sys_status: "Statut", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actif", sys_inactive: "✗ inactif", sys_unknown: "inconnu",
@@ -272,10 +268,8 @@ const T = {
         toast_umr_ok: "✓ umr installiert — CU verfügbar",
         toast_umr_already: "✓ umr bereits verfügbar",
         toast_umr_fail: "✗ umr-Installation fehlgeschlagen: {error}",
-        cu_warn_title: "⚠ Experimentell — Auf eigenes Risiko",
-        cu_warn_body: "Die Erhöhung der CU-Anzahl über 24 CU (Standard) ist experimentell. Es kann zu GPU-Instabilität, Abstürzen oder Überhitzung kommen. Das BC250 Toolkit-Team übernimmt keine Haftung für Hardwareschäden.",
-        cu_tips_title: "Empfehlungen",
-        cu_tips_body: "• Mit 32 CU beginnen und Stabilität testen\n• Temperaturen im System-Tab überwachen\n• Nur nach Stabilitätsbestätigung beim Boot speichern\n• Bei Problemen zu 24 CU (Standard) zurückkehren",
+        cu_warn_title: "⚠ Experimentell",
+        cu_disclaimer: "Über 24 CU kann GPU-Instabilität oder Überhitzung verursachen. Mit 32 CU beginnen · Temps überwachen · Bei Problemen auf 24 CU zurück.",
         sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktiv", sys_inactive: "✗ inaktiv", sys_unknown: "unbekannt",
@@ -320,10 +314,8 @@ const T = {
         toast_umr_ok: "✓ umr instalado — CU disponible",
         toast_umr_already: "✓ umr ya disponible",
         toast_umr_fail: "✗ Instalación de umr fallida: {error}",
-        cu_warn_title: "⚠ Experimental — Bajo tu propio riesgo",
-        cu_warn_body: "Aumentar los CU más allá de 24 CU (stock) es experimental. Puede causar inestabilidad de GPU, cuelgues o sobrecalentamiento. El equipo BC250 Toolkit no se hace responsable de daños al hardware.",
-        cu_tips_title: "Recomendaciones",
-        cu_tips_body: "• Empieza con 32 CU y prueba la estabilidad\n• Monitoriza temperaturas en la pestaña Sistema\n• Guarda al arranque solo tras confirmar estabilidad\n• Vuelve a 24 CU (stock) si hay problemas",
+        cu_warn_title: "⚠ Experimental",
+        cu_disclaimer: "Más de 24 CU puede causar inestabilidad GPU o sobrecalentamiento. Empezar con 32 CU · Vigilar temps · Volver a 24 CU si inestable.",
         sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Planificador",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ activo", sys_inactive: "✗ inactivo", sys_unknown: "desconocido",
@@ -368,10 +360,8 @@ const T = {
         toast_umr_ok: "✓ umr installato — CU disponibile",
         toast_umr_already: "✓ umr già disponibile",
         toast_umr_fail: "✗ Installazione umr fallita: {error}",
-        cu_warn_title: "⚠ Sperimentale — A proprio rischio",
-        cu_warn_body: "Aumentare i CU oltre 24 CU (stock) è sperimentale. Può causare instabilità GPU, crash o surriscaldamento. Il team BC250 Toolkit non è responsabile per danni all'hardware.",
-        cu_tips_title: "Raccomandazioni",
-        cu_tips_body: "• Inizia con 32 CU e testa la stabilità\n• Monitora le temperature nella scheda Sistema\n• Salva all'avvio solo dopo aver confermato la stabilità\n• Torna a 24 CU (stock) in caso di problemi",
+        cu_warn_title: "⚠ Sperimentale",
+        cu_disclaimer: "Oltre 24 CU può causare instabilità GPU o surriscaldamento. Iniziare con 32 CU · Monitorare temp · Tornare a 24 CU se instabile.",
         sys_temps: "Temperature", sys_status: "Stato", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ attivo", sys_inactive: "✗ inattivo", sys_unknown: "sconosciuto",
@@ -416,10 +406,8 @@ const T = {
         toast_umr_ok: "✓ umr instalado — CU disponível",
         toast_umr_already: "✓ umr já disponível",
         toast_umr_fail: "✗ Instalação de umr falhou: {error}",
-        cu_warn_title: "⚠ Experimental — Por conta e risco",
-        cu_warn_body: "Aumentar os CU além de 24 CU (stock) é experimental. Pode causar instabilidade de GPU, crashes ou sobreaquecimento. A equipa BC250 Toolkit não se responsabiliza por danos ao hardware.",
-        cu_tips_title: "Recomendações",
-        cu_tips_body: "• Comece com 32 CU e teste a estabilidade\n• Monitorize temperaturas no separador Sistema\n• Guarde no arranque só após confirmar estabilidade\n• Volte a 24 CU (stock) em caso de problemas",
+        cu_warn_title: "⚠ Experimental",
+        cu_disclaimer: "Além de 24 CU pode causar instabilidade GPU ou sobreaquecimento. Começar com 32 CU · Monitorizar temps · Voltar a 24 CU se instável.",
         sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ ativo", sys_inactive: "✗ inativo", sys_unknown: "desconhecido",
@@ -464,10 +452,8 @@ const T = {
         toast_umr_ok: "✓ umr geïnstalleerd — CU beschikbaar",
         toast_umr_already: "✓ umr al beschikbaar",
         toast_umr_fail: "✗ umr installatie mislukt: {error}",
-        cu_warn_title: "⚠ Experimenteel — Op eigen risico",
-        cu_warn_body: "Het verhogen van het CU-aantal boven 24 CU (standaard) is experimenteel. Het kan GPU-instabiliteit, crashes of oververhitting veroorzaken. Het BC250 Toolkit-team is niet aansprakelijk voor hardwareschade.",
-        cu_tips_title: "Aanbevelingen",
-        cu_tips_body: "• Begin met 32 CU en test stabiliteit\n• Monitor temperaturen in het Systeem-tabblad\n• Sla op bij opstarten alleen na stabiliteitstests\n• Keer terug naar 24 CU (standaard) bij problemen",
+        cu_warn_title: "⚠ Experimenteel",
+        cu_disclaimer: "Boven 24 CU kan GPU-instabiliteit of oververhitting veroorzaken. Start met 32 CU · Monitor temps · Terug naar 24 CU indien instabiel.",
         sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Planner",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actief", sys_inactive: "✗ inactief", sys_unknown: "onbekend",
@@ -512,10 +498,8 @@ const T = {
         toast_umr_ok: "✓ umr zainstalowany — CU dostępne",
         toast_umr_already: "✓ umr już dostępny",
         toast_umr_fail: "✗ Instalacja umr nie powiodła się: {error}",
-        cu_warn_title: "⚠ Eksperymentalne — Na własne ryzyko",
-        cu_warn_body: "Zwiększenie CU powyżej 24 CU (standard) jest eksperymentalne. Może powodować niestabilność GPU, awarie lub przegrzanie. Zespół BC250 Toolkit nie ponosi odpowiedzialności za uszkodzenia sprzętu.",
-        cu_tips_title: "Zalecenia",
-        cu_tips_body: "• Zacznij od 32 CU i przetestuj stabilność\n• Monitoruj temperatury w zakładce System\n• Zapisuj przy rozruchu tylko po potwierdzeniu stabilności\n• Wróć do 24 CU (standard) w razie problemów",
+        cu_warn_title: "⚠ Eksperymentalne",
+        cu_disclaimer: "Powyżej 24 CU może powodować niestabilność GPU lub przegrzanie. Zacznij od 32 CU · Monitoruj temps · Wróć do 24 CU jeśli niestabilne.",
         sys_temps: "Temperatury", sys_status: "Status", sys_scheduler: "Harmonogram",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktywny", sys_inactive: "✗ nieaktywny", sys_unknown: "nieznany",
@@ -560,10 +544,8 @@ const T = {
         toast_umr_ok: "✓ umr установлен — CU доступно",
         toast_umr_already: "✓ umr уже доступен",
         toast_umr_fail: "✗ Установка umr не удалась: {error}",
-        cu_warn_title: "⚠ Экспериментально — На свой страх и риск",
-        cu_warn_body: "Увеличение CU выше 24 CU (стандарт) является экспериментальным. Это может вызвать нестабильность GPU, сбои или перегрев. Команда BC250 Toolkit не несёт ответственности за повреждение оборудования.",
-        cu_tips_title: "Рекомендации",
-        cu_tips_body: "• Начните с 32 CU и проверьте стабильность\n• Следите за температурами на вкладке Система\n• Сохраняйте при загрузке только после подтверждения стабильности\n• Вернитесь к 24 CU (стандарт) при проблемах",
+        cu_warn_title: "⚠ Экспериментально",
+        cu_disclaimer: "Выше 24 CU может вызвать нестабильность GPU или перегрев. Начать с 32 CU · Следить за temp · Вернуться к 24 CU при проблемах.",
         sys_temps: "Температуры", sys_status: "Состояние", sys_scheduler: "Планировщик",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ активен", sys_inactive: "✗ неактивен", sys_unknown: "неизвестно",
@@ -771,7 +753,15 @@ function CuTab() {
                                     ? `${status.cu_count} / 40 CU`
                                     : status.umr_available
                                         ? t("cu_reading")
-                                        : t("cu_na") }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cu_boot"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: t("cu_no_umr") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: installingUmr, onClick: handleInstallUmr, children: installingUmr ? t("cu_installing_umr") : t("cu_install_umr") }) })] }))] }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_warn_title"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.5" }, children: t("cu_warn_body") }) }) }) }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_tips_title"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#aaa", lineHeight: "1.6", whiteSpace: "pre-line" }, children: t("cu_tips_body") }) }) }) }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_profiles"), children: CU_PROFILE_LIST.map(({ key, label, color }) => {
+                                        : t("cu_na") }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cu_boot"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                            fontSize: "12px", color: "#ff9800", lineHeight: "1.4",
+                                            borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                                        }, children: t("cu_no_umr") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: installingUmr, onClick: handleInstallUmr, children: installingUmr ? t("cu_installing_umr") : t("cu_install_umr") }) })] }))] }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_warn_title"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: {
+                            fontSize: "13px", color: "#ff9800", lineHeight: "1.5",
+                            borderLeft: "3px solid #ff9800", paddingLeft: "10px",
+                            paddingTop: "6px", paddingBottom: "6px",
+                            background: "rgba(255,152,0,0.08)", borderRadius: "0 4px 4px 0",
+                        }, children: t("cu_disclaimer") }) }) }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_profiles"), children: CU_PROFILE_LIST.map(({ key, label, color }) => {
                     const isActive = status.current_profile === key;
                     const isBoot = status.boot_profile === key;
                     const isApplying = applying === key;
@@ -781,7 +771,10 @@ function CuTab() {
                                     fontSize: "11px",
                                     color: lastMsg.startsWith("✓") ? "#4caf50" : "#f44336",
                                     lineHeight: "1.4",
-                                }, children: lastMsg }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "10px", color: "#555", lineHeight: "1.4", whiteSpace: "pre-line" }, children: t("cu_legend") }) }) }) })] }));
+                                }, children: lastMsg }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                fontSize: "10px", color: "#888", lineHeight: "1.5",
+                                whiteSpace: "pre-line", textAlign: "center",
+                            }, children: t("cu_legend") }) }) }) })] }));
 }
 // ── Onglet Système ────────────────────────────────────────────────────────────
 function SystemTab() {
