@@ -62,6 +62,10 @@ STEAM_DROPIN     = STEAM_DROPIN_DIR / "bc250-vdf-apply.conf"
 DRIRC_PATH      = _USER_HOME / ".drirc"
 RADV_STATE_FILE = BC250_DATA_DIR / "radv_configs.json"
 
+# ── Réglages du plugin (auto-apply + variante choisie par jeu) ─────────────────
+# { "auto_apply": bool, "variants": { "<appid>": <index|null> } }
+TOOLKIT_SETTINGS_FILE = BC250_DATA_DIR / "toolkit_settings.json"
+
 # ── CU management ─────────────────────────────────────────────────────────────
 # Hardware : 5 WGPs × 2 CU × 4 rangées (SE0.SH0, SE0.SH1, SE1.SH0, SE1.SH1) = 40 CU max
 # Stock BC-250 : WGP0-2 actifs (mask 0x07) = 6 CU/rangée × 4 = 24 CU
@@ -313,6 +317,44 @@ class Plugin:
 
     async def set_autoupdate(self, enabled):
         return updater.set_autoupdate_enabled(enabled)
+
+    # ── Réglages plugin : auto-apply + variante par jeu ────────────────────────
+
+    def _read_settings(self) -> dict:
+        try:
+            if TOOLKIT_SETTINGS_FILE.exists():
+                return json.loads(TOOLKIT_SETTINGS_FILE.read_text())
+        except Exception:
+            pass
+        return {}
+
+    def _write_settings(self, data: dict) -> None:
+        BC250_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        TOOLKIT_SETTINGS_FILE.write_text(json.dumps(data, indent=2))
+
+    async def get_auto_apply(self) -> bool:
+        return bool(self._read_settings().get("auto_apply", False))
+
+    async def set_auto_apply(self, enabled: bool) -> bool:
+        s = self._read_settings()
+        s["auto_apply"] = bool(enabled)
+        self._write_settings(s)
+        return bool(enabled)
+
+    async def get_game_variants(self) -> dict:
+        """Map { "<appid>": variant_index } des variantes choisies par l'utilisateur."""
+        return self._read_settings().get("variants", {})
+
+    async def set_game_variant(self, app_id: int, variant_index: int | None) -> dict:
+        s = self._read_settings()
+        variants = s.get("variants", {})
+        if variant_index is None:
+            variants.pop(str(app_id), None)
+        else:
+            variants[str(app_id)] = variant_index
+        s["variants"] = variants
+        self._write_settings(s)
+        return {"ok": True}
 
     def _install_pre_steam_hook(self):
         """Installe ExecStartPre dans le service Steam pour appliquer les VDF pending."""

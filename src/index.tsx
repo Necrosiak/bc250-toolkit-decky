@@ -14,6 +14,26 @@ import { t } from "./i18n";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+interface RadvConfig {
+  match: string;
+  options: Record<string, boolean | string | number>;
+}
+
+interface GameRequires {
+  uma_min_mb?: number;
+  gttsize?: number;
+  note?: string;
+}
+
+interface GameVariant {
+  label: string;
+  stability?: string;
+  compat_tool?: string;
+  launch_options?: string;
+  radv?: RadvConfig;
+  requires?: GameRequires;
+}
+
 interface GameEntry {
   name: string;
   proton: string;
@@ -23,6 +43,21 @@ interface GameEntry {
   launch_options: string;
   notes?: string;
   tested_on?: string;
+  radv?: RadvConfig;
+  requires?: GameRequires;
+  stability?: string;
+  configs?: GameVariant[];
+}
+
+interface ApplyResult {
+  ok: boolean;
+  applied?: Record<string, unknown>;
+  requires?: GameRequires | null;
+  need_steam_restart?: boolean;
+  compat_error?: string;
+  launch_error?: string;
+  radv_error?: string;
+  error?: string;
 }
 
 interface GamesDB {
@@ -53,21 +88,14 @@ type TabId = "games" | "cu" | "system" | "settings";
 
 // ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
 
-async function applyGameSettings(
-  appId: number,
-  toolName: string,
-  launchOpts: string
-): Promise<{ compatOk: boolean; compatDetail: string; launchOk: boolean; launchDetail: string }> {
-  const [compatResult, launchResult] = await Promise.all([
-    call<[number, string], { ok: boolean; error?: string }>("apply_compat_tool", appId, toolName),
-    call<[number, string], { ok: boolean; error?: string }>("apply_launch_options", appId, launchOpts),
-  ]);
-  return {
-    compatOk: compatResult.ok,
-    compatDetail: compatResult.error ?? toolName,
-    launchOk: launchResult.ok,
-    launchDetail: launchResult.error ?? "OK",
-  };
+// Orchestrateur backend : applique compat_tool + launch_options + radv/drirc
+// d'un coup. variantIndex = null → config stable (clés top-level) ; sinon configs[i].
+async function applyGameConfig(appId: number, variantIndex: number | null): Promise<ApplyResult> {
+  try {
+    return await call<[number, number | null], ApplyResult>("apply_game_config", appId, variantIndex);
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
 }
 
 // ── Onglet Jeux ───────────────────────────────────────────────────────────────
@@ -97,9 +125,10 @@ function getInstalledDbGames(gamesDb: GamesDB): InstalledEntry[] {
   }
 }
 
-function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean }) {
+function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants: Record<string, number> }) {
   const [installed, setInstalled] = useState<InstalledEntry[]>([]);
   const [selected, setSelected] = useState<InstalledEntry | null>(null);
+  const [variantIdx, setVariantIdx] = useState<number | null>(null);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
 
@@ -118,47 +147,46 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
     return () => clearInterval(timer);
   }, [refresh]);
 
+  // Variantes du jeu sélectionné — init depuis le choix sauvegardé, sinon variante 0.
+  const variants = selected?.game.configs ?? [];
+  const hasConfigs = variants.length > 0;
+
   useEffect(() => {
-    if (!autoApply) return;
-    let unreg: (() => void) | undefined;
-    try {
-      const reg = (window as any).SteamClient?.GameSessions?.RegisterForAppLifetimeNotifications;
-      if (typeof reg !== "function") return;
-      unreg = reg(async (e: any) => {
-        if (!e?.bRunning) return;
-        const entry = gamesDb[String(e.unAppID)];
-        if (!entry || !("proton" in entry)) return;
-        const g = entry as GameEntry;
-        const r = await applyGameSettings(e.unAppID, g.compat_tool ?? g.proton, g.launch_options);
-        const ok = r.compatOk || r.launchOk;
-        toaster.toast({
-          title: "BC250 Toolkit",
-          body: ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.compatDetail }),
-          duration: 3000,
-        });
-      });
-    } catch (_) {}
-    return () => { try { unreg?.(); } catch (_) {} };
-  }, [autoApply, gamesDb]);
+    if (!selected) { setVariantIdx(null); return; }
+    if (hasConfigs) {
+      const saved = savedVariants[String(selected.appid)];
+      setVariantIdx(typeof saved === "number" && saved >= 0 && saved < variants.length ? saved : 0);
+    } else {
+      setVariantIdx(null);
+    }
+    setApplied(false);
+  }, [selected, savedVariants]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Config affichée = variante active si présente, sinon clés top-level.
+  const activeCfg: GameVariant | null = hasConfigs && variantIdx != null ? variants[variantIdx] : null;
+  const dispProton   = activeCfg?.compat_tool ?? selected?.game.compat_tool ?? selected?.game.proton;
+  const dispLaunch   = activeCfg?.launch_options ?? selected?.game.launch_options;
+  const dispRadv     = activeCfg?.radv ?? selected?.game.radv;
+  const dispRequires = activeCfg?.requires ?? selected?.game.requires;
 
   const handleApply = async () => {
     if (!selected) return;
     setApplying(true);
     try {
-      const r = await applyGameSettings(
-        selected.appid,
-        selected.game.compat_tool ?? selected.game.proton,
-        selected.game.launch_options
-      );
-      const allOk = r.compatOk && r.launchOk;
-      const partialOk = r.compatOk || r.launchOk;
-      setApplied(allOk || partialOk);
-      if (allOk) {
-        toaster.toast({ title: "BC250 Toolkit", body: t("toast_persistent"), duration: 4000 });
-      } else if (partialOk) {
-        toaster.toast({ title: "BC250 Toolkit", body: r.compatOk ? t("toast_partial_compat") : t("toast_partial_launch"), duration: 5000 });
+      const idx = hasConfigs ? variantIdx : null;
+      const r = await applyGameConfig(selected.appid, idx);
+      // Mémoriser le choix de variante (réutilisé par l'auto-apply).
+      call<[number, number | null], unknown>("set_game_variant", selected.appid, idx).catch(() => {});
+      if (r.ok) {
+        setApplied(true);
+        toaster.toast({
+          title: "BC250 Toolkit",
+          body: r.need_steam_restart ? t("toast_persistent") : t("toast_applied", { name: selected.game.name }),
+          duration: 4000,
+        });
       } else {
-        toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail: r.compatDetail }), duration: 5000 });
+        const detail = r.error ?? r.compat_error ?? r.launch_error ?? r.radv_error ?? "?";
+        toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail }), duration: 5000 });
         setApplied(false);
       }
     } finally {
@@ -207,10 +235,30 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
 
       {selected && (
         <PanelSection title={t("settings_title")}>
+          {hasConfigs && (
+            <PanelSection title={t("variant_title")}>
+              {variants.map((v, i) => {
+                const isActive = variantIdx === i;
+                const color = v.stability === "experimental" ? "#ff9800" : "#4caf50";
+                return (
+                  <PanelSectionRow key={i}>
+                    <ButtonItem
+                      layout="below"
+                      onClick={() => { setVariantIdx(i); setApplied(false); }}
+                      style={isActive ? { color, fontWeight: "bold" } : { opacity: 0.7 }}
+                    >
+                      {isActive ? `▶ ${v.label}` : v.label}
+                    </ButtonItem>
+                  </PanelSectionRow>
+                );
+              })}
+            </PanelSection>
+          )}
+
           <PanelSectionRow>
             <Field label={t("label_proton")}>
               <span style={{ fontSize: "12px" }}>
-                {selected.game.proton}{selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""}
+                {dispProton}{selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""}
               </span>
             </Field>
           </PanelSectionRow>
@@ -226,10 +274,32 @@ function GamesTab({ gamesDb, autoApply }: { gamesDb: GamesDB; autoApply: boolean
           <PanelSectionRow>
             <Field label={t("label_launch")}>
               <div style={{ fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }}>
-                {selected.game.launch_options}
+                {dispLaunch}
               </div>
             </Field>
           </PanelSectionRow>
+          {dispRadv && (
+            <PanelSectionRow>
+              <Field label={t("label_radv")}>
+                <div style={{ fontSize: "10px", color: "#aaa", lineHeight: "1.4" }}>
+                  {Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ")}
+                </div>
+              </Field>
+            </PanelSectionRow>
+          )}
+          {dispRequires?.uma_min_mb && (
+            <PanelSectionRow>
+              <Field>
+                <div style={{
+                  fontSize: "11px", color: "#ff9800", lineHeight: "1.4",
+                  borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                }}>
+                  {t("req_uma", { mb: dispRequires.uma_min_mb })}
+                  {dispRequires.note ? ` — ${dispRequires.note}` : ""}
+                </div>
+              </Field>
+            </PanelSectionRow>
+          )}
           {selected.game.notes && (
             <PanelSectionRow>
               <Field label={t("label_notes")}>
@@ -712,7 +782,8 @@ function TabBar({ tab, setTab }: { tab: TabId; setTab: (t: TabId) => void }) {
 
 function Content() {
   const [tab, setTab] = useState<TabId>("games");
-  const [autoApply, setAutoApply] = useState(false);
+  const [autoApply, setAutoApplyState] = useState(false);
+  const [savedVariants, setSavedVariants] = useState<Record<string, number>>({});
   const [gamesDb, setGamesDb] = useState<GamesDB>({});
   const [dbLoaded, setDbLoaded] = useState(false);
 
@@ -721,7 +792,30 @@ function Content() {
       setGamesDb(db);
       setDbLoaded(true);
     });
+    call<[], boolean>("get_auto_apply").then((v) => setAutoApplyState(!!v)).catch(() => {});
+    call<[], Record<string, number>>("get_game_variants").then((v) => setSavedVariants(v ?? {})).catch(() => {});
   }, []);
+
+  // Toggle persistant + (dés)activation immédiate du pré-câblage des jeux installés.
+  const setAutoApply = (v: boolean) => {
+    setAutoApplyState(v);
+    call<[boolean], boolean>("set_auto_apply", v).catch(() => {});
+    if (v) {
+      const games = getInstalledDbGames(gamesDb);
+      Promise.all(
+        games.map((g) => {
+          const cfgs = g.game.configs;
+          const idx = cfgs && cfgs.length > 0
+            ? (savedVariants[String(g.appid)] ?? 0)
+            : null;
+          return applyGameConfig(g.appid, idx);
+        })
+      ).then((rs) => {
+        const n = rs.filter((r) => r.ok).length;
+        toaster.toast({ title: "BC250 Toolkit", body: t("toast_autoapply_on", { count: n }), duration: 4000 });
+      }).catch(() => {});
+    }
+  };
 
   const refreshDb = async () => {
     const db = await call<[], GamesDB>("refresh_games_db");
@@ -734,7 +828,7 @@ function Content() {
   return (
     <>
       <TabBar tab={tab} setTab={setTab} />
-      {tab === "games"    && <GamesTab gamesDb={gamesDb} autoApply={autoApply} />}
+      {tab === "games"    && <GamesTab gamesDb={gamesDb} savedVariants={savedVariants} />}
       {tab === "cu"       && <CuTab />}
       {tab === "system"   && <SystemTab />}
       {tab === "settings" && (
@@ -749,10 +843,44 @@ function Content() {
   );
 }
 
-export default definePlugin(() => ({
-  name: "BC250 Toolkit",
-  title: <div className={staticClasses.Title}>BC250 Toolkit</div>,
-  icon: <FaMicrochip />,
-  content: <Content />,
-  onDismount() {},
-}));
+export default definePlugin(() => {
+  // Auto-apply persistant : enregistré au chargement du plugin (= démarrage Steam),
+  // actif toute la session même panneau fermé. À chaque jeu lancé connu de la DB,
+  // si l'auto-apply est activé, on (ré)applique sa config (variante sauvegardée).
+  // Les fichiers étant persistants (config.vdf / ~/.drirc / launch options), l'effet
+  // est garanti au lancement suivant.
+  let unreg: (() => void) | undefined;
+  try {
+    const reg = (window as any).SteamClient?.GameSessions?.RegisterForAppLifetimeNotifications;
+    if (typeof reg === "function") {
+      unreg = reg(async (e: any) => {
+        if (!e?.bRunning) return;
+        try {
+          const enabled = await call<[], boolean>("get_auto_apply");
+          if (!enabled) return;
+          const db = await call<[], GamesDB>("get_games_db");
+          const entry = db[String(e.unAppID)];
+          if (!entry || !("proton" in entry)) return;
+          const g = entry as GameEntry;
+          const variants = await call<[], Record<string, number>>("get_game_variants").catch(() => ({}));
+          const hasConfigs = Array.isArray(g.configs) && g.configs.length > 0;
+          const idx = hasConfigs ? (variants[String(e.unAppID)] ?? 0) : null;
+          const r = await applyGameConfig(e.unAppID, idx);
+          toaster.toast({
+            title: "BC250 Toolkit",
+            body: r.ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.error ?? "?" }),
+            duration: 3000,
+          });
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
+
+  return {
+    name: "BC250 Toolkit",
+    title: <div className={staticClasses.Title}>BC250 Toolkit</div>,
+    icon: <FaMicrochip />,
+    content: <Content />,
+    onDismount() { try { unreg?.(); } catch (_) {} },
+  };
+});

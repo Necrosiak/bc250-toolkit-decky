@@ -141,6 +141,11 @@ const T = {
         toast_persistent: "✓ Persistent — restart Steam once",
         toast_partial_compat: "⚠ Partial: Proton OK — Launch options failed",
         toast_partial_launch: "⚠ Partial: Launch options OK — Proton failed",
+        // Variants / requirements
+        variant_title: "Configuration",
+        label_radv: "radv (drirc)",
+        req_uma: "⚠ Requires UMA Frame Buffer ≥ {mb} MB (BIOS / AMD CBS)",
+        toast_autoapply_on: "Auto-apply ON — {count} installed game(s) pre-configured",
         // CU
         cu_title: "CU Status",
         cu_live: "Active CU (live)",
@@ -213,6 +218,10 @@ const T = {
         toast_persistent: "✓ Persistant — redémarre Steam une fois",
         toast_partial_compat: "⚠ Partiel : Proton OK — Launch options KO",
         toast_partial_launch: "⚠ Partiel : Launch options OK — Proton KO",
+        variant_title: "Configuration",
+        label_radv: "radv (drirc)",
+        req_uma: "⚠ Nécessite UMA Frame Buffer ≥ {mb} Mo (BIOS / AMD CBS)",
+        toast_autoapply_on: "Auto-apply ON — {count} jeu(x) installé(s) pré-configuré(s)",
         cu_title: "Statut CU", cu_live: "CU actifs (live)",
         cu_reading: "lecture...", cu_na: "N/A", cu_boot: "Boot",
         cu_no_umr: "⚠ umr non disponible — requis pour la gestion CU",
@@ -584,17 +593,15 @@ function t(key, vars) {
 }
 
 // ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
-async function applyGameSettings(appId, toolName, launchOpts) {
-    const [compatResult, launchResult] = await Promise.all([
-        call("apply_compat_tool", appId, toolName),
-        call("apply_launch_options", appId, launchOpts),
-    ]);
-    return {
-        compatOk: compatResult.ok,
-        compatDetail: compatResult.error ?? toolName,
-        launchOk: launchResult.ok,
-        launchDetail: launchResult.error ?? "OK",
-    };
+// Orchestrateur backend : applique compat_tool + launch_options + radv/drirc
+// d'un coup. variantIndex = null → config stable (clés top-level) ; sinon configs[i].
+async function applyGameConfig(appId, variantIndex) {
+    try {
+        return await call("apply_game_config", appId, variantIndex);
+    }
+    catch (e) {
+        return { ok: false, error: String(e) };
+    }
 }
 function getInstalledDbGames(gamesDb) {
     try {
@@ -616,9 +623,10 @@ function getInstalledDbGames(gamesDb) {
         return [];
     }
 }
-function GamesTab({ gamesDb, autoApply }) {
+function GamesTab({ gamesDb, savedVariants }) {
     const [installed, setInstalled] = SP_REACT.useState([]);
     const [selected, setSelected] = SP_REACT.useState(null);
+    const [variantIdx, setVariantIdx] = SP_REACT.useState(null);
     const [applying, setApplying] = SP_REACT.useState(false);
     const [applied, setApplied] = SP_REACT.useState(false);
     const gameCount = Object.keys(gamesDb).filter((k) => !k.startsWith("_")).length;
@@ -633,53 +641,49 @@ function GamesTab({ gamesDb, autoApply }) {
         const timer = setInterval(refresh, 5000);
         return () => clearInterval(timer);
     }, [refresh]);
+    // Variantes du jeu sélectionné — init depuis le choix sauvegardé, sinon variante 0.
+    const variants = selected?.game.configs ?? [];
+    const hasConfigs = variants.length > 0;
     SP_REACT.useEffect(() => {
-        if (!autoApply)
+        if (!selected) {
+            setVariantIdx(null);
             return;
-        let unreg;
-        try {
-            const reg = window.SteamClient?.GameSessions?.RegisterForAppLifetimeNotifications;
-            if (typeof reg !== "function")
-                return;
-            unreg = reg(async (e) => {
-                if (!e?.bRunning)
-                    return;
-                const entry = gamesDb[String(e.unAppID)];
-                if (!entry || !("proton" in entry))
-                    return;
-                const g = entry;
-                const r = await applyGameSettings(e.unAppID, g.compat_tool ?? g.proton, g.launch_options);
-                const ok = r.compatOk || r.launchOk;
-                toaster.toast({
-                    title: "BC250 Toolkit",
-                    body: ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.compatDetail }),
-                    duration: 3000,
-                });
-            });
         }
-        catch (_) { }
-        return () => { try {
-            unreg?.();
+        if (hasConfigs) {
+            const saved = savedVariants[String(selected.appid)];
+            setVariantIdx(typeof saved === "number" && saved >= 0 && saved < variants.length ? saved : 0);
         }
-        catch (_) { } };
-    }, [autoApply, gamesDb]);
+        else {
+            setVariantIdx(null);
+        }
+        setApplied(false);
+    }, [selected, savedVariants]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Config affichée = variante active si présente, sinon clés top-level.
+    const activeCfg = hasConfigs && variantIdx != null ? variants[variantIdx] : null;
+    const dispProton = activeCfg?.compat_tool ?? selected?.game.compat_tool ?? selected?.game.proton;
+    const dispLaunch = activeCfg?.launch_options ?? selected?.game.launch_options;
+    const dispRadv = activeCfg?.radv ?? selected?.game.radv;
+    const dispRequires = activeCfg?.requires ?? selected?.game.requires;
     const handleApply = async () => {
         if (!selected)
             return;
         setApplying(true);
         try {
-            const r = await applyGameSettings(selected.appid, selected.game.compat_tool ?? selected.game.proton, selected.game.launch_options);
-            const allOk = r.compatOk && r.launchOk;
-            const partialOk = r.compatOk || r.launchOk;
-            setApplied(allOk || partialOk);
-            if (allOk) {
-                toaster.toast({ title: "BC250 Toolkit", body: t("toast_persistent"), duration: 4000 });
-            }
-            else if (partialOk) {
-                toaster.toast({ title: "BC250 Toolkit", body: r.compatOk ? t("toast_partial_compat") : t("toast_partial_launch"), duration: 5000 });
+            const idx = hasConfigs ? variantIdx : null;
+            const r = await applyGameConfig(selected.appid, idx);
+            // Mémoriser le choix de variante (réutilisé par l'auto-apply).
+            call("set_game_variant", selected.appid, idx).catch(() => { });
+            if (r.ok) {
+                setApplied(true);
+                toaster.toast({
+                    title: "BC250 Toolkit",
+                    body: r.need_steam_restart ? t("toast_persistent") : t("toast_applied", { name: selected.game.name }),
+                    duration: 4000,
+                });
             }
             else {
-                toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail: r.compatDetail }), duration: 5000 });
+                const detail = r.error ?? r.compat_error ?? r.launch_error ?? r.radv_error ?? "?";
+                toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail }), duration: 5000 });
                 setApplied(false);
             }
         }
@@ -690,7 +694,14 @@ function GamesTab({ gamesDb, autoApply }) {
     return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB", description: t("db_optimized"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: t("db_count", { count: gameCount }) }) }) }) }), installed.length > 0 ? (SP_JSX.jsx(DFL.PanelSection, { title: t("installed_compat"), children: installed.map((entry) => {
                     const isSelected = selected?.appid === entry.appid;
                     return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => { setSelected(isSelected ? null : entry); setApplied(false); }, style: isSelected ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.8 }, children: isSelected ? `▶ ${entry.name}` : entry.name }) }, entry.appid));
-                }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: t("no_games") }) }) }) })), selected && (SP_JSX.jsxs(DFL.PanelSection, { title: t("settings_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_proton"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px" }, children: [selected.game.proton, selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }) }) }), selected.game.proton_note && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: selected.game.proton_note }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_launch"), children: SP_JSX.jsx("div", { style: { fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }, children: selected.game.launch_options }) }) }), selected.game.notes && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_notes"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ccc" }, children: selected.game.notes }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: applying || applied, onClick: handleApply, children: applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply") }) })] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: t("btn_refresh") }) }) })] }));
+                }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: t("no_games") }) }) }) })), selected && (SP_JSX.jsxs(DFL.PanelSection, { title: t("settings_title"), children: [hasConfigs && (SP_JSX.jsx(DFL.PanelSection, { title: t("variant_title"), children: variants.map((v, i) => {
+                            const isActive = variantIdx === i;
+                            const color = v.stability === "experimental" ? "#ff9800" : "#4caf50";
+                            return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => { setVariantIdx(i); setApplied(false); }, style: isActive ? { color, fontWeight: "bold" } : { opacity: 0.7 }, children: isActive ? `▶ ${v.label}` : v.label }) }, i));
+                        }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_proton"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px" }, children: [dispProton, selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }) }) }), selected.game.proton_note && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: selected.game.proton_note }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_launch"), children: SP_JSX.jsx("div", { style: { fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }, children: dispLaunch }) }) }), dispRadv && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_radv"), children: SP_JSX.jsx("div", { style: { fontSize: "10px", color: "#aaa", lineHeight: "1.4" }, children: Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ") }) }) })), dispRequires?.uma_min_mb && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsxs("div", { style: {
+                                    fontSize: "11px", color: "#ff9800", lineHeight: "1.4",
+                                    borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                                }, children: [t("req_uma", { mb: dispRequires.uma_min_mb }), dispRequires.note ? ` — ${dispRequires.note}` : ""] }) }) })), selected.game.notes && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_notes"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ccc" }, children: selected.game.notes }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: applying || applied, onClick: handleApply, children: applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply") }) })] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: t("btn_refresh") }) }) })] }));
 }
 // ── Onglet CU ─────────────────────────────────────────────────────────────────
 const CU_PROFILE_LIST = [
@@ -897,7 +908,8 @@ function TabBar({ tab, setTab }) {
 // ── Plugin principal ──────────────────────────────────────────────────────────
 function Content() {
     const [tab, setTab] = SP_REACT.useState("games");
-    const [autoApply, setAutoApply] = SP_REACT.useState(false);
+    const [autoApply, setAutoApplyState] = SP_REACT.useState(false);
+    const [savedVariants, setSavedVariants] = SP_REACT.useState({});
     const [gamesDb, setGamesDb] = SP_REACT.useState({});
     const [dbLoaded, setDbLoaded] = SP_REACT.useState(false);
     SP_REACT.useEffect(() => {
@@ -905,7 +917,27 @@ function Content() {
             setGamesDb(db);
             setDbLoaded(true);
         });
+        call("get_auto_apply").then((v) => setAutoApplyState(!!v)).catch(() => { });
+        call("get_game_variants").then((v) => setSavedVariants(v ?? {})).catch(() => { });
     }, []);
+    // Toggle persistant + (dés)activation immédiate du pré-câblage des jeux installés.
+    const setAutoApply = (v) => {
+        setAutoApplyState(v);
+        call("set_auto_apply", v).catch(() => { });
+        if (v) {
+            const games = getInstalledDbGames(gamesDb);
+            Promise.all(games.map((g) => {
+                const cfgs = g.game.configs;
+                const idx = cfgs && cfgs.length > 0
+                    ? (savedVariants[String(g.appid)] ?? 0)
+                    : null;
+                return applyGameConfig(g.appid, idx);
+            })).then((rs) => {
+                const n = rs.filter((r) => r.ok).length;
+                toaster.toast({ title: "BC250 Toolkit", body: t("toast_autoapply_on", { count: n }), duration: 4000 });
+            }).catch(() => { });
+        }
+    };
     const refreshDb = async () => {
         const db = await call("refresh_games_db");
         setGamesDb(db);
@@ -913,15 +945,56 @@ function Content() {
     };
     if (!dbLoaded)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(TabBar, { tab: tab, setTab: setTab }), tab === "games" && SP_JSX.jsx(GamesTab, { gamesDb: gamesDb, autoApply: autoApply }), tab === "cu" && SP_JSX.jsx(CuTab, {}), tab === "system" && SP_JSX.jsx(SystemTab, {}), tab === "settings" && (SP_JSX.jsx(SettingsTab, { autoApply: autoApply, setAutoApply: setAutoApply, gamesDb: gamesDb, onRefreshDb: refreshDb }))] }));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(TabBar, { tab: tab, setTab: setTab }), tab === "games" && SP_JSX.jsx(GamesTab, { gamesDb: gamesDb, savedVariants: savedVariants }), tab === "cu" && SP_JSX.jsx(CuTab, {}), tab === "system" && SP_JSX.jsx(SystemTab, {}), tab === "settings" && (SP_JSX.jsx(SettingsTab, { autoApply: autoApply, setAutoApply: setAutoApply, gamesDb: gamesDb, onRefreshDb: refreshDb }))] }));
 }
-var index = definePlugin(() => ({
-    name: "BC250 Toolkit",
-    title: SP_JSX.jsx("div", { className: DFL.staticClasses.Title, children: "BC250 Toolkit" }),
-    icon: SP_JSX.jsx(FaMicrochip, {}),
-    content: SP_JSX.jsx(Content, {}),
-    onDismount() { },
-}));
+var index = definePlugin(() => {
+    // Auto-apply persistant : enregistré au chargement du plugin (= démarrage Steam),
+    // actif toute la session même panneau fermé. À chaque jeu lancé connu de la DB,
+    // si l'auto-apply est activé, on (ré)applique sa config (variante sauvegardée).
+    // Les fichiers étant persistants (config.vdf / ~/.drirc / launch options), l'effet
+    // est garanti au lancement suivant.
+    let unreg;
+    try {
+        const reg = window.SteamClient?.GameSessions?.RegisterForAppLifetimeNotifications;
+        if (typeof reg === "function") {
+            unreg = reg(async (e) => {
+                if (!e?.bRunning)
+                    return;
+                try {
+                    const enabled = await call("get_auto_apply");
+                    if (!enabled)
+                        return;
+                    const db = await call("get_games_db");
+                    const entry = db[String(e.unAppID)];
+                    if (!entry || !("proton" in entry))
+                        return;
+                    const g = entry;
+                    const variants = await call("get_game_variants").catch(() => ({}));
+                    const hasConfigs = Array.isArray(g.configs) && g.configs.length > 0;
+                    const idx = hasConfigs ? (variants[String(e.unAppID)] ?? 0) : null;
+                    const r = await applyGameConfig(e.unAppID, idx);
+                    toaster.toast({
+                        title: "BC250 Toolkit",
+                        body: r.ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.error ?? "?" }),
+                        duration: 3000,
+                    });
+                }
+                catch (_) { }
+            });
+        }
+    }
+    catch (_) { }
+    return {
+        name: "BC250 Toolkit",
+        title: SP_JSX.jsx("div", { className: DFL.staticClasses.Title, children: "BC250 Toolkit" }),
+        icon: SP_JSX.jsx(FaMicrochip, {}),
+        content: SP_JSX.jsx(Content, {}),
+        onDismount() { try {
+            unreg?.();
+        }
+        catch (_) { } },
+    };
+});
 
 export { index as default };
 //# sourceMappingURL=index.js.map

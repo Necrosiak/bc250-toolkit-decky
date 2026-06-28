@@ -57,6 +57,11 @@ const T: Record<Locale, Dict> = {
     toast_persistent: "✓ Persistent — restart Steam once",
     toast_partial_compat: "⚠ Partial: Proton OK — Launch options failed",
     toast_partial_launch: "⚠ Partial: Launch options OK — Proton failed",
+    // Variants / requirements
+    variant_title: "Configuration",
+    label_radv: "radv (drirc)",
+    req_uma: "⚠ Requires UMA Frame Buffer ≥ {mb} MB (BIOS / AMD CBS)",
+    toast_autoapply_on: "Auto-apply ON — {count} installed game(s) pre-configured",
     // CU
     cu_title: "CU Status",
     cu_live: "Active CU (live)",
@@ -129,6 +134,10 @@ const T: Record<Locale, Dict> = {
     toast_persistent: "✓ Persistant — redémarre Steam une fois",
     toast_partial_compat: "⚠ Partiel : Proton OK — Launch options KO",
     toast_partial_launch: "⚠ Partiel : Launch options OK — Proton KO",
+    variant_title: "Configuration",
+    label_radv: "radv (drirc)",
+    req_uma: "⚠ Nécessite UMA Frame Buffer ≥ {mb} Mo (BIOS / AMD CBS)",
+    toast_autoapply_on: "Auto-apply ON — {count} jeu(x) installé(s) pré-configuré(s)",
     cu_title: "Statut CU", cu_live: "CU actifs (live)",
     cu_reading: "lecture...", cu_na: "N/A", cu_boot: "Boot",
     cu_no_umr: "⚠ umr non disponible — requis pour la gestion CU",

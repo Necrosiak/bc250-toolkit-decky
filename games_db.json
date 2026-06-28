@@ -1,10 +1,20 @@
 {
   "_meta": {
-    "version": "4",
+    "version": "5",
     "description": "BC-250 community game database. PRs welcome at github.com/Necrosiak/bc250-toolkit-decky",
     "hardware": "ASRock BC-250 (AMD Ryzen Embedded V2000 / Cyan Skillfish GPU — device ID 731F)",
     "updated": "2026-06-28",
     "schema": "Top-level keys of a game = its STABLE/default config (back-compatible). Optional 'configs' array = alternative variants; each has label/stability/compat_tool/launch_options/radv/requires. 'radv' = per-game /etc/drirc-style options (e.g. radv_enable_unified_heap_on_apu). 'requires' = hardware prerequisites (uma_min_mb, gttsize) the tool surfaces to the user.",
+    "presets": {
+      "ue5_dx12_oom": {
+        "description": "Reusable fix profile for Unreal Engine 5 games in DX12 (VKD3D) that crash 'out of video memory' at render init (D3D12Util.cpp:926), even with plenty of RAM/VRAM free. Root cause: radv unified heap on APU merges everything into one host-visible heap, so VKD3D sees DedicatedVideoMemory ~= 0 and the engine bails. Fix: disable unified heap for that exe + give it real dedicated VRAM via UMA + use GE-Proton for the video codecs (cutscenes). To apply to a new game: copy this block into the game entry and replace radv.match with the game's executable name (e.g. MyGame-Win64-Shipping.exe).",
+        "symptoms": ["LowLevelFatalError [File:...D3D12Util.cpp] [Line:926] Out of video memory", "crash at render init with only ~1 GB VRAM used and lots free (bIsOOM=0)", "DX12-only titles (DXVK/Vulkan titles unaffected)", "cutscenes black image with sound only (missing video codecs) -> use GE-Proton"],
+        "radv": {"match": "REPLACE-Win64-Shipping.exe", "options": {"radv_enable_unified_heap_on_apu": false}},
+        "requires": {"uma_min_mb": 8192, "note": "UMA Frame Buffer >= 4G at BIOS (AMD CBS). On a 16 GB BC-250, UMA=Auto already yields 8192 MB which works well. Disabling unified heap means the game ONLY sees the dedicated VRAM, so it must be large enough."},
+        "compat_tool": "GE-Proton10-34",
+        "validated_on": "Code Vein 2 (app_id 2362060)"
+      }
+    },
     "sources": ["elektricm.github.io/amd-bc250-docs", "bc250.info", "ProtonDB", "Reddit r/linux_gaming"]
   },
   "2362060": {
