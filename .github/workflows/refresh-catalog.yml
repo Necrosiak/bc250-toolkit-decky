@@ -1,0 +1,33 @@
+name: Refresh games catalog
+
+# Régénère games_catalog.json (top ~2000 jeux SteamSpy + most-played Steam).
+# Les nouveautés y entrent automatiquement au fil de leur popularité.
+on:
+  schedule:
+    - cron: '17 4 * * 1'   # tous les lundis 04:17 UTC
+  workflow_dispatch: {}      # déclenchement manuel possible
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build catalog
+        run: python3 tools/build_catalog.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- games_catalog.json; then
+            count=$(python3 -c "import json;print(json.load(open('games_catalog.json'))['_meta']['count'])")
+            git add games_catalog.json
+            git commit -m "catalogue: refresh auto ($count jeux)"
+            git push
+          else
+            echo "Aucun changement dans le catalogue."
+          fi
