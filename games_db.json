@@ -153,6 +153,17 @@
     "stability": "stable",
     "tested_on": "BC-250"
   },
+  "1361210": {
+    "name": "Warhammer 40,000: Darktide",
+    "proton": "GE-Proton10-34",
+    "compat_tool": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "radv": { "match": "Darktide.exe", "options": { "radv_enable_unified_heap_on_apu": false } },
+    "requires": { "uma_min_mb": 8192, "note": "UMA Frame Buffer ≥ 4G au BIOS (AMD CBS) ; UMA=Auto donne ~8192 Mo sur une BC-250 16 Go. Le unified heap OFF fait que le jeu ne voit QUE la VRAM dédiée → elle doit être assez grande." },
+    "stability": "stable",
+    "notes": "DX12/VKD3D (engine Bitsquid/Stingray). Le launcher Fatshark s'affiche OK, mais clic 'Jouer' → écran noir / le rendu ne charge pas : même piège VRAM que Code Vein 2. Le unified heap radv masque la VRAM dédiée à VKD3D (DedicatedVideoMemory≈0) → 'out of video memory' au passage en rendu. FIX : unified heap OFF pour Darktide.exe (champ radv) + UMA ≥4G (Auto ≈8192 Mo) + GE-Proton (codecs). EAC supporté sous Proton. 1er lancement = longue compilation shaders (normal). Famille de fix : preset ue5_dx12_oom.",
+    "tested_on": "BC-250"
+  },
   "_incompatible": {
     "note": "Jeux non fonctionnels sur BC-250 Linux (pour info communauté)",
     "list": [
