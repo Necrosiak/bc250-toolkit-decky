@@ -144,6 +144,15 @@
     "notes": "Fonctionne parfaitement nativement ou via Proton.",
     "tested_on": "BC-250"
   },
+  "1659040": {
+    "name": "HITMAN World of Assassination",
+    "proton": "GE-Proton10-34",
+    "compat_tool": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command% -SKIP_LAUNCHER",
+    "notes": "DX12/VKD3D only. Le launcher (Jouer/Options/Quitter) plante sous Proton : cliquer Jouer coupe tout (Proton perd le process enfant relancé par le launcher). FIX : argument jeu -SKIP_LAUNCHER après %command%. Fallback si crash au chargement : ajouter DXVK_ASYNC=1 VKD3D_FEATURE_LEVEL=12 devant gamemoderun.",
+    "stability": "stable",
+    "tested_on": "BC-250"
+  },
   "_incompatible": {
     "note": "Jeux non fonctionnels sur BC-250 Linux (pour info communauté)",
     "list": [
