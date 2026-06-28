@@ -1,10 +1,40 @@
 {
   "_meta": {
-    "version": "3",
+    "version": "4",
     "description": "BC-250 community game database. PRs welcome at github.com/Necrosiak/bc250-toolkit-decky",
     "hardware": "ASRock BC-250 (AMD Ryzen Embedded V2000 / Cyan Skillfish GPU — device ID 731F)",
-    "updated": "2026-06-23",
+    "updated": "2026-06-28",
+    "schema": "Top-level keys of a game = its STABLE/default config (back-compatible). Optional 'configs' array = alternative variants; each has label/stability/compat_tool/launch_options/radv/requires. 'radv' = per-game /etc/drirc-style options (e.g. radv_enable_unified_heap_on_apu). 'requires' = hardware prerequisites (uma_min_mb, gttsize) the tool surfaces to the user.",
     "sources": ["elektricm.github.io/amd-bc250-docs", "bc250.info", "ProtonDB", "Reddit r/linux_gaming"]
+  },
+  "2362060": {
+    "name": "Code Vein 2",
+    "proton": "GE-Proton10-34",
+    "compat_tool": "GE-Proton10-34",
+    "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+    "radv": { "radv_enable_unified_heap_on_apu": false },
+    "requires": { "uma_min_mb": 4096, "note": "UMA Frame Buffer ≥ 4G au BIOS (AMD CBS). Sinon : crash 'out of video memory' à l'init." },
+    "stability": "stable",
+    "notes": "UE5 DX12 (VKD3D). Le crash 'out of video memory' (D3D12Util.cpp:926, dès l'init à ~1 Go) vient du unified heap radv qui masque la VRAM dédiée à VKD3D (DedicatedVideoMemory≈0). FIX : unified heap OFF pour ce jeu (champ radv) + UMA ≥4G au BIOS pour exposer une vraie VRAM dédiée. GE-Proton requis pour les cinématiques (codecs vidéo Media Foundation, sinon image noire + son). Compilation shaders longue au 1er lancement. En jeu la VRAM est proche du plafond 4G (stutter possible) → variante UMA 8G ci-dessous si dispo.",
+    "tested_on": "BC-250",
+    "configs": [
+      {
+        "label": "Stable (UMA 4G)",
+        "stability": "stable",
+        "compat_tool": "GE-Proton10-34",
+        "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+        "radv": { "radv_enable_unified_heap_on_apu": false },
+        "requires": { "uma_min_mb": 4096 }
+      },
+      {
+        "label": "Performance (UMA 8G — moins de stutter)",
+        "stability": "experimental",
+        "compat_tool": "GE-Proton10-34",
+        "launch_options": "MANGOHUD=1 MANGOHUD_CONFIG=no_display ENABLE_VKBASALT=1 gamemoderun %command%",
+        "radv": { "radv_enable_unified_heap_on_apu": false },
+        "requires": { "uma_min_mb": 8192, "gttsize": 6000, "note": "UMA 8G : RAM système → ~7 Go, baisser amdgpu.gttsize à ~6000." }
+      }
+    ]
   },
   "3321460": {
     "name": "Crimson Desert",
