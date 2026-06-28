@@ -8,7 +8,17 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 import vdf as _vdf
-import updater
+
+# Decky enregistre son PROPRE module `updater` dans sys.modules → un simple
+# `import updater` renvoie celui de Decky (sans is_autoupdate_enabled) au lieu du
+# nôtre, cassant silencieusement l'auto-update après une MAJ Decky. On charge notre
+# fichier explicitement par chemin, sous un nom unique, pour éviter la collision.
+import importlib.util as _ilu
+_uspec = _ilu.spec_from_file_location(
+    "bc250_updater", os.path.join(os.path.dirname(os.path.abspath(__file__)), "updater.py")
+)
+updater = _ilu.module_from_spec(_uspec)
+_uspec.loader.exec_module(updater)
 
 GAMES_DB_URL = "https://raw.githubusercontent.com/Necrosiak/bc250-toolkit-decky/main/games_db.json"
 LOCAL_DB_PATH = Path(os.path.dirname(__file__)) / "games_db.json"
