@@ -12,9 +12,10 @@ Communitydatabase met geoptimaliseerde startopties voor de BC-250 — met één 
 
 ### Tabblad Spellen
 - Detecteert automatisch het geselecteerde spel in de Steam-bibliotheek
-- Toont aanbevolen instellingen voor de BC-250 (Proton-versie, startopties, opmerkingen)
-- **Toepassen-knop** — schrijft startopties en selecteert Proton rechtstreeks via de backend
-- **Auto-apply** (opt-in) — past instellingen automatisch toe bij het starten van een bekend spel
+- Toont aanbevolen instellingen voor de BC-250 (Proton-versie, startopties, opmerkingen, hardwarevereisten)
+- **Configuratievarianten** — wanneer een spel meerdere geoptimaliseerde profielen biedt (bijv. *Stable* vs *Performance*), kies je er één via een selector; je keuze wordt onthouden
+- **Toepassen-knop** — schrijft in één actie de startopties, selecteert de Proton/GE-Proton-build en past eventuele GPU-overrides per spel toe (RADV-opties in `~/.drirc`)
+- **Auto-apply** (opt-in) — past de volledige configuratie automatisch toe bij het starten van een bekend spel; bij inschakelen worden ook alle geïnstalleerde spellen uit de database voorgeconfigureerd
 
 ### Tabblad CU (Compute Units)
 - Live uitlezing van het aantal actieve CU's via GPU SPI-registers
@@ -86,6 +87,7 @@ De DB staat in [`games_db.json`](games_db.json) en werkt automatisch bij vanuit 
 | Detroit: Become Human | Proton Experimental | Stabiele 60 FPS |
 | The Last of Us Part I | GE-Proton | 60 FPS Medium-Hoog |
 | Black Myth: Wukong | GE-Proton | Ongewijzigde spelbestanden vereist |
+| Code Vein 2 | GE-Proton | UE5 DX12 — vereist UMA Frame Buffer = Auto (~8G) + unified-heap-fix per spel (automatisch toegepast, zie preset hieronder) |
 | Stardew Valley | Proton Experimental | Perfect |
 
 ### Bekende incompatibele spellen
@@ -118,7 +120,18 @@ Gebruik het **[indieningsformulier](https://necrosiak.github.io/bc250-toolkit-de
 }
 ```
 
+Optionele geavanceerde velden (de plugin past ze automatisch toe bij **Toepassen**):
+
+- **`compat_tool`** — Proton/GE-Proton-build die via Steams compatibiliteitsmapping wordt geselecteerd
+- **`radv`** — RADV-overrides per spel die naar `~/.drirc` worden geschreven, gematcht op de naam van het uitvoerbare bestand, bijv. `{"match": "Game-Win64-Shipping.exe", "options": {"radv_enable_unified_heap_on_apu": false}}`
+- **`requires`** — hardwarevereisten die aan de gebruiker worden getoond (`uma_min_mb`, `gttsize`)
+- **`configs`** — array met alternatieve varianten, elk met eigen `label`, `stability`, `compat_tool`, `launch_options`, `radv`, `requires`; de gebruiker kiest er één op het tabblad Spellen
+
 > De Steam-AppID staat in de URL van de spelspagina in de Steam Store.
+
+### Herbruikbare preset — UE5 DX12 "out of video memory"
+
+Sommige Unreal Engine 5-spellen in DX12 crashen bij het initialiseren van de render (`D3D12Util.cpp:926 — Out of video memory`) **terwijl er nog volop VRAM vrij is**, omdat de unified heap van RADV op APU het toegewijde VRAM verbergt voor VKD3D (`DedicatedVideoMemory ≈ 0`). `games_db.json` bevat een herbruikbaar **`ue5_dx12_oom`**-profiel onder `_meta.presets`: schakel de unified heap uit voor het uitvoerbare bestand van het spel + zet de **UMA Frame Buffer** in het BIOS op **Auto** (levert al ~8 GB op een 16 GB BC-250 — 4G forceren is niet nodig) + gebruik GE-Proton voor de videocodecs. Om een nieuw getroffen spel te fixen, kopieer het preset naar de bijbehorende entry en stel `radv.match` in op het uitvoerbare bestand. Eerst gevalideerd op **Code Vein 2**.
 
 ---
 
@@ -130,7 +143,7 @@ pnpm run build
 
 # Lokaal implementeren
 sudo cp dist/index.js ~/homebrew/plugins/BC250-Toolkit/dist/
-sudo cp main.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
+sudo cp main.py updater.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
 sudo systemctl restart plugin_loader
 ```
 

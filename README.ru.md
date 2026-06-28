@@ -12,9 +12,10 @@
 
 ### Вкладка Игры
 - Автоматически определяет выбранную игру в библиотеке Steam
-- Отображает рекомендуемые настройки для BC-250 (версия Proton, параметры запуска, заметки)
-- **Кнопка Применить** — записывает параметры запуска и выбирает Proton напрямую через бэкенд
-- **Авто-применение** (opt-in) — автоматически применяет настройки при запуске известной игры
+- Отображает рекомендуемые настройки для BC-250 (версия Proton, параметры запуска, заметки, требования к оборудованию)
+- **Варианты конфигурации** — когда у игры несколько оптимизированных профилей (например, *Stable* и *Performance*), один выбирается из селектора; выбор запоминается
+- **Кнопка Применить** — одним действием записывает параметры запуска, выбирает сборку Proton/GE-Proton и применяет переопределения GPU для игры (опции RADV в `~/.drirc`)
+- **Авто-применение** (opt-in) — автоматически применяет полную конфигурацию при запуске известной игры; при включении также предварительно настраивает все установленные игры из базы данных
 
 ### Вкладка CU (Compute Units)
 - Отображение в реальном времени числа активных CU через SPI-регистры GPU
@@ -86,6 +87,7 @@ sudo systemctl restart plugin_loader
 | Detroit: Become Human | Proton Experimental | Стабильные 60 FPS |
 | The Last of Us Part I | GE-Proton | 60 FPS Средние-Высокие |
 | Black Myth: Wukong | GE-Proton | Файлы игры без изменений |
+| Code Vein 2 | GE-Proton | UE5 DX12 — нужен UMA Frame Buffer = Auto (~8G) + фикс unified-heap для игры (применяется автоматически, см. пресет ниже) |
 | Stardew Valley | Proton Experimental | Идеально |
 
 ### Известные несовместимые игры
@@ -118,7 +120,18 @@ sudo systemctl restart plugin_loader
 }
 ```
 
+Необязательные расширенные поля (плагин применяет их автоматически при нажатии **Применить**):
+
+- **`compat_tool`** — сборка Proton/GE-Proton, выбираемая через сопоставление совместимости Steam
+- **`radv`** — переопределения Mesa RADV для игры, записываемые в `~/.drirc`, сопоставление по имени исполняемого файла, например `{"match": "Game-Win64-Shipping.exe", "options": {"radv_enable_unified_heap_on_apu": false}}`
+- **`requires`** — требования к оборудованию, показываемые пользователю (`uma_min_mb`, `gttsize`)
+- **`configs`** — массив альтернативных вариантов, каждый со своими `label`, `stability`, `compat_tool`, `launch_options`, `radv`, `requires`; пользователь выбирает один на вкладке Игры
+
 > Steam AppID можно найти в URL страницы игры в Steam Store.
+
+### Переиспользуемый пресет — UE5 DX12 «out of video memory»
+
+Некоторые игры на Unreal Engine 5 в DX12 падают при инициализации рендера (`D3D12Util.cpp:926 — Out of video memory`) **даже при большом объёме свободной VRAM**, потому что unified heap RADV на APU скрывает выделенную VRAM от VKD3D (`DedicatedVideoMemory ≈ 0`). `games_db.json` содержит переиспользуемый профиль **`ue5_dx12_oom`** в `_meta.presets`: отключить unified heap для исполняемого файла игры + установить **UMA Frame Buffer** в BIOS на **Auto** (уже даёт ~8 ГБ на BC-250 с 16 ГБ — форсировать 4G не нужно) + использовать GE-Proton для видеокодеков. Чтобы исправить новую затронутую игру, скопируйте пресет в её запись и задайте `radv.match` равным её исполняемому файлу. Сначала проверено на **Code Vein 2**.
 
 ---
 
@@ -130,7 +143,7 @@ pnpm run build
 
 # Локальное развёртывание
 sudo cp dist/index.js ~/homebrew/plugins/BC250-Toolkit/dist/
-sudo cp main.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
+sudo cp main.py updater.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
 sudo systemctl restart plugin_loader
 ```
 
