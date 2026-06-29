@@ -8,9 +8,35 @@ import {
   Field,
   ToggleField,
   SteamSpinner,
+  Focusable,
+  DialogButton,
 } from "@decky/ui";
-import { definePlugin, call, toaster } from "@decky/api";
+import { definePlugin, call } from "@decky/api";
 import { t } from "./i18n";
+
+// Notif native Steam (DisplayClientNotification, type 1 = popup + son). Le toaster
+// Decky crée des entrées SANS notification_type qui ne s'affichent pas ET font
+// PLANTER le panneau de notifs Steam sur ce build. Même forme que toaster.toast
+// (title/body) → remplacement transparent partout.
+function notify(data: { title?: string; body: string; duration?: number }) {
+  try {
+    const App = (window as any).App;
+    const steamid = App?.GetCurrentUser?.()?.strSteamID || App?.m_CurrentUser?.strSteamID || "";
+    // steamid OBLIGATOIRE : sans lui DisplayClientNotification crée une entrée
+    // malformée qui fait planter le panneau de notifs Steam → on s'abstient.
+    if (!steamid) return;
+    (window as any).SteamClient?.ClientNotifications?.DisplayClientNotification?.(
+      1,
+      JSON.stringify({ title: data.title || "BC250 Toolkit", body: data.body, state: "active", steamid }),
+      () => {},
+    );
+  } catch (e) { console.error("[BC250] notify failed", e); }
+}
+
+// Ouvre une URL dans le navigateur intégré du gamemode Steam.
+const openUrl = (url: string) => {
+  try { (window as any).SteamClient?.URL?.ExecuteSteamURL?.("steam://openurl/" + url); } catch {}
+};
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -131,6 +157,8 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
   const [variantIdx, setVariantIdx] = useState<number | null>(null);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [rowFocus, setRowFocus] = useState<number | null>(null);
+  const [variantFocus, setVariantFocus] = useState<number | null>(null);
 
   const gameCount = Object.keys(gamesDb).filter((k) => !k.startsWith("_")).length;
 
@@ -179,14 +207,14 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
       call<[number, number | null], unknown>("set_game_variant", selected.appid, idx).catch(() => {});
       if (r.ok) {
         setApplied(true);
-        toaster.toast({
+        notify({
           title: "BC250 Toolkit",
           body: r.need_steam_restart ? t("toast_persistent") : t("toast_applied", { name: selected.game.name }),
           duration: 4000,
         });
       } else {
         const detail = r.error ?? r.compat_error ?? r.launch_error ?? r.radv_error ?? "?";
-        toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail }), duration: 5000 });
+        notify({ title: "BC250 Toolkit", body: t("toast_error", { detail }), duration: 5000 });
         setApplied(false);
       }
     } finally {
@@ -206,20 +234,78 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
 
       {installed.length > 0 ? (
         <PanelSection title={t("installed_compat")}>
-          {installed.map((entry) => {
-            const isSelected = selected?.appid === entry.appid;
-            return (
-              <PanelSectionRow key={entry.appid}>
-                <ButtonItem
-                  layout="below"
-                  onClick={() => { setSelected(isSelected ? null : entry); setApplied(false); }}
-                  style={isSelected ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.8 }}
-                >
-                  {isSelected ? `▶ ${entry.name}` : entry.name}
-                </ButtonItem>
-              </PanelSectionRow>
-            );
-          })}
+          <PanelSectionRow>
+            <Focusable style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 320, overflowY: "auto" }}>
+              {installed.map((entry) => {
+                const isSelected = selected?.appid === entry.appid;
+                return (
+                  <div key={entry.appid}>
+                    <GameRow
+                      name={entry.name}
+                      appid={entry.appid}
+                      selected={isSelected}
+                      focused={rowFocus === entry.appid}
+                      onClick={() => { setSelected(isSelected ? null : entry); setApplied(false); }}
+                      onFocus={() => setRowFocus(entry.appid)}
+                      onBlur={() => setRowFocus((f: any) => (f === entry.appid ? null : f))}
+                    />
+                    {/* Options du jeu — dépliées INLINE juste sous le jeu (façon lobby
+                        sous un serveur Steamcord), compactes, pas besoin de scroller. */}
+                    {isSelected && (
+                      <div style={{
+                        marginLeft: 10, marginTop: 4, marginBottom: 6, paddingLeft: 8,
+                        borderLeft: "2px solid rgba(88,101,242,0.45)",
+                        display: "flex", flexDirection: "column", gap: 5,
+                      }}>
+                        {hasConfigs && (
+                          <Focusable flow-children="horizontal" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                            {variants.map((v, i) => {
+                              const isActive = variantIdx === i;
+                              const isFocused = variantFocus === i;
+                              const color = v.stability === "experimental" ? "#ff9800" : "#4caf50";
+                              return (
+                                <Btn key={i} onClick={() => { setVariantIdx(i); setApplied(false); }}
+                                  onFocus={() => setVariantFocus(i)}
+                                  onBlur={() => setVariantFocus((f) => (f === i ? null : f))}
+                                  style={{
+                                    padding: "3px 8px", fontSize: 10, minHeight: 0, minWidth: 0, margin: 0, borderRadius: 5,
+                                    color: "#fff", fontWeight: isActive ? 700 : 400,
+                                    background: isActive ? color : "rgba(255,255,255,0.08)",
+                                    // Halo blanc + léger zoom = curseur manette (focus).
+                                    boxShadow: isFocused ? "0 0 0 2px #fff, 0 0 8px 1px " + color : "none",
+                                    transform: isFocused ? "scale(1.06)" : "scale(1)",
+                                    transition: "box-shadow .08s ease, transform .08s ease",
+                                    zIndex: isFocused ? 1 : 0,
+                                  }}>
+                                  {v.label}
+                                </Btn>
+                              );
+                            })}
+                          </Focusable>
+                        )}
+                        <div style={{ fontSize: 10, color: "#aaa", lineHeight: 1.45 }}>
+                          <div><span style={{ color: "#67a3ff" }}>{t("label_proton")}:</span> {dispProton}{selected?.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""}</div>
+                          {selected?.game.proton_note && <div style={{ color: "#ff9800" }}>{selected.game.proton_note}</div>}
+                          {dispLaunch && <div style={{ wordBreak: "break-all" }}><span style={{ color: "#67a3ff" }}>{t("label_launch")}:</span> {dispLaunch}</div>}
+                          {dispRadv && <div><span style={{ color: "#67a3ff" }}>{t("label_radv")}:</span> {Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ")}</div>}
+                          {dispRequires?.uma_min_mb && (
+                            <div style={{ color: "#ff9800", borderLeft: "3px solid #ff9800", paddingLeft: 6, marginTop: 2 }}>
+                              {t("req_uma", { mb: dispRequires.uma_min_mb })}{dispRequires.note ? ` — ${dispRequires.note}` : ""}
+                            </div>
+                          )}
+                          {selected?.game.notes && <div style={{ color: "#ccc", marginTop: 2 }}>{selected.game.notes}</div>}
+                        </div>
+                        <Btn disabled={applying || applied} onClick={handleApply}
+                          style={{ width: "100%", padding: "5px 0", fontSize: 11, minHeight: 0, margin: 0 }}>
+                          {applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply")}
+                        </Btn>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </Focusable>
+          </PanelSectionRow>
         </PanelSection>
       ) : (
         <PanelSection>
@@ -229,88 +315,6 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
                 {t("no_games")}
               </div>
             </Field>
-          </PanelSectionRow>
-        </PanelSection>
-      )}
-
-      {selected && (
-        <PanelSection title={t("settings_title")}>
-          {hasConfigs && (
-            <PanelSection title={t("variant_title")}>
-              {variants.map((v, i) => {
-                const isActive = variantIdx === i;
-                const color = v.stability === "experimental" ? "#ff9800" : "#4caf50";
-                return (
-                  <PanelSectionRow key={i}>
-                    <ButtonItem
-                      layout="below"
-                      onClick={() => { setVariantIdx(i); setApplied(false); }}
-                      style={isActive ? { color, fontWeight: "bold" } : { opacity: 0.7 }}
-                    >
-                      {isActive ? `▶ ${v.label}` : v.label}
-                    </ButtonItem>
-                  </PanelSectionRow>
-                );
-              })}
-            </PanelSection>
-          )}
-
-          <PanelSectionRow>
-            <Field label={t("label_proton")}>
-              <span style={{ fontSize: "12px" }}>
-                {dispProton}{selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""}
-              </span>
-            </Field>
-          </PanelSectionRow>
-          {selected.game.proton_note && (
-            <PanelSectionRow>
-              <Field>
-                <div style={{ fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }}>
-                  {selected.game.proton_note}
-                </div>
-              </Field>
-            </PanelSectionRow>
-          )}
-          <PanelSectionRow>
-            <Field label={t("label_launch")}>
-              <div style={{ fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }}>
-                {dispLaunch}
-              </div>
-            </Field>
-          </PanelSectionRow>
-          {dispRadv && (
-            <PanelSectionRow>
-              <Field label={t("label_radv")}>
-                <div style={{ fontSize: "10px", color: "#aaa", lineHeight: "1.4" }}>
-                  {Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ")}
-                </div>
-              </Field>
-            </PanelSectionRow>
-          )}
-          {dispRequires?.uma_min_mb && (
-            <PanelSectionRow>
-              <Field>
-                <div style={{
-                  fontSize: "11px", color: "#ff9800", lineHeight: "1.4",
-                  borderLeft: "3px solid #ff9800", paddingLeft: "8px",
-                }}>
-                  {t("req_uma", { mb: dispRequires.uma_min_mb })}
-                  {dispRequires.note ? ` — ${dispRequires.note}` : ""}
-                </div>
-              </Field>
-            </PanelSectionRow>
-          )}
-          {selected.game.notes && (
-            <PanelSectionRow>
-              <Field label={t("label_notes")}>
-                <div style={{ fontSize: "11px", color: "#ccc" }}>{selected.game.notes}</div>
-              </Field>
-            </PanelSectionRow>
-          )}
-          <PanelSectionRow>
-            <ButtonItem layout="below" disabled={applying || applied} onClick={handleApply}>
-              {applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply")}
-            </ButtonItem>
           </PanelSectionRow>
         </PanelSection>
       )}
@@ -339,6 +343,7 @@ function CuTab() {
   const [saveBoot, setSaveBoot] = useState(false);
   const [lastMsg, setLastMsg] = useState<string | null>(null);
   const [installingUmr, setInstallingUmr] = useState(false);
+  const [profFocus, setProfFocus] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     call<[], CuStatus>("get_cu_status").then(setStatus);
@@ -353,18 +358,18 @@ function CuTab() {
   const handleInstallUmr = async () => {
     setInstallingUmr(true);
     setLastMsg(null);
-    toaster.toast({ title: "BC250 Toolkit", body: t("toast_umr_start"), duration: 5000 });
+    notify({ title: "BC250 Toolkit", body: t("toast_umr_start"), duration: 5000 });
     try {
       const r = await call<[], { ok: boolean; already?: boolean; error?: string }>("install_umr");
       if (r.ok) {
         const msg = r.already ? t("toast_umr_already") : t("toast_umr_ok");
         setLastMsg(msg);
-        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+        notify({ title: "BC250 Toolkit", body: msg, duration: 4000 });
         refresh();
       } else {
         const msg = t("toast_umr_fail", { error: r.error ?? "" });
         setLastMsg(msg);
-        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 6000 });
+        notify({ title: "BC250 Toolkit", body: msg, duration: 6000 });
       }
     } finally {
       setInstallingUmr(false);
@@ -386,12 +391,12 @@ function CuTab() {
           msg = `${t("cu_done_live", { count: r.cu_count ?? 0 })} — boot: ✗ ${r.boot_error ?? "sudoers?"}`;
         }
         setLastMsg(msg);
-        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: saveBoot && r.boot_saved === false ? 6000 : 3000 });
+        notify({ title: "BC250 Toolkit", body: msg, duration: saveBoot && r.boot_saved === false ? 6000 : 3000 });
         refresh();
       } else {
         const msg = `✗ ${r.error}`;
         setLastMsg(msg);
-        toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+        notify({ title: "BC250 Toolkit", body: msg, duration: 4000 });
       }
     } finally {
       setApplying(null);
@@ -461,24 +466,33 @@ function CuTab() {
 
       {/* Profils */}
       <PanelSection title={t("cu_profiles")}>
-        {CU_PROFILE_LIST.map(({ key, label, color }) => {
-          const isActive   = status.current_profile === key;
-          const isBoot     = status.boot_profile === key;
-          const isApplying = applying === key;
-          const suffix     = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
-          return (
-            <PanelSectionRow key={key}>
-              <ButtonItem
-                layout="below"
-                onClick={() => applyProfile(key)}
-                disabled={!!applying || !status.umr_available}
-                style={isActive ? { color, fontWeight: "bold" } : { opacity: 0.75 }}
-              >
-                {isApplying ? t("cu_applying") : `${isActive ? "▶ " : ""}${label}${suffix}`}
-              </ButtonItem>
-            </PanelSectionRow>
-          );
-        })}
+        <PanelSectionRow>
+          <Focusable style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {CU_PROFILE_LIST.map(({ key, label, color }) => {
+              const isActive   = status.current_profile === key;
+              const isBoot     = status.boot_profile === key;
+              const isApplying = applying === key;
+              const suffix     = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
+              return (
+                <CardBtn
+                  key={key}
+                  active={isActive}
+                  focused={profFocus === key}
+                  color={color}
+                  disabled={!!applying || !status.umr_available}
+                  onClick={() => applyProfile(key)}
+                  onFocus={() => setProfFocus(key)}
+                  onBlur={() => setProfFocus((f) => (f === key ? null : f))}
+                >
+                  <span style={{ flex: 1, textAlign: "left" }}>
+                    {isApplying ? t("cu_applying") : `${label}${suffix}`}
+                  </span>
+                  {isActive && <span style={{ fontSize: 10 }}>●</span>}
+                </CardBtn>
+              );
+            })}
+          </Focusable>
+        </PanelSectionRow>
       </PanelSection>
 
       {/* Options */}
@@ -541,7 +555,7 @@ function SystemTab() {
     try {
       const r = await call<[], { success: boolean; stdout?: string; error?: string }>("run_tweaks_update");
       setUpdateLog(r.success ? (r.stdout ?? "OK") : (r.error ?? "Erreur inconnue"));
-      toaster.toast({
+      notify({
         title: "BC250 Toolkit",
         body: r.success ? t("sys_toast_ok") : t("sys_toast_fail"),
         duration: 4000,
@@ -645,7 +659,12 @@ function SettingsTab({
   onRefreshDb: () => Promise<void>;
 }) {
   const [refreshing, setRefreshing] = useState(false);
+  const [version, setVersion] = useState<string>("");
   const meta = gamesDb["_meta"] as Record<string, string> | undefined;
+
+  useEffect(() => {
+    call<[], string>("get_version").then((v) => setVersion(v || "")).catch(() => {});
+  }, []);
 
   const doRefresh = async () => {
     setRefreshing(true);
@@ -745,35 +764,155 @@ function SettingsTab({
         </ButtonItem>
       </PanelSectionRow>
     </PanelSection>
+
+    {/* À propos rapide */}
+    <PanelSection title={t("about")}>
+      <PanelSectionRow>
+        <div style={{ fontSize: 11, color: "#aaa", lineHeight: 1.6 }}>
+          <div><b style={{ color: "#fff" }}>BC250 Toolkit</b>{version ? ` v${version}` : ""}</div>
+          <div>{t("about_by")} <span style={{ color: "#67a3ff" }}>Necrosiak</span></div>
+        </div>
+      </PanelSectionRow>
+      <PanelSectionRow>
+        <Btn
+          onClick={() => openUrl("https://github.com/Necrosiak/bc250-toolkit-decky")}
+          style={{ width: "100%", padding: "5px 0", fontSize: 11, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+        >
+          🔗 GitHub
+        </Btn>
+      </PanelSectionRow>
+    </PanelSection>
     </>
   );
 }
 
 // ── Barre d'onglets ───────────────────────────────────────────────────────────
 
-type TabDef = { id: TabId; tKey: string };
+type TabDef = { id: TabId; tKey: string; icon: string };
 
 const TAB_DEFS: TabDef[] = [
-  { id: "games",    tKey: "tab_games" },
-  { id: "cu",       tKey: "tab_cu" },
-  { id: "system",   tKey: "tab_system" },
-  { id: "settings", tKey: "tab_settings" },
+  { id: "games",    tKey: "tab_games",    icon: "🎮" },
+  { id: "cu",       tKey: "tab_cu",       icon: "⚡" },
+  { id: "system",   tKey: "tab_system",   icon: "🌡️" },
+  { id: "settings", tKey: "tab_settings", icon: "⚙️" },
 ];
 
+const BtnTab = DialogButton as any;
+const Btn = DialogButton as any;
+
+// Carte cliquable réutilisable façon Steamcord (liste de profils/actions) : fond
+// couleur si actif, halo blanc + lueur au focus manette. Hoistée (function).
+function CardBtn({ active, focused, color, disabled, onClick, onFocus, onBlur, children }: any) {
+  const c = color || "#5865f2";
+  return (
+    <Btn
+      disabled={disabled}
+      onClick={onClick}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      style={{
+        display: "flex", alignItems: "center", gap: 8, width: "100%",
+        padding: "7px 10px", margin: 0, minHeight: 0, boxSizing: "border-box",
+        borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: active ? 700 : 400,
+        background: active ? c : "rgba(255,255,255,0.05)",
+        border: active ? "1px solid " + c : "1px solid transparent",
+        boxShadow: focused ? "0 0 0 2px #fff, 0 0 8px 1px " + c : "none",
+        transform: focused ? "scale(1.02)" : "scale(1)",
+        transition: "box-shadow .08s ease, transform .08s ease",
+        opacity: disabled ? 0.5 : 1, zIndex: focused ? 1 : 0,
+      }}
+    >
+      {children}
+    </Btn>
+  );
+}
+
+// Ligne de jeu façon « serveur Steamcord » : icône Steam du jeu (sinon pastille
+// colorée + initiale), nom, surbrillance bleue si sélectionné.
+function GameRow({ name, appid, selected, focused, onClick, onFocus, onBlur }: any) {
+  const ov = (window as any).appStore?.GetAppOverviewByAppID?.(Number(appid));
+  const iconHash = ov?.icon_hash || ov?.icon_data;
+  const iconUrl = iconHash
+    ? `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/${appid}/${iconHash}.jpg`
+    : null;
+  return (
+    <Btn
+      onClick={onClick}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      style={{
+        display: "flex", alignItems: "center", gap: 8, width: "100%",
+        padding: "6px 8px", margin: 0, minHeight: 0, boxSizing: "border-box", borderRadius: 6,
+        background: focused ? "rgba(88,101,242,0.55)" : selected ? "rgba(88,101,242,0.25)" : "rgba(255,255,255,0.04)",
+        border: selected ? "1px solid rgba(88,101,242,0.6)" : "1px solid transparent",
+        boxShadow: focused ? "0 0 0 2px #fff" : "none",
+      }}
+    >
+      {iconUrl ? (
+        <img src={iconUrl} width={24} height={24} style={{ borderRadius: 6, flexShrink: 0, display: "block" }} />
+      ) : (
+        <div style={{ width: 24, height: 24, borderRadius: 6, background: "#5865f2", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff" }}>
+          {(name || "?")[0].toUpperCase()}
+        </div>
+      )}
+      <span style={{ flex: 1, textAlign: "left", fontSize: 12, fontWeight: selected ? 700 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {name}
+      </span>
+      {selected && <span style={{ fontSize: 10, color: "#67a3ff", flexShrink: 0 }}>▶</span>}
+    </Btn>
+  );
+}
+
+// Onglet façon Steamcord : fond bleu plein au focus manette, bleu estompé si
+// actif, anneau blanc au focus. Rangée Focusable horizontale = nav D-pad correcte.
+function TabBtn({ active, focused, onClick, onFocus, onBlur, children }: any) {
+  return (
+    <BtnTab
+      onClick={onClick}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      style={{
+        flex: "1 1 0", minWidth: 0, margin: 0, padding: "5px 2px",
+        fontSize: 11, minHeight: 0, boxSizing: "border-box", color: "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+        overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+        background: focused
+          ? "rgba(88,101,242,0.85)"
+          : active ? "rgba(88,101,242,0.35)" : "rgba(255,255,255,0.06)",
+        boxShadow: focused ? "0 0 0 2px #fff" : "none",
+        fontWeight: active ? 700 : 400,
+        transition: "background .08s ease, box-shadow .08s ease",
+      }}
+    >
+      {children}
+    </BtnTab>
+  );
+}
+
 function TabBar({ tab, setTab }: { tab: TabId; setTab: (t: TabId) => void }) {
+  const [focused, setFocused] = useState<string | null>(null);
   return (
     <PanelSection>
-      {TAB_DEFS.map(({ id, tKey }) => (
-        <PanelSectionRow key={id}>
-          <ButtonItem
-            layout="below"
-            onClick={() => setTab(id)}
-            style={tab === id ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.6 }}
-          >
-            {tab === id ? `▶ ${t(tKey)}` : t(tKey)}
-          </ButtonItem>
-        </PanelSectionRow>
-      ))}
+      <PanelSectionRow>
+        <Focusable
+          flow-children="horizontal"
+          style={{ display: "flex", gap: 4, width: "100%", boxSizing: "border-box" }}
+        >
+          {TAB_DEFS.map(({ id, tKey, icon }) => (
+            <TabBtn
+              key={id}
+              active={tab === id}
+              focused={focused === id}
+              onClick={() => setTab(id)}
+              onFocus={() => setFocused(id)}
+              onBlur={() => setFocused((f) => (f === id ? null : f))}
+            >
+              <span>{icon}</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{t(tKey)}</span>
+            </TabBtn>
+          ))}
+        </Focusable>
+      </PanelSectionRow>
     </PanelSection>
   );
 }
@@ -812,7 +951,7 @@ function Content() {
         })
       ).then((rs) => {
         const n = rs.filter((r) => r.ok).length;
-        toaster.toast({ title: "BC250 Toolkit", body: t("toast_autoapply_on", { count: n }), duration: 4000 });
+        notify({ title: "BC250 Toolkit", body: t("toast_autoapply_on", { count: n }), duration: 4000 });
       }).catch(() => {});
     }
   };
@@ -820,7 +959,7 @@ function Content() {
   const refreshDb = async () => {
     const db = await call<[], GamesDB>("refresh_games_db");
     setGamesDb(db);
-    toaster.toast({ title: "BC250 Toolkit", body: t("toast_db_ok"), duration: 2000 });
+    notify({ title: "BC250 Toolkit", body: t("toast_db_ok"), duration: 2000 });
   };
 
   if (!dbLoaded) return <SteamSpinner />;
@@ -866,7 +1005,7 @@ export default definePlugin(() => {
           const hasConfigs = Array.isArray(g.configs) && g.configs.length > 0;
           const idx = hasConfigs ? (variants[String(e.unAppID)] ?? 0) : null;
           const r = await applyGameConfig(e.unAppID, idx);
-          toaster.toast({
+          notify({
             title: "BC250 Toolkit",
             body: r.ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.error ?? "?" }),
             duration: 3000,

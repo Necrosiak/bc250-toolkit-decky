@@ -37,6 +37,7 @@ Base de dados comunitária de opções de lançamento otimizadas para o BC-250 �
 ### Separador Definições
 - Toggle de auto-apply
 - Atualização da DB a partir do GitHub
+- Sobre — versão do plugin, autor e link do GitHub
 
 ---
 

@@ -51,6 +51,7 @@ Base de données communautaire d'options de lancement optimisées pour le BC-250
 ### Onglet Réglages
 - Toggle auto-apply
 - Rafraîchissement de la DB depuis GitHub
+- À propos — version du plugin, auteur et lien GitHub
 
 ---
 

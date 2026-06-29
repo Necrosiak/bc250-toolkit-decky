@@ -37,6 +37,7 @@ Community-Datenbank mit optimierten Startoptionen für den BC-250 — direkt aus
 ### Einstellungen-Tab
 - Auto-Apply-Schalter
 - DB-Aktualisierung von GitHub
+- Über — Plugin-Version, Autor und GitHub-Link
 
 ---
 

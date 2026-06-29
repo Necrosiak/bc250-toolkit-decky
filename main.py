@@ -316,6 +316,9 @@ class Plugin:
     async def check_update(self):
         return await updater.check()
 
+    async def get_version(self):
+        return updater.get_current_version()
+
     async def apply_update(self, url):
         ok = await updater.apply(url)
         if ok:

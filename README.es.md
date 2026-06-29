@@ -37,6 +37,7 @@ Base de datos comunitaria de opciones de lanzamiento optimizadas para el BC-250 
 ### Pestaña Ajustes
 - Toggle de auto-apply
 - Actualización de la DB desde GitHub
+- Acerca de — versión del plugin, autor y enlace a GitHub
 
 ---
 

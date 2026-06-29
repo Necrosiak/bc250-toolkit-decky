@@ -37,6 +37,7 @@ Communitydatabase met geoptimaliseerde startopties voor de BC-250 — met één 
 ### Tabblad Instellingen
 - Toggle auto-apply
 - DB-verversing vanuit GitHub
+- Over — pluginversie, auteur en GitHub-link
 
 ---
 

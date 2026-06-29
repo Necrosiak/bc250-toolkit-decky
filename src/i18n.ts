@@ -39,6 +39,8 @@ const T: Record<Locale, Dict> = {
     tab_cu: "CU",
     tab_system: "System",
     tab_settings: "Settings",
+    about: "About",
+    about_by: "by",
     // Games
     db_optimized: "Optimized games for BC-250",
     db_count: "{count} games",
@@ -119,6 +121,7 @@ const T: Record<Locale, Dict> = {
   },
   fr: {
     tab_games: "Jeux", tab_cu: "CU", tab_system: "Système", tab_settings: "Réglages",
+    about: "À propos", about_by: "par",
     db_optimized: "Jeux optimisés pour BC-250",
     db_count: "{count} jeux",
     installed_compat: "Installés et compatibles",

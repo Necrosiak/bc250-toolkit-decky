@@ -78,7 +78,6 @@ if (api._version != API_VERSION) {
     console.warn(`[@decky/api] Requested API version ${API_VERSION} but the running loader only supports version ${api._version}. Some features may not work.`);
 }
 const call = api.call;
-const toaster = api.toaster;
 const definePlugin = (fn) => {
     return (...args) => {
         return fn(...args);
@@ -123,6 +122,8 @@ const T = {
         tab_cu: "CU",
         tab_system: "System",
         tab_settings: "Settings",
+        about: "About",
+        about_by: "by",
         // Games
         db_optimized: "Optimized games for BC-250",
         db_count: "{count} games",
@@ -203,6 +204,7 @@ const T = {
     },
     fr: {
         tab_games: "Jeux", tab_cu: "CU", tab_system: "Système", tab_settings: "Réglages",
+        about: "À propos", about_by: "par",
         db_optimized: "Jeux optimisés pour BC-250",
         db_count: "{count} jeux",
         installed_compat: "Installés et compatibles",
@@ -592,6 +594,31 @@ function t(key, vars) {
     return s;
 }
 
+// Notif native Steam (DisplayClientNotification, type 1 = popup + son). Le toaster
+// Decky crée des entrées SANS notification_type qui ne s'affichent pas ET font
+// PLANTER le panneau de notifs Steam sur ce build. Même forme que toaster.toast
+// (title/body) → remplacement transparent partout.
+function notify(data) {
+    try {
+        const App = window.App;
+        const steamid = App?.GetCurrentUser?.()?.strSteamID || App?.m_CurrentUser?.strSteamID || "";
+        // steamid OBLIGATOIRE : sans lui DisplayClientNotification crée une entrée
+        // malformée qui fait planter le panneau de notifs Steam → on s'abstient.
+        if (!steamid)
+            return;
+        window.SteamClient?.ClientNotifications?.DisplayClientNotification?.(1, JSON.stringify({ title: data.title || "BC250 Toolkit", body: data.body, state: "active", steamid }), () => { });
+    }
+    catch (e) {
+        console.error("[BC250] notify failed", e);
+    }
+}
+// Ouvre une URL dans le navigateur intégré du gamemode Steam.
+const openUrl = (url) => {
+    try {
+        window.SteamClient?.URL?.ExecuteSteamURL?.("steam://openurl/" + url);
+    }
+    catch { }
+};
 // ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
 // Orchestrateur backend : applique compat_tool + launch_options + radv/drirc
 // d'un coup. variantIndex = null → config stable (clés top-level) ; sinon configs[i].
@@ -629,6 +656,8 @@ function GamesTab({ gamesDb, savedVariants }) {
     const [variantIdx, setVariantIdx] = SP_REACT.useState(null);
     const [applying, setApplying] = SP_REACT.useState(false);
     const [applied, setApplied] = SP_REACT.useState(false);
+    const [rowFocus, setRowFocus] = SP_REACT.useState(null);
+    const [variantFocus, setVariantFocus] = SP_REACT.useState(null);
     const gameCount = Object.keys(gamesDb).filter((k) => !k.startsWith("_")).length;
     const refresh = SP_REACT.useCallback(() => {
         const list = getInstalledDbGames(gamesDb);
@@ -675,15 +704,13 @@ function GamesTab({ gamesDb, savedVariants }) {
             call("set_game_variant", selected.appid, idx).catch(() => { });
             if (r.ok) {
                 setApplied(true);
-                toaster.toast({
+                notify({
                     title: "BC250 Toolkit",
-                    body: r.need_steam_restart ? t("toast_persistent") : t("toast_applied", { name: selected.game.name }),
-                    duration: 4000,
-                });
+                    body: r.need_steam_restart ? t("toast_persistent") : t("toast_applied", { name: selected.game.name })});
             }
             else {
                 const detail = r.error ?? r.compat_error ?? r.launch_error ?? r.radv_error ?? "?";
-                toaster.toast({ title: "BC250 Toolkit", body: t("toast_error", { detail }), duration: 5000 });
+                notify({ title: "BC250 Toolkit", body: t("toast_error", { detail })});
                 setApplied(false);
             }
         }
@@ -691,17 +718,28 @@ function GamesTab({ gamesDb, savedVariants }) {
             setApplying(false);
         }
     };
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB", description: t("db_optimized"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: t("db_count", { count: gameCount }) }) }) }) }), installed.length > 0 ? (SP_JSX.jsx(DFL.PanelSection, { title: t("installed_compat"), children: installed.map((entry) => {
-                    const isSelected = selected?.appid === entry.appid;
-                    return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => { setSelected(isSelected ? null : entry); setApplied(false); }, style: isSelected ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.8 }, children: isSelected ? `▶ ${entry.name}` : entry.name }) }, entry.appid));
-                }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: t("no_games") }) }) }) })), selected && (SP_JSX.jsxs(DFL.PanelSection, { title: t("settings_title"), children: [hasConfigs && (SP_JSX.jsx(DFL.PanelSection, { title: t("variant_title"), children: variants.map((v, i) => {
-                            const isActive = variantIdx === i;
-                            const color = v.stability === "experimental" ? "#ff9800" : "#4caf50";
-                            return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => { setVariantIdx(i); setApplied(false); }, style: isActive ? { color, fontWeight: "bold" } : { opacity: 0.7 }, children: isActive ? `▶ ${v.label}` : v.label }) }, i));
-                        }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_proton"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px" }, children: [dispProton, selected.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }) }) }), selected.game.proton_note && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ff9800", lineHeight: "1.4" }, children: selected.game.proton_note }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_launch"), children: SP_JSX.jsx("div", { style: { fontSize: "10px", wordBreak: "break-all", color: "#aaa", lineHeight: "1.4" }, children: dispLaunch }) }) }), dispRadv && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_radv"), children: SP_JSX.jsx("div", { style: { fontSize: "10px", color: "#aaa", lineHeight: "1.4" }, children: Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ") }) }) })), dispRequires?.uma_min_mb && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsxs("div", { style: {
-                                    fontSize: "11px", color: "#ff9800", lineHeight: "1.4",
-                                    borderLeft: "3px solid #ff9800", paddingLeft: "8px",
-                                }, children: [t("req_uma", { mb: dispRequires.uma_min_mb }), dispRequires.note ? ` — ${dispRequires.note}` : ""] }) }) })), selected.game.notes && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("label_notes"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#ccc" }, children: selected.game.notes }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: applying || applied, onClick: handleApply, children: applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply") }) })] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: t("btn_refresh") }) }) })] }));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "DB", description: t("db_optimized"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: t("db_count", { count: gameCount }) }) }) }) }), installed.length > 0 ? (SP_JSX.jsx(DFL.PanelSection, { title: t("installed_compat"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { style: { display: "flex", flexDirection: "column", gap: 4, maxHeight: 320, overflowY: "auto" }, children: installed.map((entry) => {
+                            const isSelected = selected?.appid === entry.appid;
+                            return (SP_JSX.jsxs("div", { children: [SP_JSX.jsx(GameRow, { name: entry.name, appid: entry.appid, selected: isSelected, focused: rowFocus === entry.appid, onClick: () => { setSelected(isSelected ? null : entry); setApplied(false); }, onFocus: () => setRowFocus(entry.appid), onBlur: () => setRowFocus((f) => (f === entry.appid ? null : f)) }), isSelected && (SP_JSX.jsxs("div", { style: {
+                                            marginLeft: 10, marginTop: 4, marginBottom: 6, paddingLeft: 8,
+                                            borderLeft: "2px solid rgba(88,101,242,0.45)",
+                                            display: "flex", flexDirection: "column", gap: 5,
+                                        }, children: [hasConfigs && (SP_JSX.jsx(DFL.Focusable, { "flow-children": "horizontal", style: { display: "flex", flexWrap: "wrap", gap: 4 }, children: variants.map((v, i) => {
+                                                    const isActive = variantIdx === i;
+                                                    const isFocused = variantFocus === i;
+                                                    const color = v.stability === "experimental" ? "#ff9800" : "#4caf50";
+                                                    return (SP_JSX.jsx(Btn, { onClick: () => { setVariantIdx(i); setApplied(false); }, onFocus: () => setVariantFocus(i), onBlur: () => setVariantFocus((f) => (f === i ? null : f)), style: {
+                                                            padding: "3px 8px", fontSize: 10, minHeight: 0, minWidth: 0, margin: 0, borderRadius: 5,
+                                                            color: "#fff", fontWeight: isActive ? 700 : 400,
+                                                            background: isActive ? color : "rgba(255,255,255,0.08)",
+                                                            // Halo blanc + léger zoom = curseur manette (focus).
+                                                            boxShadow: isFocused ? "0 0 0 2px #fff, 0 0 8px 1px " + color : "none",
+                                                            transform: isFocused ? "scale(1.06)" : "scale(1)",
+                                                            transition: "box-shadow .08s ease, transform .08s ease",
+                                                            zIndex: isFocused ? 1 : 0,
+                                                        }, children: v.label }, i));
+                                                }) })), SP_JSX.jsxs("div", { style: { fontSize: 10, color: "#aaa", lineHeight: 1.45 }, children: [SP_JSX.jsxs("div", { children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_proton"), ":"] }), " ", dispProton, selected?.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }), selected?.game.proton_note && SP_JSX.jsx("div", { style: { color: "#ff9800" }, children: selected.game.proton_note }), dispLaunch && SP_JSX.jsxs("div", { style: { wordBreak: "break-all" }, children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_launch"), ":"] }), " ", dispLaunch] }), dispRadv && SP_JSX.jsxs("div", { children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_radv"), ":"] }), " ", Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ")] }), dispRequires?.uma_min_mb && (SP_JSX.jsxs("div", { style: { color: "#ff9800", borderLeft: "3px solid #ff9800", paddingLeft: 6, marginTop: 2 }, children: [t("req_uma", { mb: dispRequires.uma_min_mb }), dispRequires.note ? ` — ${dispRequires.note}` : ""] })), selected?.game.notes && SP_JSX.jsx("div", { style: { color: "#ccc", marginTop: 2 }, children: selected.game.notes })] }), SP_JSX.jsx(Btn, { disabled: applying || applied, onClick: handleApply, style: { width: "100%", padding: "5px 0", fontSize: 11, minHeight: 0, margin: 0 }, children: applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply") })] }))] }, entry.appid));
+                        }) }) }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: t("no_games") }) }) }) })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: refresh, children: t("btn_refresh") }) }) })] }));
 }
 // ── Onglet CU ─────────────────────────────────────────────────────────────────
 const CU_PROFILE_LIST = [
@@ -716,6 +754,7 @@ function CuTab() {
     const [saveBoot, setSaveBoot] = SP_REACT.useState(false);
     const [lastMsg, setLastMsg] = SP_REACT.useState(null);
     const [installingUmr, setInstallingUmr] = SP_REACT.useState(false);
+    const [profFocus, setProfFocus] = SP_REACT.useState(null);
     const refresh = SP_REACT.useCallback(() => {
         call("get_cu_status").then(setStatus);
     }, []);
@@ -727,19 +766,19 @@ function CuTab() {
     const handleInstallUmr = async () => {
         setInstallingUmr(true);
         setLastMsg(null);
-        toaster.toast({ title: "BC250 Toolkit", body: t("toast_umr_start"), duration: 5000 });
+        notify({ title: "BC250 Toolkit", body: t("toast_umr_start")});
         try {
             const r = await call("install_umr");
             if (r.ok) {
                 const msg = r.already ? t("toast_umr_already") : t("toast_umr_ok");
                 setLastMsg(msg);
-                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+                notify({ title: "BC250 Toolkit", body: msg});
                 refresh();
             }
             else {
                 const msg = t("toast_umr_fail", { error: r.error ?? "" });
                 setLastMsg(msg);
-                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 6000 });
+                notify({ title: "BC250 Toolkit", body: msg});
             }
         }
         finally {
@@ -759,13 +798,13 @@ function CuTab() {
                     msg = `${t("cu_done_live", { count: r.cu_count ?? 0 })} — boot: ✗ ${r.boot_error ?? "sudoers?"}`;
                 }
                 setLastMsg(msg);
-                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: saveBoot && r.boot_saved === false ? 6000 : 3000 });
+                notify({ title: "BC250 Toolkit", body: msg});
                 refresh();
             }
             else {
                 const msg = `✗ ${r.error}`;
                 setLastMsg(msg);
-                toaster.toast({ title: "BC250 Toolkit", body: msg, duration: 4000 });
+                notify({ title: "BC250 Toolkit", body: msg});
             }
         }
         finally {
@@ -786,13 +825,13 @@ function CuTab() {
                             borderLeft: "3px solid #ff9800", paddingLeft: "10px",
                             paddingTop: "6px", paddingBottom: "6px",
                             background: "rgba(255,152,0,0.08)", borderRadius: "0 4px 4px 0",
-                        }, children: t("cu_disclaimer") }) }) }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_profiles"), children: CU_PROFILE_LIST.map(({ key, label, color }) => {
-                    const isActive = status.current_profile === key;
-                    const isBoot = status.boot_profile === key;
-                    const isApplying = applying === key;
-                    const suffix = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
-                    return (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => applyProfile(key), disabled: !!applying || !status.umr_available, style: isActive ? { color, fontWeight: "bold" } : { opacity: 0.75 }, children: isApplying ? t("cu_applying") : `${isActive ? "▶ " : ""}${label}${suffix}` }) }, key));
-                }) }), SP_JSX.jsxs(DFL.PanelSection, { title: t("cu_options"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("cu_save_boot"), description: t("cu_save_boot_desc"), checked: saveBoot, onChange: setSaveBoot }) }), lastMsg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                        }, children: t("cu_disclaimer") }) }) }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_profiles"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { style: { display: "flex", flexDirection: "column", gap: 4 }, children: CU_PROFILE_LIST.map(({ key, label, color }) => {
+                            const isActive = status.current_profile === key;
+                            const isBoot = status.boot_profile === key;
+                            const isApplying = applying === key;
+                            const suffix = isBoot && !isActive ? " [boot]" : isActive && isBoot ? " [live+boot]" : "";
+                            return (SP_JSX.jsxs(CardBtn, { active: isActive, focused: profFocus === key, color: color, disabled: !!applying || !status.umr_available, onClick: () => applyProfile(key), onFocus: () => setProfFocus(key), onBlur: () => setProfFocus((f) => (f === key ? null : f)), children: [SP_JSX.jsx("span", { style: { flex: 1, textAlign: "left" }, children: isApplying ? t("cu_applying") : `${label}${suffix}` }), isActive && SP_JSX.jsx("span", { style: { fontSize: 10 }, children: "\u25CF" })] }, key));
+                        }) }) }) }), SP_JSX.jsxs(DFL.PanelSection, { title: t("cu_options"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("cu_save_boot"), description: t("cu_save_boot_desc"), checked: saveBoot, onChange: setSaveBoot }) }), lastMsg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
                                     fontSize: "11px",
                                     color: lastMsg.startsWith("✓") ? "#4caf50" : "#f44336",
                                     lineHeight: "1.4",
@@ -817,11 +856,9 @@ function SystemTab() {
         try {
             const r = await call("run_tweaks_update");
             setUpdateLog(r.success ? (r.stdout ?? "OK") : (r.error ?? "Erreur inconnue"));
-            toaster.toast({
+            notify({
                 title: "BC250 Toolkit",
-                body: r.success ? t("sys_toast_ok") : t("sys_toast_fail"),
-                duration: 4000,
-            });
+                body: r.success ? t("sys_toast_ok") : t("sys_toast_fail")});
         }
         finally {
             setUpdating(false);
@@ -840,7 +877,11 @@ function SystemTab() {
 // ── Onglet Réglages ───────────────────────────────────────────────────────────
 function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
     const [refreshing, setRefreshing] = SP_REACT.useState(false);
+    const [version, setVersion] = SP_REACT.useState("");
     const meta = gamesDb["_meta"];
+    SP_REACT.useEffect(() => {
+        call("get_version").then((v) => setVersion(v || "")).catch(() => { });
+    }, []);
     const doRefresh = async () => {
         setRefreshing(true);
         try {
@@ -894,16 +935,67 @@ function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
             : updStatus === "available" ? t("update_install", { v: updLatest })
                 : updStatus === "uptodate" ? t("update_up_to_date", { v: updCurrent })
                     : t("update_check");
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("set_auto"), description: t("set_auto_desc"), checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: refreshing, onClick: doRefresh, children: refreshing ? t("set_refreshing") : t("set_refresh_db") }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_db_date"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_contribute"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("update_section"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("update_auto"), checked: autoUpd, onChange: onToggleAutoUpd }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: updStatus === "checking" || updStatus === "installing", onClick: updStatus === "available" ? installUpd : checkUpd, children: updLabel }) })] })] }));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("set_auto"), description: t("set_auto_desc"), checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: refreshing, onClick: doRefresh, children: refreshing ? t("set_refreshing") : t("set_refresh_db") }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_db_date"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_contribute"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("update_section"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("update_auto"), checked: autoUpd, onChange: onToggleAutoUpd }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: updStatus === "checking" || updStatus === "installing", onClick: updStatus === "available" ? installUpd : checkUpd, children: updLabel }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("about"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: 11, color: "#aaa", lineHeight: 1.6 }, children: [SP_JSX.jsxs("div", { children: [SP_JSX.jsx("b", { style: { color: "#fff" }, children: "BC250 Toolkit" }), version ? ` v${version}` : ""] }), SP_JSX.jsxs("div", { children: [t("about_by"), " ", SP_JSX.jsx("span", { style: { color: "#67a3ff" }, children: "Necrosiak" })] })] }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Btn, { onClick: () => openUrl("https://github.com/Necrosiak/bc250-toolkit-decky"), style: { width: "100%", padding: "5px 0", fontSize: 11, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }, children: "\uD83D\uDD17 GitHub" }) })] })] }));
 }
 const TAB_DEFS = [
-    { id: "games", tKey: "tab_games" },
-    { id: "cu", tKey: "tab_cu" },
-    { id: "system", tKey: "tab_system" },
-    { id: "settings", tKey: "tab_settings" },
+    { id: "games", tKey: "tab_games", icon: "🎮" },
+    { id: "cu", tKey: "tab_cu", icon: "⚡" },
+    { id: "system", tKey: "tab_system", icon: "🌡️" },
+    { id: "settings", tKey: "tab_settings", icon: "⚙️" },
 ];
+const BtnTab = DFL.DialogButton;
+const Btn = DFL.DialogButton;
+// Carte cliquable réutilisable façon Steamcord (liste de profils/actions) : fond
+// couleur si actif, halo blanc + lueur au focus manette. Hoistée (function).
+function CardBtn({ active, focused, color, disabled, onClick, onFocus, onBlur, children }) {
+    const c = color || "#5865f2";
+    return (SP_JSX.jsx(Btn, { disabled: disabled, onClick: onClick, onFocus: onFocus, onBlur: onBlur, style: {
+            display: "flex", alignItems: "center", gap: 8, width: "100%",
+            padding: "7px 10px", margin: 0, minHeight: 0, boxSizing: "border-box",
+            borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: active ? 700 : 400,
+            background: active ? c : "rgba(255,255,255,0.05)",
+            border: active ? "1px solid " + c : "1px solid transparent",
+            boxShadow: focused ? "0 0 0 2px #fff, 0 0 8px 1px " + c : "none",
+            transform: focused ? "scale(1.02)" : "scale(1)",
+            transition: "box-shadow .08s ease, transform .08s ease",
+            opacity: disabled ? 0.5 : 1, zIndex: focused ? 1 : 0,
+        }, children: children }));
+}
+// Ligne de jeu façon « serveur Steamcord » : icône Steam du jeu (sinon pastille
+// colorée + initiale), nom, surbrillance bleue si sélectionné.
+function GameRow({ name, appid, selected, focused, onClick, onFocus, onBlur }) {
+    const ov = window.appStore?.GetAppOverviewByAppID?.(Number(appid));
+    const iconHash = ov?.icon_hash || ov?.icon_data;
+    const iconUrl = iconHash
+        ? `https://steamcdn-a.akamaihd.net/steamcommunity/public/images/apps/${appid}/${iconHash}.jpg`
+        : null;
+    return (SP_JSX.jsxs(Btn, { onClick: onClick, onFocus: onFocus, onBlur: onBlur, style: {
+            display: "flex", alignItems: "center", gap: 8, width: "100%",
+            padding: "6px 8px", margin: 0, minHeight: 0, boxSizing: "border-box", borderRadius: 6,
+            background: focused ? "rgba(88,101,242,0.55)" : selected ? "rgba(88,101,242,0.25)" : "rgba(255,255,255,0.04)",
+            border: selected ? "1px solid rgba(88,101,242,0.6)" : "1px solid transparent",
+            boxShadow: focused ? "0 0 0 2px #fff" : "none",
+        }, children: [iconUrl ? (SP_JSX.jsx("img", { src: iconUrl, width: 24, height: 24, style: { borderRadius: 6, flexShrink: 0, display: "block" } })) : (SP_JSX.jsx("div", { style: { width: 24, height: 24, borderRadius: 6, background: "#5865f2", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff" }, children: (name || "?")[0].toUpperCase() })), SP_JSX.jsx("span", { style: { flex: 1, textAlign: "left", fontSize: 12, fontWeight: selected ? 700 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: name }), selected && SP_JSX.jsx("span", { style: { fontSize: 10, color: "#67a3ff", flexShrink: 0 }, children: "\u25B6" })] }));
+}
+// Onglet façon Steamcord : fond bleu plein au focus manette, bleu estompé si
+// actif, anneau blanc au focus. Rangée Focusable horizontale = nav D-pad correcte.
+function TabBtn({ active, focused, onClick, onFocus, onBlur, children }) {
+    return (SP_JSX.jsx(BtnTab, { onClick: onClick, onFocus: onFocus, onBlur: onBlur, style: {
+            flex: "1 1 0", minWidth: 0, margin: 0, padding: "5px 2px",
+            fontSize: 11, minHeight: 0, boxSizing: "border-box", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+            overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+            background: focused
+                ? "rgba(88,101,242,0.85)"
+                : active ? "rgba(88,101,242,0.35)" : "rgba(255,255,255,0.06)",
+            boxShadow: focused ? "0 0 0 2px #fff" : "none",
+            fontWeight: active ? 700 : 400,
+            transition: "background .08s ease, box-shadow .08s ease",
+        }, children: children }));
+}
 function TabBar({ tab, setTab }) {
-    return (SP_JSX.jsx(DFL.PanelSection, { children: TAB_DEFS.map(({ id, tKey }) => (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: () => setTab(id), style: tab === id ? { color: "#67a3ff", fontWeight: "bold" } : { opacity: 0.6 }, children: tab === id ? `▶ ${t(tKey)}` : t(tKey) }) }, id))) }));
+    const [focused, setFocused] = SP_REACT.useState(null);
+    return (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { "flow-children": "horizontal", style: { display: "flex", gap: 4, width: "100%", boxSizing: "border-box" }, children: TAB_DEFS.map(({ id, tKey, icon }) => (SP_JSX.jsxs(TabBtn, { active: tab === id, focused: focused === id, onClick: () => setTab(id), onFocus: () => setFocused(id), onBlur: () => setFocused((f) => (f === id ? null : f)), children: [SP_JSX.jsx("span", { children: icon }), SP_JSX.jsx("span", { style: { overflow: "hidden", textOverflow: "ellipsis" }, children: t(tKey) })] }, id))) }) }) }));
 }
 // ── Plugin principal ──────────────────────────────────────────────────────────
 function Content() {
@@ -934,14 +1026,14 @@ function Content() {
                 return applyGameConfig(g.appid, idx);
             })).then((rs) => {
                 const n = rs.filter((r) => r.ok).length;
-                toaster.toast({ title: "BC250 Toolkit", body: t("toast_autoapply_on", { count: n }), duration: 4000 });
+                notify({ title: "BC250 Toolkit", body: t("toast_autoapply_on", { count: n })});
             }).catch(() => { });
         }
     };
     const refreshDb = async () => {
         const db = await call("refresh_games_db");
         setGamesDb(db);
-        toaster.toast({ title: "BC250 Toolkit", body: t("toast_db_ok"), duration: 2000 });
+        notify({ title: "BC250 Toolkit", body: t("toast_db_ok")});
     };
     if (!dbLoaded)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
@@ -973,11 +1065,9 @@ var index = definePlugin(() => {
                     const hasConfigs = Array.isArray(g.configs) && g.configs.length > 0;
                     const idx = hasConfigs ? (variants[String(e.unAppID)] ?? 0) : null;
                     const r = await applyGameConfig(e.unAppID, idx);
-                    toaster.toast({
+                    notify({
                         title: "BC250 Toolkit",
-                        body: r.ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.error ?? "?" }),
-                        duration: 3000,
-                    });
+                        body: r.ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.error ?? "?" })});
                 }
                 catch (_) { }
             });

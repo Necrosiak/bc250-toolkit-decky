@@ -37,6 +37,7 @@ Baza danych społeczności ze zoptymalizowanymi opcjami uruchamiania dla BC-250 
 ### Zakładka Ustawienia
 - Przełącznik auto-apply
 - Odświeżanie bazy danych z GitHub
+- O wtyczce — wersja wtyczki, autor i link do GitHub
 
 ---
 

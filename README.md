@@ -51,6 +51,7 @@ Community database of optimized launch options for the BC-250 — apply in one c
 ### Settings Tab
 - Auto-apply toggle
 - DB refresh from GitHub
+- About — plugin version, author and GitHub link
 
 ---
 

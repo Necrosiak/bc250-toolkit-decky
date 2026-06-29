@@ -37,6 +37,7 @@ Database comunitario di opzioni di avvio ottimizzate per il BC-250 — applicabi
 ### Scheda Impostazioni
 - Toggle auto-apply
 - Aggiornamento DB da GitHub
+- Informazioni — versione del plugin, autore e link a GitHub
 
 ---
 
