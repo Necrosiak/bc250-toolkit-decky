@@ -466,6 +466,21 @@ class Plugin:
         except Exception:
             pass
 
+        # RAM système = ce qui reste à l'OS après le carve-out UMA (MemTotal bouge
+        # avec le réglage UMA du BIOS). used = MemTotal - MemAvailable (vision htop).
+        try:
+            mem: dict = {}
+            for line in Path("/proc/meminfo").read_text().splitlines():
+                key, _, rest = line.partition(":")
+                if key in ("MemTotal", "MemAvailable"):
+                    mem[key] = int(rest.strip().split()[0])  # kB
+            if "MemTotal" in mem:
+                status["mem_total_mb"] = mem["MemTotal"] // 1024
+                if "MemAvailable" in mem:
+                    status["mem_used_mb"] = max(0, mem["MemTotal"] - mem["MemAvailable"]) // 1024
+        except Exception:
+            pass
+
         try:
             scx_state = Path("/sys/kernel/sched_ext/state").read_text().strip()
             status["scx_state"] = scx_state

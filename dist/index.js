@@ -119,7 +119,7 @@ const T = {
     en: {
         // Tabs
         tab_games: "Games",
-        tab_cu: "CU",
+        tab_cu: "CU/UMA",
         tab_system: "System",
         tab_settings: "Settings",
         about: "About",
@@ -182,6 +182,10 @@ const T = {
         uma_not_supported: "⚠ Unsupported BIOS ({detail}) — UMA control disabled",
         // System
         sys_temps: "Temperatures",
+        sys_res: "Resources",
+        sys_ram: "Enabled RAM",
+        sys_ram_used: "Used RAM",
+        sys_cu: "Active CUs",
         sys_status: "Status",
         sys_scheduler: "Scheduler",
         sys_tuned: "Tuned",
@@ -212,7 +216,7 @@ const T = {
         toast_db_ok: "DB updated",
     },
     fr: {
-        tab_games: "Jeux", tab_cu: "CU", tab_system: "Système", tab_settings: "Réglages",
+        tab_games: "Jeux", tab_cu: "CU/UMA", tab_system: "Système", tab_settings: "Réglages",
         about: "À propos", about_by: "par",
         db_optimized: "Jeux optimisés pour BC-250",
         db_count: "{count} jeux",
@@ -261,6 +265,7 @@ const T = {
         uma_writing: "Écriture...",
         uma_not_supported: "⚠ BIOS non supporté ({detail}) — contrôle UMA désactivé",
         sys_temps: "Températures", sys_status: "Statut", sys_scheduler: "Scheduler",
+        sys_res: "Ressources", sys_ram: "RAM activée", sys_ram_used: "RAM utilisée", sys_cu: "CU actifs",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actif", sys_inactive: "✗ inactif", sys_unknown: "inconnu",
         sys_last_update: "Dernier update",
@@ -279,7 +284,7 @@ const T = {
         set_db_date: "DB mise à jour le", set_contribute: "Contribuer", toast_db_ok: "DB mise à jour",
     },
     de: {
-        tab_games: "Spiele", tab_cu: "CU", tab_system: "System", tab_settings: "Einstellungen",
+        tab_games: "Spiele", tab_cu: "CU/UMA", tab_system: "System", tab_settings: "Einstellungen",
         db_optimized: "Optimierte Spiele für BC-250",
         db_count: "{count} Spiele",
         installed_compat: "Installiert & kompatibel",
@@ -323,6 +328,7 @@ const T = {
         uma_writing: "Schreibe...",
         uma_not_supported: "⚠ Nicht unterstütztes BIOS ({detail}) — UMA-Steuerung deaktiviert",
         sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Scheduler",
+        sys_res: "Ressourcen", sys_ram: "Aktivierter RAM", sys_ram_used: "Belegter RAM", sys_cu: "Aktive CUs",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktiv", sys_inactive: "✗ inaktiv", sys_unknown: "unbekannt",
         sys_last_update: "Letztes Update",
@@ -334,7 +340,7 @@ const T = {
         set_db_date: "DB aktualisiert am", set_contribute: "Beitragen", toast_db_ok: "DB aktualisiert",
     },
     es: {
-        tab_games: "Juegos", tab_cu: "CU", tab_system: "Sistema", tab_settings: "Ajustes",
+        tab_games: "Juegos", tab_cu: "CU/UMA", tab_system: "Sistema", tab_settings: "Ajustes",
         db_optimized: "Juegos optimizados para BC-250",
         db_count: "{count} juegos",
         installed_compat: "Instalados y compatibles",
@@ -378,6 +384,7 @@ const T = {
         uma_writing: "Escribiendo...",
         uma_not_supported: "⚠ BIOS no soportado ({detail}) — control UMA desactivado",
         sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Planificador",
+        sys_res: "Recursos", sys_ram: "RAM activada", sys_ram_used: "RAM usada", sys_cu: "CUs activos",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ activo", sys_inactive: "✗ inactivo", sys_unknown: "desconocido",
         sys_last_update: "Última actualización",
@@ -389,7 +396,7 @@ const T = {
         set_db_date: "BD actualizada el", set_contribute: "Contribuir", toast_db_ok: "BD actualizada",
     },
     it: {
-        tab_games: "Giochi", tab_cu: "CU", tab_system: "Sistema", tab_settings: "Impostazioni",
+        tab_games: "Giochi", tab_cu: "CU/UMA", tab_system: "Sistema", tab_settings: "Impostazioni",
         db_optimized: "Giochi ottimizzati per BC-250",
         db_count: "{count} giochi",
         installed_compat: "Installati e compatibili",
@@ -433,6 +440,7 @@ const T = {
         uma_writing: "Scrittura...",
         uma_not_supported: "⚠ BIOS non supportato ({detail}) — controllo UMA disattivato",
         sys_temps: "Temperature", sys_status: "Stato", sys_scheduler: "Scheduler",
+        sys_res: "Risorse", sys_ram: "RAM attiva", sys_ram_used: "RAM usata", sys_cu: "CU attivi",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ attivo", sys_inactive: "✗ inattivo", sys_unknown: "sconosciuto",
         sys_last_update: "Ultimo aggiornamento",
@@ -444,7 +452,7 @@ const T = {
         set_db_date: "DB aggiornato il", set_contribute: "Contribuisci", toast_db_ok: "DB aggiornato",
     },
     pt: {
-        tab_games: "Jogos", tab_cu: "CU", tab_system: "Sistema", tab_settings: "Configurações",
+        tab_games: "Jogos", tab_cu: "CU/UMA", tab_system: "Sistema", tab_settings: "Configurações",
         db_optimized: "Jogos otimizados para BC-250",
         db_count: "{count} jogos",
         installed_compat: "Instalados e compatíveis",
@@ -488,6 +496,7 @@ const T = {
         uma_writing: "A escrever...",
         uma_not_supported: "⚠ BIOS não suportado ({detail}) — controlo UMA desativado",
         sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Scheduler",
+        sys_res: "Recursos", sys_ram: "RAM ativada", sys_ram_used: "RAM usada", sys_cu: "CUs ativos",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ ativo", sys_inactive: "✗ inativo", sys_unknown: "desconhecido",
         sys_last_update: "Última atualização",
@@ -499,7 +508,7 @@ const T = {
         set_db_date: "BD atualizado em", set_contribute: "Contribuir", toast_db_ok: "BD atualizado",
     },
     nl: {
-        tab_games: "Spellen", tab_cu: "CU", tab_system: "Systeem", tab_settings: "Instellingen",
+        tab_games: "Spellen", tab_cu: "CU/UMA", tab_system: "Systeem", tab_settings: "Instellingen",
         db_optimized: "Geoptimaliseerde spellen voor BC-250",
         db_count: "{count} spellen",
         installed_compat: "Geïnstalleerd & compatibel",
@@ -543,6 +552,7 @@ const T = {
         uma_writing: "Schrijven...",
         uma_not_supported: "⚠ Niet-ondersteund BIOS ({detail}) — UMA-beheer uitgeschakeld",
         sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Planner",
+        sys_res: "Systeembronnen", sys_ram: "Geactiveerd RAM", sys_ram_used: "Gebruikt RAM", sys_cu: "Actieve CU's",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actief", sys_inactive: "✗ inactief", sys_unknown: "onbekend",
         sys_last_update: "Laatste update",
@@ -554,7 +564,7 @@ const T = {
         set_db_date: "DB bijgewerkt op", set_contribute: "Bijdragen", toast_db_ok: "DB bijgewerkt",
     },
     pl: {
-        tab_games: "Gry", tab_cu: "CU", tab_system: "System", tab_settings: "Ustawienia",
+        tab_games: "Gry", tab_cu: "CU/UMA", tab_system: "System", tab_settings: "Ustawienia",
         db_optimized: "Zoptymalizowane gry dla BC-250",
         db_count: "{count} gier",
         installed_compat: "Zainstalowane i kompatybilne",
@@ -598,6 +608,7 @@ const T = {
         uma_writing: "Zapisywanie...",
         uma_not_supported: "⚠ Nieobsługiwany BIOS ({detail}) — sterowanie UMA wyłączone",
         sys_temps: "Temperatury", sys_status: "Status", sys_scheduler: "Harmonogram",
+        sys_res: "Zasoby", sys_ram: "Aktywna pamięć RAM", sys_ram_used: "Użyta pamięć RAM", sys_cu: "Aktywne CU",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktywny", sys_inactive: "✗ nieaktywny", sys_unknown: "nieznany",
         sys_last_update: "Ostatnia aktualizacja",
@@ -609,7 +620,7 @@ const T = {
         set_db_date: "Baza zaktualizowana", set_contribute: "Współtwórz", toast_db_ok: "Baza zaktualizowana",
     },
     ru: {
-        tab_games: "Игры", tab_cu: "CU", tab_system: "Система", tab_settings: "Настройки",
+        tab_games: "Игры", tab_cu: "CU/UMA", tab_system: "Система", tab_settings: "Настройки",
         db_optimized: "Оптимизированные игры для BC-250",
         db_count: "{count} игр",
         installed_compat: "Установленные и совместимые",
@@ -653,6 +664,7 @@ const T = {
         uma_writing: "Запись...",
         uma_not_supported: "⚠ Неподдерживаемый BIOS ({detail}) — управление UMA отключено",
         sys_temps: "Температуры", sys_status: "Состояние", sys_scheduler: "Планировщик",
+        sys_res: "Ресурсы", sys_ram: "Активная ОЗУ", sys_ram_used: "Использовано ОЗУ", sys_cu: "Активные CU",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ активен", sys_inactive: "✗ неактивен", sys_unknown: "неизвестно",
         sys_last_update: "Последнее обновление",
@@ -978,11 +990,18 @@ function CuTab() {
 // ── Onglet Système ────────────────────────────────────────────────────────────
 function SystemTab() {
     const [status, setStatus] = SP_REACT.useState(null);
+    const [cu, setCu] = SP_REACT.useState(null);
     const [updating, setUpdating] = SP_REACT.useState(false);
     const [updateLog, setUpdateLog] = SP_REACT.useState(null);
     SP_REACT.useEffect(() => {
-        call("get_system_status").then(setStatus);
-        const timer = setInterval(() => call("get_system_status").then(setStatus), 5000);
+        // get_cu_status déclenche la lecture umr en fond si le cache est vide →
+        // le compte CU s'affiche ici même si l'onglet CU/UMA n'a jamais été ouvert.
+        const poll = () => {
+            call("get_system_status").then(setStatus);
+            call("get_cu_status").then(setCu).catch(() => { });
+        };
+        poll();
+        const timer = setInterval(poll, 5000);
         return () => clearInterval(timer);
     }, []);
     const handleUpdate = async () => {
@@ -1002,7 +1021,14 @@ function SystemTab() {
     if (!status)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
     const tempColor = (v) => !v ? "#888" : v > 85 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_temps"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp), fontWeight: "bold" }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "GPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp), fontWeight: "bold" }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na") }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_status"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_scheduler"), children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
+    const gb = (mb) => `${(mb / 1024).toFixed(1)} GB`;
+    const ramPct = status.mem_total_mb && status.mem_used_mb != null
+        ? Math.round((status.mem_used_mb / status.mem_total_mb) * 100)
+        : null;
+    const ramColor = ramPct == null ? "#888" : ramPct > 85 ? "#f44336" : ramPct > 70 ? "#ff9800" : "#4caf50";
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_temps"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp), fontWeight: "bold" }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "GPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp), fontWeight: "bold" }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na") }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_res"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_ram"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: status.mem_total_mb != null ? gb(status.mem_total_mb) : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_ram_used"), children: SP_JSX.jsx("span", { style: { color: ramColor, fontWeight: "bold" }, children: status.mem_used_mb != null
+                                    ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
+                                    : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_cu"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: cu?.cu_count != null && cu.cu_count > 0 ? `${cu.cu_count} / 40` : t("cu_na") }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_status"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_scheduler"), children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
                                     ? `✓ ${status.scx_sched ?? "scx"}`
                                     : `✗ ${status.scx_state ?? t("sys_unknown")}` }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_tuned"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? t("sys_unknown") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_gamemode"), children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? t("sys_active") : t("sys_inactive") }) }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_last_update"), children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: updating, onClick: handleUpdate, children: ["\uD83D\uDD04 ", updating ? t("sys_btn_updating") : t("sys_btn_update")] }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_log"), children: SP_JSX.jsx("div", { style: {
                                     fontSize: "10px", fontFamily: "monospace", color: "#aaa",

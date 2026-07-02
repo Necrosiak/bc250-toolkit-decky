@@ -92,6 +92,8 @@ interface GamesDB {
 interface SystemStatus {
   cpu_temp?: number;
   gpu_temp?: number;
+  mem_total_mb?: number;
+  mem_used_mb?: number;
   scx_state?: string;
   scx_sched?: string;
   tuned_profile?: string;
@@ -676,12 +678,19 @@ function CuTab() {
 
 function SystemTab() {
   const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [cu, setCu] = useState<CuStatus | null>(null);
   const [updating, setUpdating] = useState(false);
   const [updateLog, setUpdateLog] = useState<string | null>(null);
 
   useEffect(() => {
-    call<[], SystemStatus>("get_system_status").then(setStatus);
-    const timer = setInterval(() => call<[], SystemStatus>("get_system_status").then(setStatus), 5000);
+    // get_cu_status déclenche la lecture umr en fond si le cache est vide →
+    // le compte CU s'affiche ici même si l'onglet CU/UMA n'a jamais été ouvert.
+    const poll = () => {
+      call<[], SystemStatus>("get_system_status").then(setStatus);
+      call<[], CuStatus>("get_cu_status").then(setCu).catch(() => {});
+    };
+    poll();
+    const timer = setInterval(poll, 5000);
     return () => clearInterval(timer);
   }, []);
 
@@ -706,6 +715,12 @@ function SystemTab() {
   const tempColor = (v?: number) =>
     !v ? "#888" : v > 85 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
 
+  const gb = (mb: number) => `${(mb / 1024).toFixed(1)} GB`;
+  const ramPct = status.mem_total_mb && status.mem_used_mb != null
+    ? Math.round((status.mem_used_mb / status.mem_total_mb) * 100)
+    : null;
+  const ramColor = ramPct == null ? "#888" : ramPct > 85 ? "#f44336" : ramPct > 70 ? "#ff9800" : "#4caf50";
+
   return (
     <>
       <PanelSection title={t("sys_temps")}>
@@ -720,6 +735,32 @@ function SystemTab() {
           <Field label="GPU">
             <span style={{ color: tempColor(status.gpu_temp), fontWeight: "bold" }}>
               {status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na")}
+            </span>
+          </Field>
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t("sys_res")}>
+        <PanelSectionRow>
+          <Field label={t("sys_ram")}>
+            <span style={{ color: "#67a3ff", fontWeight: "bold" }}>
+              {status.mem_total_mb != null ? gb(status.mem_total_mb) : t("cu_na")}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("sys_ram_used")}>
+            <span style={{ color: ramColor, fontWeight: "bold" }}>
+              {status.mem_used_mb != null
+                ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
+                : t("cu_na")}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("sys_cu")}>
+            <span style={{ color: "#67a3ff", fontWeight: "bold" }}>
+              {cu?.cu_count != null && cu.cu_count > 0 ? `${cu.cu_count} / 40` : t("cu_na")}
             </span>
           </Field>
         </PanelSectionRow>

@@ -16,6 +16,15 @@ All notable changes to BC250-Toolkit are documented here.
 - Permanent warning in the panel: **Auto (≈8 GB) is the safe recommended
   value** — if graphical artifacts (e.g. green glitches) appear after a
   change, switch back to Auto.
+- **Resources section in the System tab** — shows the enabled system RAM
+  (what the OS gets after the UMA carve-out), the used RAM (with a colored
+  usage percentage) and the number of active CUs.
+
+### Changed
+- The **CU** tab is now labeled **CU/UMA** to reflect the new VRAM section.
+- UMA writes now go through the root helper `bc250-uma-helper` (installed by
+  bc250-tweaks) with a NOPASSWD sudoers rule — no more sudo password prompt
+  from the QAM. Writing UMA requires an up-to-date bc250-tweaks install.
 
 ## [0.3.2] - 2026-06-29
 
