@@ -20,6 +20,19 @@ _uspec = _ilu.spec_from_file_location(
 updater = _ilu.module_from_spec(_uspec)
 _uspec.loader.exec_module(updater)
 
+# Même chargement explicite pour bios_uma (règle générale : tout module maison à
+# la racine du plugin est importé par chemin pour éviter toute collision Decky).
+# Best-effort : si le fichier manque (zip incomplet), le plugin doit survivre —
+# l'UI affichera simplement « UMA non supporté » au lieu de tuer tout le plugin.
+try:
+    _bspec = _ilu.spec_from_file_location(
+        "bc250_bios_uma", os.path.join(os.path.dirname(os.path.abspath(__file__)), "bios_uma.py")
+    )
+    bios_uma = _ilu.module_from_spec(_bspec)
+    _bspec.loader.exec_module(bios_uma)
+except Exception:
+    bios_uma = None
+
 GAMES_DB_URL = "https://raw.githubusercontent.com/Necrosiak/bc250-toolkit-decky/main/games_db.json"
 LOCAL_DB_PATH = Path(os.path.dirname(__file__)) / "games_db.json"
 CACHE_DB_PATH = Path("/tmp/bc250_games_db_cache.json")
@@ -898,6 +911,36 @@ class Plugin:
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
+    # ── UMA (VRAM) via variable EFI AmdSetup ──────────────────────────────────
+    # Contrairement aux CU (pokés à chaud), l'UMA est un carve-out décidé au POST :
+    # on patche la NVRAM du BIOS et le changement ne prend effet qu'au REBOOT.
+
+    async def get_uma_status(self) -> dict:
+        if bios_uma is None:
+            return {"profile_ready": False, "layout_ok": False,
+                    "layout_detail": "module bios_uma absent", "current": {},
+                    "bios_version": None, "vram_total_mb": _read_vram_total_mb()}
+        st = bios_uma.get_status()
+        st["vram_total_mb"] = _read_vram_total_mb()
+        return st
+
+    async def set_uma_frame_buffer(self, label: str) -> dict:
+        if bios_uma is None:
+            return {"ok": False, "error": "module bios_uma absent"}
+        return bios_uma.set_uma_frame_buffer(label, backup_dir=BC250_DATA_DIR / "bios_backups")
+
+    async def list_uma_backups(self) -> list:
+        d = BC250_DATA_DIR / "bios_backups"
+        return sorted(str(p) for p in d.glob("AmdSetup_*.bin")) if d.is_dir() else []
+
+    async def restore_uma_backup(self, path: str) -> dict:
+        if bios_uma is None:
+            return {"ok": False, "error": "module bios_uma absent"}
+        p = Path(path)
+        if p.parent != (BC250_DATA_DIR / "bios_backups"):
+            return {"ok": False, "error": "Chemin hors du dossier de backups"}
+        return bios_uma.restore_backup(p)
+
     # ── DB info ───────────────────────────────────────────────────────────────
 
     async def get_db_meta(self) -> dict:
@@ -905,6 +948,16 @@ class Plugin:
 
     async def get_db_game_count(self) -> int:
         return sum(1 for k in self._games_db if not k.startswith("_"))
+
+
+def _read_vram_total_mb() -> int | None:
+    """VRAM totale vue par amdgpu (Mo) — reflète le carve-out UMA effectif."""
+    try:
+        for p in sorted(Path("/sys/class/drm").glob("card*/device/mem_info_vram_total")):
+            return int(p.read_text().strip()) // (1024 * 1024)
+    except Exception:
+        pass
+    return None
 
 
 def _user_uid() -> int:

@@ -5,7 +5,7 @@
   "api_version": 1,
   "publish": {
     "tags": ["bc250", "amd", "apu", "gaming", "optimizer", "launch-options", "proton"],
-    "description": "Gaming optimizer for the ASRock BC-250 (AMD Ryzen Embedded V2000 / Cyan Skillfish). Community database of optimized launch options — apply Proton version and launch options in one click. Also features live CU (Compute Units) management, CPU/GPU temperatures, and system status.",
+    "description": "Gaming optimizer for the ASRock BC-250 (AMD Ryzen Embedded V2000 / Cyan Skillfish). Community database of optimized launch options — apply Proton version and launch options in one click. Also features live CU (Compute Units) management, VRAM (UMA frame buffer) control from the panel, CPU/GPU temperatures, and system status.",
     "image": "https://raw.githubusercontent.com/Necrosiak/bc250-toolkit-decky/main/assets/screenshots/tab-games.png"
   }
 }

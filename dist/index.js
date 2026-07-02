@@ -171,6 +171,15 @@ const T = {
         // CU disclaimer
         cu_warn_title: "⚠ Experimental",
         cu_disclaimer: "Unlocking CUs beyond 24 may cause GPU instability or overheating. Start at 32 CU · Monitor temps · Revert to 24 CU if unstable.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "Current VRAM",
+        uma_bios: "BIOS (next boot)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Takes effect at the NEXT reboot. Auto (≈8 GB) is the safe recommended value. If you see graphical artifacts (e.g. green glitches) after a change, switch back to Auto.",
+        uma_done: "✓ UMA {label} written to BIOS — reboot to apply",
+        uma_writing: "Writing...",
+        uma_not_supported: "⚠ Unsupported BIOS ({detail}) — UMA control disabled",
         // System
         sys_temps: "Temperatures",
         sys_status: "Status",
@@ -242,6 +251,15 @@ const T = {
         toast_umr_fail: "✗ Échec install umr : {error}",
         cu_warn_title: "⚠ Expérimental",
         cu_disclaimer: "Dépasser 24 CU peut causer instabilité GPU ou surchauffe. Commencer par 32 CU · Surveiller les temps · Revenir à 24 CU si instable.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "VRAM actuelle",
+        uma_bios: "BIOS (prochain boot)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Prend effet au PROCHAIN redémarrage. Auto (≈8 Go) est la valeur sûre recommandée. Si des artefacts graphiques (ex. verts) apparaissent après un changement, repasse en Auto.",
+        uma_done: "✓ UMA {label} écrit dans le BIOS — redémarre pour appliquer",
+        uma_writing: "Écriture...",
+        uma_not_supported: "⚠ BIOS non supporté ({detail}) — contrôle UMA désactivé",
         sys_temps: "Températures", sys_status: "Statut", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actif", sys_inactive: "✗ inactif", sys_unknown: "inconnu",
@@ -295,6 +313,15 @@ const T = {
         toast_umr_fail: "✗ umr-Installation fehlgeschlagen: {error}",
         cu_warn_title: "⚠ Experimentell",
         cu_disclaimer: "Über 24 CU kann GPU-Instabilität oder Überhitzung verursachen. Mit 32 CU beginnen · Temps überwachen · Bei Problemen auf 24 CU zurück.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "Aktuelle VRAM",
+        uma_bios: "BIOS (nächster Boot)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Wirkt erst beim NÄCHSTEN Neustart. Auto (≈8 GB) ist der sichere empfohlene Wert. Bei Grafikartefakten (z. B. grünen Störungen) nach einer Änderung zurück auf Auto stellen.",
+        uma_done: "✓ UMA {label} ins BIOS geschrieben — zum Anwenden neu starten",
+        uma_writing: "Schreibe...",
+        uma_not_supported: "⚠ Nicht unterstütztes BIOS ({detail}) — UMA-Steuerung deaktiviert",
         sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktiv", sys_inactive: "✗ inaktiv", sys_unknown: "unbekannt",
@@ -341,6 +368,15 @@ const T = {
         toast_umr_fail: "✗ Instalación de umr fallida: {error}",
         cu_warn_title: "⚠ Experimental",
         cu_disclaimer: "Más de 24 CU puede causar inestabilidad GPU o sobrecalentamiento. Empezar con 32 CU · Vigilar temps · Volver a 24 CU si inestable.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "VRAM actual",
+        uma_bios: "BIOS (próximo arranque)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Surte efecto en el PRÓXIMO reinicio. Auto (≈8 GB) es el valor seguro recomendado. Si aparecen artefactos gráficos (p. ej. verdes) tras un cambio, vuelve a Auto.",
+        uma_done: "✓ UMA {label} escrito en el BIOS — reinicia para aplicar",
+        uma_writing: "Escribiendo...",
+        uma_not_supported: "⚠ BIOS no soportado ({detail}) — control UMA desactivado",
         sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Planificador",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ activo", sys_inactive: "✗ inactivo", sys_unknown: "desconocido",
@@ -387,6 +423,15 @@ const T = {
         toast_umr_fail: "✗ Installazione umr fallita: {error}",
         cu_warn_title: "⚠ Sperimentale",
         cu_disclaimer: "Oltre 24 CU può causare instabilità GPU o surriscaldamento. Iniziare con 32 CU · Monitorare temp · Tornare a 24 CU se instabile.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "VRAM attuale",
+        uma_bios: "BIOS (prossimo avvio)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Ha effetto al PROSSIMO riavvio. Auto (≈8 GB) è il valore sicuro consigliato. Se compaiono artefatti grafici (es. verdi) dopo una modifica, torna su Auto.",
+        uma_done: "✓ UMA {label} scritto nel BIOS — riavvia per applicare",
+        uma_writing: "Scrittura...",
+        uma_not_supported: "⚠ BIOS non supportato ({detail}) — controllo UMA disattivato",
         sys_temps: "Temperature", sys_status: "Stato", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ attivo", sys_inactive: "✗ inattivo", sys_unknown: "sconosciuto",
@@ -433,6 +478,15 @@ const T = {
         toast_umr_fail: "✗ Instalação de umr falhou: {error}",
         cu_warn_title: "⚠ Experimental",
         cu_disclaimer: "Além de 24 CU pode causar instabilidade GPU ou sobreaquecimento. Começar com 32 CU · Monitorizar temps · Voltar a 24 CU se instável.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "VRAM atual",
+        uma_bios: "BIOS (próximo arranque)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Tem efeito no PRÓXIMO reinício. Auto (≈8 GB) é o valor seguro recomendado. Se aparecerem artefactos gráficos (p. ex. verdes) após uma alteração, volte para Auto.",
+        uma_done: "✓ UMA {label} escrito no BIOS — reinicie para aplicar",
+        uma_writing: "A escrever...",
+        uma_not_supported: "⚠ BIOS não suportado ({detail}) — controlo UMA desativado",
         sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Scheduler",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ ativo", sys_inactive: "✗ inativo", sys_unknown: "desconhecido",
@@ -479,6 +533,15 @@ const T = {
         toast_umr_fail: "✗ umr installatie mislukt: {error}",
         cu_warn_title: "⚠ Experimenteel",
         cu_disclaimer: "Boven 24 CU kan GPU-instabiliteit of oververhitting veroorzaken. Start met 32 CU · Monitor temps · Terug naar 24 CU indien instabiel.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "Huidige VRAM",
+        uma_bios: "BIOS (volgende start)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Wordt pas bij de VOLGENDE herstart actief. Auto (≈8 GB) is de veilige aanbevolen waarde. Zie je grafische artefacten (bv. groene storingen) na een wijziging, zet dan terug op Auto.",
+        uma_done: "✓ UMA {label} naar het BIOS geschreven — herstart om toe te passen",
+        uma_writing: "Schrijven...",
+        uma_not_supported: "⚠ Niet-ondersteund BIOS ({detail}) — UMA-beheer uitgeschakeld",
         sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Planner",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actief", sys_inactive: "✗ inactief", sys_unknown: "onbekend",
@@ -525,6 +588,15 @@ const T = {
         toast_umr_fail: "✗ Instalacja umr nie powiodła się: {error}",
         cu_warn_title: "⚠ Eksperymentalne",
         cu_disclaimer: "Powyżej 24 CU może powodować niestabilność GPU lub przegrzanie. Zacznij od 32 CU · Monitoruj temps · Wróć do 24 CU jeśli niestabilne.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "Aktualna VRAM",
+        uma_bios: "BIOS (następny rozruch)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Zadziała przy NASTĘPNYM restarcie. Auto (≈8 GB) to bezpieczna zalecana wartość. Jeśli po zmianie pojawią się artefakty graficzne (np. zielone), wróć do Auto.",
+        uma_done: "✓ UMA {label} zapisane w BIOS-ie — uruchom ponownie, aby zastosować",
+        uma_writing: "Zapisywanie...",
+        uma_not_supported: "⚠ Nieobsługiwany BIOS ({detail}) — sterowanie UMA wyłączone",
         sys_temps: "Temperatury", sys_status: "Status", sys_scheduler: "Harmonogram",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktywny", sys_inactive: "✗ nieaktywny", sys_unknown: "nieznany",
@@ -571,6 +643,15 @@ const T = {
         toast_umr_fail: "✗ Установка umr не удалась: {error}",
         cu_warn_title: "⚠ Экспериментально",
         cu_disclaimer: "Выше 24 CU может вызвать нестабильность GPU или перегрев. Начать с 32 CU · Следить за temp · Вернуться к 24 CU при проблемах.",
+        // UMA (VRAM)
+        uma_title: "VRAM (UMA)",
+        uma_live: "Текущая VRAM",
+        uma_bios: "BIOS (следующая загрузка)",
+        uma_sizes: "UMA Frame Buffer",
+        uma_disclaimer: "Вступает в силу при СЛЕДУЮЩЕЙ перезагрузке. Auto (≈8 ГБ) — безопасное рекомендуемое значение. Если после изменения появились графические артефакты (например, зелёные), вернитесь на Auto.",
+        uma_done: "✓ UMA {label} записано в BIOS — перезагрузитесь для применения",
+        uma_writing: "Запись...",
+        uma_not_supported: "⚠ Неподдерживаемый BIOS ({detail}) — управление UMA отключено",
         sys_temps: "Температуры", sys_status: "Состояние", sys_scheduler: "Планировщик",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ активен", sys_inactive: "✗ неактивен", sys_unknown: "неизвестно",
@@ -748,6 +829,14 @@ const CU_PROFILE_LIST = [
     { key: "36cu", label: "36 CU", color: "#ff9800" },
     { key: "40cu", label: "40 CU (full)", color: "#f44336" },
 ];
+// Tailles UMA proposées (plafonnées à 8G — au-delà il ne reste plus assez de RAM
+// système sur les 16 Go partagés). Auto = le firmware décide (≈8 Go, valeur sûre).
+const UMA_SIZE_LIST = [
+    { key: "Auto", suffix: " (≈8G)", color: "#4caf50" },
+    { key: "2G", suffix: "", color: "#67a3ff" },
+    { key: "4G", suffix: "", color: "#ff9800" },
+    { key: "8G", suffix: "", color: "#f44336" },
+];
 function CuTab() {
     const [status, setStatus] = SP_REACT.useState(null);
     const [applying, setApplying] = SP_REACT.useState(null);
@@ -755,8 +844,13 @@ function CuTab() {
     const [lastMsg, setLastMsg] = SP_REACT.useState(null);
     const [installingUmr, setInstallingUmr] = SP_REACT.useState(false);
     const [profFocus, setProfFocus] = SP_REACT.useState(null);
+    const [uma, setUma] = SP_REACT.useState(null);
+    const [umaWriting, setUmaWriting] = SP_REACT.useState(null);
+    const [umaMsg, setUmaMsg] = SP_REACT.useState(null);
+    const [umaFocus, setUmaFocus] = SP_REACT.useState(null);
     const refresh = SP_REACT.useCallback(() => {
         call("get_cu_status").then(setStatus);
+        call("get_uma_status").then(setUma).catch(() => { });
     }, []);
     SP_REACT.useEffect(() => {
         refresh();
@@ -811,8 +905,33 @@ function CuTab() {
             setApplying(null);
         }
     };
+    const applyUma = async (label) => {
+        setUmaWriting(label);
+        setUmaMsg(null);
+        try {
+            const r = await call("set_uma_frame_buffer", label);
+            if (r.ok) {
+                const msg = t("uma_done", { label });
+                setUmaMsg(msg);
+                notify({ title: "BC250 Toolkit", body: msg});
+                call("get_uma_status").then(setUma).catch(() => { });
+            }
+            else {
+                const msg = `✗ ${r.error}`;
+                setUmaMsg(msg);
+                notify({ title: "BC250 Toolkit", body: msg});
+            }
+        }
+        finally {
+            setUmaWriting(null);
+        }
+    };
     if (!status)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
+    // Réglage UMA effectif côté BIOS : mode Auto OU taille Auto = le firmware décide.
+    const umaFb = uma?.current?.uma_frame_buffer?.label ?? null;
+    const umaTarget = uma?.current?.uma_mode?.label === "Auto" || umaFb === "Auto" ? "Auto" : umaFb;
+    const umaSupported = !!uma && uma.profile_ready && uma.layout_ok;
     return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("cu_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cu_live"), children: SP_JSX.jsx("span", { style: { fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }, children: status.cu_count != null && status.cu_count > 0
                                     ? `${status.cu_count} / 40 CU`
                                     : status.umr_available
@@ -835,7 +954,23 @@ function CuTab() {
                                     fontSize: "11px",
                                     color: lastMsg.startsWith("✓") ? "#4caf50" : "#f44336",
                                     lineHeight: "1.4",
-                                }, children: lastMsg }) }) }))] }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                }, children: lastMsg }) }) }))] }), uma && (SP_JSX.jsxs(DFL.PanelSection, { title: t("uma_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("uma_live"), children: SP_JSX.jsx("span", { style: { fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }, children: uma.vram_total_mb != null ? `${uma.vram_total_mb} MB` : t("cu_na") }) }) }), umaTarget && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("uma_bios"), children: SP_JSX.jsx("span", { style: { fontSize: "12px", color: "#aaa" }, children: umaTarget }) }) })), !umaSupported && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                    fontSize: "12px", color: "#ff9800", lineHeight: "1.4",
+                                    borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                                }, children: t("uma_not_supported", { detail: uma.layout_detail || uma.bios_version || "?" }) }) }) }))] })), uma && umaSupported && (SP_JSX.jsxs(DFL.PanelSection, { title: t("uma_sizes"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: {
+                                fontSize: "13px", color: "#ff9800", lineHeight: "1.5",
+                                borderLeft: "3px solid #ff9800", paddingLeft: "10px",
+                                paddingTop: "6px", paddingBottom: "6px",
+                                background: "rgba(255,152,0,0.08)", borderRadius: "0 4px 4px 0",
+                            }, children: t("uma_disclaimer") }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { style: { display: "flex", flexDirection: "column", gap: 4 }, children: UMA_SIZE_LIST.map(({ key, suffix, color }) => {
+                                const isActive = umaTarget === key;
+                                const isWriting = umaWriting === key;
+                                return (SP_JSX.jsxs(CardBtn, { active: isActive, focused: umaFocus === key, color: color, disabled: !!umaWriting, onClick: () => applyUma(key), onFocus: () => setUmaFocus(key), onBlur: () => setUmaFocus((f) => (f === key ? null : f)), children: [SP_JSX.jsx("span", { style: { flex: 1, textAlign: "left" }, children: isWriting ? t("uma_writing") : `${key}${suffix}` }), isActive && SP_JSX.jsx("span", { style: { fontSize: 10 }, children: "\u25CF" })] }, key));
+                            }) }) }), umaMsg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                    fontSize: "11px",
+                                    color: umaMsg.startsWith("✓") ? "#4caf50" : "#f44336",
+                                    lineHeight: "1.4",
+                                }, children: umaMsg }) }) }))] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
                                 fontSize: "10px", color: "#888", lineHeight: "1.5",
                                 whiteSpace: "pre-line", textAlign: "center",
                             }, children: t("cu_legend") }) }) }) })] }));

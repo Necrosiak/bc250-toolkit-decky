@@ -2,6 +2,21 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.0] - 2026-07-02
+
+### Added
+- **VRAM (UMA) management** — new section in the CU tab to set the BIOS
+  *UMA Frame Buffer Size* (**Auto / 2G / 4G / 8G**) by patching the `AmdSetup`
+  EFI NVRAM variable directly, without entering the BIOS screen. Takes effect
+  at the **next reboot**; the panel shows the live VRAM and the value staged
+  in the BIOS.
+- Guard rails: BIOS version whitelist (P3.00), NVRAM layout/size check,
+  automatic backup before every write (with a `restore_uma_backup` rollback
+  method); the buttons are disabled on unrecognized BIOSes.
+- Permanent warning in the panel: **Auto (≈8 GB) is the safe recommended
+  value** — if graphical artifacts (e.g. green glitches) appear after a
+  change, switch back to Auto.
+
 ## [0.3.2] - 2026-06-29
 
 ### Changed

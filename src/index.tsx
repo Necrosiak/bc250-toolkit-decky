@@ -109,6 +109,19 @@ interface CuStatus {
   profiles: Record<string, { label: string; cu: number }>;
 }
 
+interface UmaStatus {
+  bios_version: string | null;
+  profile_ready: boolean;
+  layout_ok: boolean;
+  layout_detail: string;
+  vram_total_mb: number | null;
+  current: {
+    uma_mode?: { value: number; label: string };
+    uma_frame_buffer?: { value: number; label: string };
+  };
+  uma_frame_buffer_options: string[];
+}
+
 type TabId = "games" | "cu" | "system" | "settings";
 
 // ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
@@ -336,6 +349,15 @@ const CU_PROFILE_LIST = [
   { key: "40cu",  label: "40 CU (full)",   color: "#f44336" },
 ] as const;
 
+// Tailles UMA proposées (plafonnées à 8G — au-delà il ne reste plus assez de RAM
+// système sur les 16 Go partagés). Auto = le firmware décide (≈8 Go, valeur sûre).
+const UMA_SIZE_LIST = [
+  { key: "Auto", suffix: " (≈8G)", color: "#4caf50" },
+  { key: "2G",   suffix: "",       color: "#67a3ff" },
+  { key: "4G",   suffix: "",       color: "#ff9800" },
+  { key: "8G",   suffix: "",       color: "#f44336" },
+] as const;
+
 function CuTab() {
   const [status, setStatus] = useState<CuStatus | null>(null);
   const [applying, setApplying] = useState<string | null>(null);
@@ -343,9 +365,14 @@ function CuTab() {
   const [lastMsg, setLastMsg] = useState<string | null>(null);
   const [installingUmr, setInstallingUmr] = useState(false);
   const [profFocus, setProfFocus] = useState<string | null>(null);
+  const [uma, setUma] = useState<UmaStatus | null>(null);
+  const [umaWriting, setUmaWriting] = useState<string | null>(null);
+  const [umaMsg, setUmaMsg] = useState<string | null>(null);
+  const [umaFocus, setUmaFocus] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     call<[], CuStatus>("get_cu_status").then(setStatus);
+    call<[], UmaStatus>("get_uma_status").then(setUma).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -402,7 +429,32 @@ function CuTab() {
     }
   };
 
+  const applyUma = async (label: string) => {
+    setUmaWriting(label);
+    setUmaMsg(null);
+    try {
+      const r = await call<[string], { ok: boolean; error?: string }>("set_uma_frame_buffer", label);
+      if (r.ok) {
+        const msg = t("uma_done", { label });
+        setUmaMsg(msg);
+        notify({ title: "BC250 Toolkit", body: msg, duration: 6000 });
+        call<[], UmaStatus>("get_uma_status").then(setUma).catch(() => {});
+      } else {
+        const msg = `✗ ${r.error}`;
+        setUmaMsg(msg);
+        notify({ title: "BC250 Toolkit", body: msg, duration: 6000 });
+      }
+    } finally {
+      setUmaWriting(null);
+    }
+  };
+
   if (!status) return <SteamSpinner />;
+
+  // Réglage UMA effectif côté BIOS : mode Auto OU taille Auto = le firmware décide.
+  const umaFb = uma?.current?.uma_frame_buffer?.label ?? null;
+  const umaTarget = uma?.current?.uma_mode?.label === "Auto" || umaFb === "Auto" ? "Auto" : umaFb;
+  const umaSupported = !!uma && uma.profile_ready && uma.layout_ok;
 
   return (
     <>
@@ -518,6 +570,91 @@ function CuTab() {
           </PanelSectionRow>
         )}
       </PanelSection>
+
+      {/* VRAM (UMA Frame Buffer) — patch NVRAM BIOS, effectif au prochain reboot */}
+      {uma && (
+        <PanelSection title={t("uma_title")}>
+          <PanelSectionRow>
+            <Field label={t("uma_live")}>
+              <span style={{ fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }}>
+                {uma.vram_total_mb != null ? `${uma.vram_total_mb} MB` : t("cu_na")}
+              </span>
+            </Field>
+          </PanelSectionRow>
+          {umaTarget && (
+            <PanelSectionRow>
+              <Field label={t("uma_bios")}>
+                <span style={{ fontSize: "12px", color: "#aaa" }}>{umaTarget}</span>
+              </Field>
+            </PanelSectionRow>
+          )}
+          {!umaSupported && (
+            <PanelSectionRow>
+              <Field>
+                <div style={{
+                  fontSize: "12px", color: "#ff9800", lineHeight: "1.4",
+                  borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                }}>
+                  {t("uma_not_supported", { detail: uma.layout_detail || uma.bios_version || "?" })}
+                </div>
+              </Field>
+            </PanelSectionRow>
+          )}
+        </PanelSection>
+      )}
+
+      {uma && umaSupported && (
+        <PanelSection title={t("uma_sizes")}>
+          <PanelSectionRow>
+            <div style={{
+              fontSize: "13px", color: "#ff9800", lineHeight: "1.5",
+              borderLeft: "3px solid #ff9800", paddingLeft: "10px",
+              paddingTop: "6px", paddingBottom: "6px",
+              background: "rgba(255,152,0,0.08)", borderRadius: "0 4px 4px 0",
+            }}>
+              {t("uma_disclaimer")}
+            </div>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <Focusable style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {UMA_SIZE_LIST.map(({ key, suffix, color }) => {
+                const isActive  = umaTarget === key;
+                const isWriting = umaWriting === key;
+                return (
+                  <CardBtn
+                    key={key}
+                    active={isActive}
+                    focused={umaFocus === key}
+                    color={color}
+                    disabled={!!umaWriting}
+                    onClick={() => applyUma(key)}
+                    onFocus={() => setUmaFocus(key)}
+                    onBlur={() => setUmaFocus((f) => (f === key ? null : f))}
+                  >
+                    <span style={{ flex: 1, textAlign: "left" }}>
+                      {isWriting ? t("uma_writing") : `${key}${suffix}`}
+                    </span>
+                    {isActive && <span style={{ fontSize: 10 }}>●</span>}
+                  </CardBtn>
+                );
+              })}
+            </Focusable>
+          </PanelSectionRow>
+          {umaMsg && (
+            <PanelSectionRow>
+              <Field>
+                <div style={{
+                  fontSize: "11px",
+                  color: umaMsg.startsWith("✓") ? "#4caf50" : "#f44336",
+                  lineHeight: "1.4",
+                }}>
+                  {umaMsg}
+                </div>
+              </Field>
+            </PanelSectionRow>
+          )}
+        </PanelSection>
+      )}
 
       <PanelSection>
         <PanelSectionRow>

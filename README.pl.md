@@ -28,6 +28,9 @@ Baza danych społeczności ze zoptymalizowanymi opcjami uruchamiania dla BC-250 
 - Przełącznik **Zapisz przy starcie** — instaluje usługę systemd przywracającą profil przy każdym uruchomieniu
 - Wymaga `umr` — **automatyczna instalacja przyciskiem** (`rpm-ostree install --apply-live`, bez restartu)
 - Wbudowane ostrzeżenie i zalecenia dotyczące stabilności
+- **Zarządzanie VRAM (UMA)** — ustaw *UMA Frame Buffer Size* BIOS-u (**Auto / 2G / 4G / 8G**) bezpośrednio z panelu, patchując zmienną NVRAM EFI (`AmdSetup`) — bez wchodzenia do ekranu BIOS-u. Działa przy **następnym restarcie**; panel pokazuje bieżącą VRAM i wartość oczekującą w BIOS-ie
+  - Zabezpieczenia: biała lista wersji BIOS (P3.00), kontrola układu NVRAM, automatyczna kopia zapasowa przed każdym zapisem (przyciski wyłączone przy nieznanym BIOS-ie)
+  - **Auto (≈8 GB) to zalecana bezpieczna wartość** — jeśli po zmianie pojawią się artefakty graficzne (np. zielone), wróć do Auto
 
 ### Zakładka System
 - Temperatury CPU/GPU w czasie rzeczywistym
@@ -144,7 +147,7 @@ pnpm run build
 
 # Lokalne wdrożenie
 sudo cp dist/index.js ~/homebrew/plugins/BC250-Toolkit/dist/
-sudo cp main.py updater.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
+sudo cp main.py updater.py bios_uma.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
 sudo systemctl restart plugin_loader
 ```
 

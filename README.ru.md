@@ -28,6 +28,9 @@
 - Переключатель **Сохранить при загрузке** — устанавливает службу systemd, восстанавливающую профиль при каждом запуске
 - Требует `umr` — **автоматическая установка кнопкой** (`rpm-ostree install --apply-live`, без перезагрузки)
 - Встроенное предупреждение и рекомендации по стабильности
+- **Управление VRAM (UMA)** — задавайте *UMA Frame Buffer Size* BIOS (**Auto / 2G / 4G / 8G**) прямо из панели, патча EFI-переменную NVRAM (`AmdSetup`) — больше не нужно заходить в экран BIOS. Вступает в силу при **следующей перезагрузке**; панель показывает текущую VRAM и значение, ожидающее в BIOS
+  - Защита: белый список версий BIOS (P3.00), проверка структуры NVRAM, автоматическая резервная копия перед каждой записью (кнопки отключены на неизвестном BIOS)
+  - **Auto (≈8 ГБ) — рекомендуемое безопасное значение** — если после изменения появились графические артефакты (например, зелёные), вернитесь на Auto
 
 ### Вкладка Система
 - Температуры CPU/GPU в реальном времени
@@ -144,7 +147,7 @@ pnpm run build
 
 # Локальное развёртывание
 sudo cp dist/index.js ~/homebrew/plugins/BC250-Toolkit/dist/
-sudo cp main.py updater.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
+sudo cp main.py updater.py bios_uma.py games_db.json package.json ~/homebrew/plugins/BC250-Toolkit/
 sudo systemctl restart plugin_loader
 ```
 

@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir -p out/BC250-Toolkit/dist
           cp dist/index.js out/BC250-Toolkit/dist/
-          cp main.py updater.py plugin.json package.json games_db.json games_catalog.json README.md out/BC250-Toolkit/
+          cp main.py updater.py bios_uma.py plugin.json package.json games_db.json games_catalog.json README.md out/BC250-Toolkit/
           cd out
           zip -r ../BC250-Toolkit.zip BC250-Toolkit/
 
