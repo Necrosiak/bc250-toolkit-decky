@@ -17,7 +17,7 @@ Baza danych społeczności ze zoptymalizowanymi opcjami uruchamiania dla BC-250 
 - **Przycisk Zastosuj** — w jednej akcji zapisuje opcje uruchamiania, wybiera build Proton/GE-Proton i stosuje nadpisania GPU dla danej gry (opcje RADV w `~/.drirc`)
 - **Auto-apply** (opt-in) — automatycznie stosuje pełną konfigurację przy uruchamianiu znanej gry; włączenie go wstępnie konfiguruje też wszystkie zainstalowane gry z bazy danych
 
-### Zakładka CU (Compute Units)
+### Zakładka CU/UMA (Compute Units i VRAM)
 - Odczyt na żywo liczby aktywnych CU przez rejestry SPI GPU
 - 4 profile:
   - **24 CU** (BC-250 stock)
@@ -30,10 +30,12 @@ Baza danych społeczności ze zoptymalizowanymi opcjami uruchamiania dla BC-250 
 - Wbudowane ostrzeżenie i zalecenia dotyczące stabilności
 - **Zarządzanie VRAM (UMA)** — ustaw *UMA Frame Buffer Size* BIOS-u (**Auto / 2G / 4G / 8G**) bezpośrednio z panelu, patchując zmienną NVRAM EFI (`AmdSetup`) — bez wchodzenia do ekranu BIOS-u. Działa przy **następnym restarcie**; panel pokazuje bieżącą VRAM i wartość oczekującą w BIOS-ie
   - Zabezpieczenia: biała lista wersji BIOS (P3.00), kontrola układu NVRAM, automatyczna kopia zapasowa przed każdym zapisem (przyciski wyłączone przy nieznanym BIOS-ie)
+  - Zapis do BIOS-u wymaga aktualnego [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) (dostarcza root-helper `bc250-uma-helper` — bez hasła sudo)
   - **Auto (≈8 GB) to zalecana bezpieczna wartość** — jeśli po zmianie pojawią się artefakty graficzne (np. zielone), wróć do Auto
 
 ### Zakładka System
 - Temperatury CPU/GPU w czasie rzeczywistym
+- **Zasoby** — aktywna pamięć RAM systemu (to, co zostaje dla OS po wydzieleniu UMA), użyta RAM z procentem oraz liczba aktywnych CU
 - Stan scx_lavd, profil tuned, stan daemona gamemode
 - Przycisk ręcznej aktualizacji [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
 
