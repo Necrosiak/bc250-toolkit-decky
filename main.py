@@ -102,6 +102,7 @@ CU_PROFILES: dict = {
 }
 CU_ASIC          = "cyan_skillfish.gfx1013"
 CU_ASIC_INSTANCE = "cyan_skillfish@1"   # instance 1 sur kernel 6.17+ (debugfs /dri/1/)
+CU_ASIC_INSTANCE_CANDIDATES = (CU_ASIC_INSTANCE, "cyan_skillfish@0", None)
 CU_REG_CC  = "mmCC_GC_SHADER_ARRAY_CONFIG"
 CU_REG_SPI = "mmSPI_PG_ENABLE_STATIC_WGP_MASK"
 CU_REG_RLC = "mmRLC_PG_ALWAYS_ON_WGP_MASK"
@@ -150,46 +151,58 @@ def _umr_install_hint() -> str:
 def _umr_cmd_prefix(umr: str) -> list:
     # Le plugin tourne en tant que bazzite (non-root) — umr a besoin de root pour debugfs
     if os.geteuid() != 0:
-        return ["sudo", umr]
+        return ["sudo", "-n", umr]
     return [umr]
+
+
+def _umr_cmd_base(umr: str, instance: str | None) -> list:
+    cmd = _umr_cmd_prefix(umr)
+    if instance:
+        cmd += ["-g", instance]
+    return cmd
 
 
 def _umr_write(umr: str, reg: str, value: int,
                se: int | None = None, sh: int | None = None) -> bool:
     # -g sélectionne l'instance GPU (instance 1 sur kernel 6.17+)
     # -b DOIT précéder -w : umr traite les flags séquentiellement
-    cmd = _umr_cmd_prefix(umr) + ["-g", CU_ASIC_INSTANCE]
-    if se is not None and sh is not None:
-        cmd += ["-b", str(se), str(sh), "0xffffffff"]
-    cmd += ["-w", f"{CU_ASIC}.{reg}", hex(value)]
-    try:
-        subprocess.run(cmd, capture_output=True, timeout=15)
-        return True
-    except Exception:
-        return False
+    for instance in CU_ASIC_INSTANCE_CANDIDATES:
+        cmd = _umr_cmd_base(umr, instance)
+        if se is not None and sh is not None:
+            cmd += ["-b", str(se), str(sh), "0xffffffff"]
+        cmd += ["-w", f"{CU_ASIC}.{reg}", hex(value)]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            if result.returncode == 0:
+                return True
+            print(f"[BC250 CU] umr write failed instance={instance}: rc={result.returncode} stderr={result.stderr[:200]!r}")
+        except Exception as e:
+            print(f"[BC250 CU] umr write exception instance={instance}: {e}")
+    return False
 
 
 def _umr_read(umr: str, reg: str,
               se: int | None = None, sh: int | None = None) -> int | None:
     # -g sélectionne l'instance GPU (instance 1 sur kernel 6.17+)
     # -b DOIT précéder -r
-    cmd = _umr_cmd_prefix(umr) + ["-g", CU_ASIC_INSTANCE]
-    if se is not None and sh is not None:
-        cmd += ["-b", str(se), str(sh), "0xffffffff"]
-    cmd += ["-r", f"{CU_ASIC}.{reg}"]
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-        if result.returncode != 0 or not result.stdout.strip():
-            print(f"[BC250 CU] umr rc={result.returncode} stderr={result.stderr[:200]!r} stdout={result.stdout[:100]!r}")
-        m = re.search(r'0x[0-9a-fA-F]+', result.stdout)
-        if m:
-            return int(m.group(), 16)
-        # Certaines versions umr écrivent sur stderr
-        m = re.search(r'0x[0-9a-fA-F]+', result.stderr)
-        return int(m.group(), 16) if m else None
-    except Exception as e:
-        print(f"[BC250 CU] umr exception: {e}")
-        return None
+    for instance in CU_ASIC_INSTANCE_CANDIDATES:
+        cmd = _umr_cmd_base(umr, instance)
+        if se is not None and sh is not None:
+            cmd += ["-b", str(se), str(sh), "0xffffffff"]
+        cmd += ["-r", f"{CU_ASIC}.{reg}"]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            m = re.search(r'0x[0-9a-fA-F]+', result.stdout)
+            if m:
+                return int(m.group(), 16)
+            # Certaines versions umr écrivent sur stderr
+            m = re.search(r'0x[0-9a-fA-F]+', result.stderr)
+            if m:
+                return int(m.group(), 16)
+            print(f"[BC250 CU] umr read failed instance={instance}: rc={result.returncode} stderr={result.stderr[:200]!r} stdout={result.stdout[:100]!r}")
+        except Exception as e:
+            print(f"[BC250 CU] umr read exception instance={instance}: {e}")
+    return None
 
 
 def _masks_cu_count(masks: list) -> int:
