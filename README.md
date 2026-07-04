@@ -2,7 +2,7 @@
 
 > 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
 
-A [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) plugin for the **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) running Bazzite or SteamOS Linux.
+A [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) plugin for the **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) running Bazzite, SteamOS Linux, or CachyOS.
 
 Community database of optimized launch options for the BC-250 — apply in one click from the Steam Quick Access Menu.
 
@@ -40,7 +40,7 @@ Community database of optimized launch options for the BC-250 — apply in one c
   - **40 CU** (full — all WGPs active)
 - Live application without reboot
 - **Save to boot** toggle — installs a systemd service that restores the profile at each startup
-- Requires `umr` — **automatic installation via a button** (`rpm-ostree install --apply-live`, no reboot needed)
+- Requires `umr` — **automatic installation via a button** (`rpm-ostree` on Bazzite/SteamOS, `pacman` on CachyOS/Arch)
 - Built-in disclaimer and stability recommendations
 - **VRAM (UMA) management** — set the BIOS *UMA Frame Buffer Size* (**Auto / 2G / 4G / 8G**) right from the panel by patching the EFI NVRAM variable (`AmdSetup`) — no more digging through the BIOS screen. Takes effect at the **next reboot**; the panel shows both the live VRAM and the value staged in the BIOS
   - Guard rails: BIOS version whitelist (P3.00), NVRAM layout check, automatic backup before every write (buttons are disabled on unknown BIOSes)
@@ -83,7 +83,7 @@ sudo systemctl restart plugin_loader
 
 ### Requirements
 - [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) installed
-- Bazzite or SteamOS on BC-250
+- Bazzite, SteamOS, or CachyOS on BC-250
 
 ---
 

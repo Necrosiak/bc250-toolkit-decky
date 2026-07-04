@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import re
+import shutil
 import subprocess
 import time
 import urllib.request
@@ -120,6 +121,30 @@ def _find_umr() -> str | None:
         if os.path.isfile(p):
             return p
     return None
+
+
+def _cmd_exists(cmd: str) -> bool:
+    return shutil.which(cmd) is not None
+
+
+def _sudo_cmd(cmd: list) -> list:
+    if os.geteuid() == 0:
+        return cmd
+    return ["sudo", "-n"] + cmd
+
+
+def _umr_install_hint() -> str:
+    if _cmd_exists("rpm-ostree"):
+        return "rpm-ostree install --apply-live umr"
+    if _cmd_exists("pacman"):
+        return "sudo pacman -S umr"
+    if _cmd_exists("paru"):
+        return "paru -S umr"
+    if _cmd_exists("yay"):
+        return "yay -S umr"
+    if _cmd_exists("shelly"):
+        return "shelly aur install umr"
+    return "installer le paquet umr"
 
 
 def _umr_cmd_prefix(umr: str) -> list:
@@ -804,7 +829,7 @@ class Plugin:
 
         umr = _find_umr()
         if not umr:
-            return {"ok": False, "error": "umr non trouvé — installer: rpm-ostree install umr"}
+            return {"ok": False, "error": f"umr non trouvé — installer: {_umr_install_hint()}"}
 
         masks = CU_PROFILES[profile]["masks"]
         union = 0
@@ -910,21 +935,38 @@ class Plugin:
     # ── umr auto-install ──────────────────────────────────────────────────────
 
     async def install_umr(self) -> dict:
-        """Lance rpm-ostree install --apply-live umr. Bloquant ~30s."""
+        """Installe umr sur rpm-ostree ou Arch/CachyOS. Bloquant ~30s."""
         if _find_umr():
             return {"ok": True, "already": True}
-        try:
-            r = subprocess.run(
-                ["rpm-ostree", "install", "--apply-live", "--assumeyes", "umr"],
-                capture_output=True, text=True, timeout=180,
-            )
-            if r.returncode == 0:
-                return {"ok": True, "already": False}
-            return {"ok": False, "error": (r.stderr or r.stdout)[-500:]}
-        except subprocess.TimeoutExpired:
-            return {"ok": False, "error": "Timeout (180s)"}
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
+
+        commands: list[tuple[str, list]] = []
+        if _cmd_exists("rpm-ostree"):
+            commands.append(("rpm-ostree", ["rpm-ostree", "install", "--apply-live", "--assumeyes", "umr"]))
+        if _cmd_exists("pacman"):
+            commands.append(("pacman", _sudo_cmd(["pacman", "-S", "--noconfirm", "umr"])))
+        if _cmd_exists("paru"):
+            commands.append(("paru", ["paru", "-S", "--noconfirm", "umr"]))
+        if _cmd_exists("yay"):
+            commands.append(("yay", ["yay", "-S", "--noconfirm", "umr"]))
+        if _cmd_exists("shelly"):
+            commands.append(("shelly", ["shelly", "aur", "install", "umr"]))
+
+        if not commands:
+            return {"ok": False, "error": f"Aucun gestionnaire de paquets supporté trouvé — {_umr_install_hint()}"}
+
+        errors = []
+        for name, cmd in commands:
+            try:
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+                if r.returncode == 0:
+                    return {"ok": True, "already": False, "method": name}
+                errors.append(f"{name}: {(r.stderr or r.stdout)[-500:]}")
+            except subprocess.TimeoutExpired:
+                errors.append(f"{name}: Timeout (180s)")
+            except Exception as e:
+                errors.append(f"{name}: {e}")
+
+        return {"ok": False, "error": "\n".join(errors)[-1000:]}
 
     # ── UMA (VRAM) via variable EFI AmdSetup ──────────────────────────────────
     # Contrairement aux CU (pokés à chaud), l'UMA est un carve-out décidé au POST :
