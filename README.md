@@ -178,3 +178,9 @@ sudo systemctl restart plugin_loader
 - [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) — full system tweaks + auto-update
 - [AMD BC-250 Docs](https://elektricm.github.io/amd-bc250-docs) — community wiki
 - [bc250.info](https://bc250.info)
+
+---
+
+## Community contributors
+
+- [@AyeZeeBB](https://github.com/AyeZeeBB) — CachyOS/Arch support for the umr installation + GPU instance fallback (merged from their fork)

@@ -2,7 +2,7 @@
 
 > 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
 
-Plugin [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) pour l'**ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) sous Bazzite / SteamOS Linux.
+Plugin [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) pour l'**ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) sous Bazzite, SteamOS Linux ou CachyOS.
 
 Base de données communautaire d'options de lancement optimisées pour le BC-250 — applicable en un clic depuis le Quick Access Menu de Steam.
 
@@ -40,7 +40,7 @@ Base de données communautaire d'options de lancement optimisées pour le BC-250
   - **40 CU** (full — tous les WGPs actifs)
 - Application live sans reboot
 - Toggle **Sauvegarder au boot** — installe un service systemd qui restaure le profil à chaque démarrage
-- Requiert `umr` — **installation automatique via un bouton** (`rpm-ostree install --apply-live`, sans reboot)
+- Requiert `umr` — **installation automatique via un bouton** (`rpm-ostree` sous Bazzite/SteamOS, `pacman` sous CachyOS/Arch)
 - Avertissement et recommandations de stabilité intégrés
 - **Gestion de la VRAM (UMA)** — règle la taille *UMA Frame Buffer* du BIOS (**Auto / 2G / 4G / 8G**) directement depuis le panneau en patchant la variable NVRAM EFI (`AmdSetup`) — plus besoin de passer par l'écran BIOS. Prend effet au **prochain redémarrage** ; le panneau affiche la VRAM live et la valeur en attente dans le BIOS
   - Garde-fous : whitelist de version BIOS (P3.00), vérification du layout NVRAM, sauvegarde automatique avant chaque écriture (boutons désactivés sur BIOS inconnu)
@@ -83,7 +83,7 @@ sudo systemctl restart plugin_loader
 
 ### Prérequis
 - [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) installé
-- Bazzite ou SteamOS sur BC-250
+- Bazzite, SteamOS ou CachyOS sur BC-250
 
 ---
 
@@ -178,3 +178,9 @@ sudo systemctl restart plugin_loader
 - [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) — tweaks système complets + auto-update
 - [AMD BC-250 Docs](https://elektricm.github.io/amd-bc250-docs) — wiki communautaire
 - [bc250.info](https://bc250.info)
+
+---
+
+## Contributeurs de la communauté
+
+- [@AyeZeeBB](https://github.com/AyeZeeBB) — prise en charge CachyOS/Arch pour l'installation de umr + repli d'instance GPU (intégré depuis son fork)

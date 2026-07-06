@@ -2,7 +2,7 @@
 
 > 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
 
-Plugin [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) dla **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) z Bazzite lub SteamOS Linux.
+Plugin [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) dla **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) z Bazzite, SteamOS Linux lub CachyOS.
 
 Baza danych społeczności ze zoptymalizowanymi opcjami uruchamiania dla BC-250 — możliwe do zastosowania jednym kliknięciem z menu Quick Access Menu Steam.
 
@@ -26,7 +26,7 @@ Baza danych społeczności ze zoptymalizowanymi opcjami uruchamiania dla BC-250 
   - **40 CU** (pełny — wszystkie WGP aktywne)
 - Aplikacja na żywo bez ponownego uruchomienia
 - Przełącznik **Zapisz przy starcie** — instaluje usługę systemd przywracającą profil przy każdym uruchomieniu
-- Wymaga `umr` — **automatyczna instalacja przyciskiem** (`rpm-ostree install --apply-live`, bez restartu)
+- Wymaga `umr` — **automatyczna instalacja przyciskiem** (`rpm-ostree` na Bazzite/SteamOS, `pacman` na CachyOS/Arch)
 - Wbudowane ostrzeżenie i zalecenia dotyczące stabilności
 - **Zarządzanie VRAM (UMA)** — ustaw *UMA Frame Buffer Size* BIOS-u (**Auto / 2G / 4G / 8G**) bezpośrednio z panelu, patchując zmienną NVRAM EFI (`AmdSetup`) — bez wchodzenia do ekranu BIOS-u. Działa przy **następnym restarcie**; panel pokazuje bieżącą VRAM i wartość oczekującą w BIOS-ie
   - Zabezpieczenia: biała lista wersji BIOS (P3.00), kontrola układu NVRAM, automatyczna kopia zapasowa przed każdym zapisem (przyciski wyłączone przy nieznanym BIOS-ie)
@@ -69,7 +69,7 @@ sudo systemctl restart plugin_loader
 
 ### Wymagania
 - Zainstalowany [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader)
-- Bazzite lub SteamOS na BC-250
+- Bazzite, SteamOS lub CachyOS na BC-250
 
 ---
 
@@ -160,3 +160,9 @@ sudo systemctl restart plugin_loader
 - [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) — pełne tweaki systemowe + auto-update
 - [AMD BC-250 Docs](https://elektricm.github.io/amd-bc250-docs) — wiki społeczności
 - [bc250.info](https://bc250.info)
+
+---
+
+## Współtwórcy społeczności
+
+- [@AyeZeeBB](https://github.com/AyeZeeBB) — wsparcie CachyOS/Arch dla instalacji umr + fallback instancji GPU (scalone z jego forka)

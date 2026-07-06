@@ -2,6 +2,22 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.1] - 2026-07-06
+
+### Added
+- **CachyOS/Arch support for the umr installation** — the install button now
+  detects the package manager (`rpm-ostree` on Bazzite/SteamOS, `pacman`,
+  `paru` or `yay` on CachyOS/Arch) instead of assuming rpm-ostree.
+  Contributed by [@AyeZeeBB](https://github.com/AyeZeeBB), merged from their fork.
+- **GPU instance fallback** — umr reads/writes now try `cyan_skillfish@1`,
+  then `cyan_skillfish@0`, then umr's own auto-detection, so the CU tools
+  keep working on kernels/systems where the GPU enumerates on a different
+  debugfs instance. Contributed by [@AyeZeeBB](https://github.com/AyeZeeBB).
+
+### Changed
+- READMEs (9 languages): CachyOS listed in supported systems and requirements,
+  umr install wording updated, new **Community contributors** section.
+
 ## [0.4.0] - 2026-07-02
 
 ### Added

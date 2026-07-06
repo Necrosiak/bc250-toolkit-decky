@@ -2,7 +2,7 @@
 
 > 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
 
-Плагин [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) для **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) под управлением Bazzite или SteamOS Linux.
+Плагин [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) для **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) под управлением Bazzite, SteamOS Linux или CachyOS.
 
 Общественная база данных оптимизированных параметров запуска для BC-250 — применяется одним кликом из Quick Access Menu Steam.
 
@@ -26,7 +26,7 @@
   - **40 CU** (полный — все WGP активны)
 - Применение без перезагрузки
 - Переключатель **Сохранить при загрузке** — устанавливает службу systemd, восстанавливающую профиль при каждом запуске
-- Требует `umr` — **автоматическая установка кнопкой** (`rpm-ostree install --apply-live`, без перезагрузки)
+- Требует `umr` — **автоматическая установка кнопкой** (`rpm-ostree` на Bazzite/SteamOS, `pacman` на CachyOS/Arch)
 - Встроенное предупреждение и рекомендации по стабильности
 - **Управление VRAM (UMA)** — задавайте *UMA Frame Buffer Size* BIOS (**Auto / 2G / 4G / 8G**) прямо из панели, патча EFI-переменную NVRAM (`AmdSetup`) — больше не нужно заходить в экран BIOS. Вступает в силу при **следующей перезагрузке**; панель показывает текущую VRAM и значение, ожидающее в BIOS
   - Защита: белый список версий BIOS (P3.00), проверка структуры NVRAM, автоматическая резервная копия перед каждой записью (кнопки отключены на неизвестном BIOS)
@@ -69,7 +69,7 @@ sudo systemctl restart plugin_loader
 
 ### Требования
 - Установленный [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader)
-- Bazzite или SteamOS на BC-250
+- Bazzite, SteamOS или CachyOS на BC-250
 
 ---
 
@@ -160,3 +160,9 @@ sudo systemctl restart plugin_loader
 - [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) — полные системные твики + авто-обновление
 - [AMD BC-250 Docs](https://elektricm.github.io/amd-bc250-docs) — вики сообщества
 - [bc250.info](https://bc250.info)
+
+---
+
+## Участники сообщества
+
+- [@AyeZeeBB](https://github.com/AyeZeeBB) — поддержка CachyOS/Arch для установки umr + фолбэк инстанса GPU (перенесено из его форка)
