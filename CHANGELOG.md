@@ -2,6 +2,17 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.2] - 2026-07-06
+
+### Changed
+- **umr auto-install now detects the OS** and adds Fedora (`dnf`) and
+  Debian/Ubuntu (`apt`) on top of the existing rpm-ostree + Arch family
+  (`pacman`/`paru`/`yay`/`shelly`). A new `_is_ostree()` check keeps
+  rpm-ostree as the only method on immutable images (Bazzite/SteamOS), so a
+  mutable BC-250 (Fedora/Debian) can now install umr from the button too.
+- READMEs (9 languages): added a compatibility section — the plugin targets
+  every OS documented for the BC-250 with automatic OS detection.
+
 ## [0.4.1] - 2026-07-06
 
 ### Added
