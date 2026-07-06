@@ -184,3 +184,9 @@ sudo systemctl restart plugin_loader
 ## Community contributors
 
 - [@AyeZeeBB](https://github.com/AyeZeeBB) — CachyOS/Arch support for the umr installation + GPU instance fallback (merged from their fork)
+
+---
+
+## 🐧 Compatibility
+
+We actively work to make this plugin run on **every operating system documented for the BC-250** ([community docs](https://elektricm.github.io/amd-bc250-docs)) — Bazzite, SteamOS, CachyOS/Arch, Fedora… — with **automatic OS detection** (package manager, GPU instance) so the right method is used on your distro.

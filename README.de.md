@@ -166,3 +166,9 @@ sudo systemctl restart plugin_loader
 ## Community-Mitwirkende
 
 - [@AyeZeeBB](https://github.com/AyeZeeBB) — CachyOS/Arch-Unterstützung für die umr-Installation + GPU-Instanz-Fallback (aus seinem Fork übernommen)
+
+---
+
+## 🐧 Kompatibilität
+
+Wir arbeiten aktiv daran, dass dieses Plugin auf **jedem für den BC-250 dokumentierten Betriebssystem** ([Community-Doku](https://elektricm.github.io/amd-bc250-docs)) läuft — Bazzite, SteamOS, CachyOS/Arch, Fedora… — mit **automatischer OS-Erkennung** (Paketmanager, GPU-Instanz), damit auf deiner Distribution die richtige Methode verwendet wird.
