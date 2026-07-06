@@ -2,6 +2,13 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.3] - 2026-07-06
+
+### Added
+- **Fan speed** in the System tab, next to the CPU/GPU temperatures. Read from
+  the board's Super-I/O sensor (nct6686 on the BC-250); the fastest spinning
+  header is reported as the active fan (RPM).
+
 ## [0.4.2] - 2026-07-06
 
 ### Changed

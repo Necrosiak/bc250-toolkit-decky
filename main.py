@@ -515,6 +515,24 @@ class Plugin:
         except Exception:
             pass
 
+        # Fan speed — the BC-250's fan shows up as a Super-I/O sensor (nct6686 on
+        # this board); most fanN_input headers read 0 (unused), so report the
+        # fastest spinning one as the active fan.
+        try:
+            rpms = []
+            for hwmon in Path("/sys/class/hwmon").iterdir():
+                for fan in sorted(hwmon.glob("fan*_input")):
+                    try:
+                        rpm = int(fan.read_text())
+                    except (OSError, ValueError):
+                        continue
+                    if rpm > 0:
+                        rpms.append(rpm)
+            if rpms:
+                status["fan_rpm"] = max(rpms)
+        except Exception:
+            pass
+
         # RAM système = ce qui reste à l'OS après le carve-out UMA (MemTotal bouge
         # avec le réglage UMA du BIOS). used = MemTotal - MemAvailable (vision htop).
         try:

@@ -92,6 +92,7 @@ interface GamesDB {
 interface SystemStatus {
   cpu_temp?: number;
   gpu_temp?: number;
+  fan_rpm?: number;
   mem_total_mb?: number;
   mem_used_mb?: number;
   scx_state?: string;
@@ -735,6 +736,13 @@ function SystemTab() {
           <Field label="GPU">
             <span style={{ color: tempColor(status.gpu_temp), fontWeight: "bold" }}>
               {status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na")}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("sys_fan")}>
+            <span style={{ color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }}>
+              {status.fan_rpm != null ? `${status.fan_rpm} RPM` : t("cu_na")}
             </span>
           </Field>
         </PanelSectionRow>
