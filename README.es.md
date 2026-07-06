@@ -34,7 +34,7 @@ Base de datos comunitaria de opciones de lanzamiento optimizadas para el BC-250 
   - **Auto (≈8 GB) es el valor seguro recomendado** — si aparecen artefactos gráficos (p. ej. verdes) tras un cambio, vuelve a Auto
 
 ### Pestaña Sistema
-- Temperaturas de CPU/GPU en tiempo real
+- Temperaturas de CPU/GPU en tiempo real, velocidad del ventilador y frecuencias GPU/CPU
 - **Recursos** — RAM del sistema activada (lo que queda para el SO tras la reserva UMA), RAM usada con porcentaje y número de CUs activos
 - Estado de scx_lavd, perfil tuned, estado del daemon gamemode
 - Botón de actualización manual de [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)

@@ -34,7 +34,7 @@ Base de dados comunitária de opções de lançamento otimizadas para o BC-250 �
   - **Auto (≈8 GB) é o valor seguro recomendado** — se aparecerem artefactos gráficos (p. ex. verdes) após uma alteração, volte para Auto
 
 ### Separador Sistema
-- Temperaturas CPU/GPU em tempo real
+- Temperaturas CPU/GPU em tempo real, velocidade da ventoinha e clocks GPU/CPU
 - **Recursos** — RAM do sistema ativada (o que resta ao SO após a reserva UMA), RAM usada com percentagem e número de CUs ativos
 - Estado do scx_lavd, perfil tuned, estado do daemon gamemode
 - Botão de atualização manual do [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)

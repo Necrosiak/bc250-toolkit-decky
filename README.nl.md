@@ -34,7 +34,7 @@ Communitydatabase met geoptimaliseerde startopties voor de BC-250 — met één 
   - **Auto (≈8 GB) is de aanbevolen veilige waarde** — zie je grafische artefacten (bv. groene storingen) na een wijziging, zet dan terug op Auto
 
 ### Tabblad Systeem
-- CPU/GPU-temperaturen in realtime
+- CPU/GPU-temperaturen in realtime, ventilatortoerental en GPU/CPU-kloksnelheden
 - **Systeembronnen** — geactiveerd systeem-RAM (wat het OS overhoudt na de UMA-reservering), gebruikt RAM met percentage en aantal actieve CU's
 - scx_lavd-status, tuned-profiel, gamemode-daemon-status
 - Handmatige updateknop voor [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)

@@ -34,7 +34,7 @@ Baza danych społeczności ze zoptymalizowanymi opcjami uruchamiania dla BC-250 
   - **Auto (≈8 GB) to zalecana bezpieczna wartość** — jeśli po zmianie pojawią się artefakty graficzne (np. zielone), wróć do Auto
 
 ### Zakładka System
-- Temperatury CPU/GPU w czasie rzeczywistym
+- Temperatury CPU/GPU w czasie rzeczywistym, prędkość wentylatora i zegary GPU/CPU
 - **Zasoby** — aktywna pamięć RAM systemu (to, co zostaje dla OS po wydzieleniu UMA), użyta RAM z procentem oraz liczba aktywnych CU
 - Stan scx_lavd, profil tuned, stan daemona gamemode
 - Przycisk ręcznej aktualizacji [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)

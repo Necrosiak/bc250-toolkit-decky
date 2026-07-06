@@ -48,7 +48,7 @@ Community database of optimized launch options for the BC-250 — apply in one c
   - **Auto (≈8 GB) is the recommended safe value** — if you get graphical artifacts (e.g. green glitches) after a change, switch back to Auto
 
 ### System Tab
-- Real-time CPU/GPU temperatures
+- Real-time CPU/GPU temperatures, fan speed and GPU/CPU clocks
 - **Resources** — enabled system RAM (what the OS keeps after the UMA carve-out), used RAM with usage percentage, and active CU count
 - scx_lavd status, tuned profile, gamemode daemon status
 - Manual update button for [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)

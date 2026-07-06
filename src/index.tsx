@@ -725,19 +725,32 @@ function SystemTab() {
   const ramColor = ramPct == null ? "#888" : ramPct > 85 ? "#f44336" : ramPct > 70 ? "#ff9800" : "#4caf50";
 
   return (
-    <>
+    // Focusable + overflow : l'onglet Système n'a que des champs d'affichage
+    // (rien de focusable quand bc250-tweaks n'est pas installé) → sans ce
+    // conteneur la manette reste bloquée en haut et ne peut pas défiler.
+    <Focusable style={{ maxHeight: "74vh", overflowY: "scroll" }}>
       <PanelSection title={t("sys_temps")}>
+        {/* Compact : température + fréquence sur une seule ligne par puce, pour
+            que l'onglet reste court (nav manette). */}
         <PanelSectionRow>
           <Field label="CPU">
-            <span style={{ color: tempColor(status.cpu_temp), fontWeight: "bold" }}>
-              {status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na")}
+            <span style={{ fontWeight: "bold" }}>
+              <span style={{ color: tempColor(status.cpu_temp) }}>
+                {status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na")}
+              </span>
+              {status.cpu_clock_mhz != null &&
+                <span style={{ color: "#a24bfa" }}>{`  ·  ${status.cpu_clock_mhz} MHz`}</span>}
             </span>
           </Field>
         </PanelSectionRow>
         <PanelSectionRow>
           <Field label="GPU">
-            <span style={{ color: tempColor(status.gpu_temp), fontWeight: "bold" }}>
-              {status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na")}
+            <span style={{ fontWeight: "bold" }}>
+              <span style={{ color: tempColor(status.gpu_temp) }}>
+                {status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na")}
+              </span>
+              {status.gpu_clock_mhz != null &&
+                <span style={{ color: "#a24bfa" }}>{`  ·  ${status.gpu_clock_mhz} MHz`}</span>}
             </span>
           </Field>
         </PanelSectionRow>
@@ -745,20 +758,6 @@ function SystemTab() {
           <Field label={t("sys_fan")}>
             <span style={{ color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }}>
               {status.fan_rpm != null ? `${status.fan_rpm} RPM` : t("cu_na")}
-            </span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label={t("sys_clock_gpu")}>
-            <span style={{ color: status.gpu_clock_mhz ? "#a24bfa" : "#888", fontWeight: "bold" }}>
-              {status.gpu_clock_mhz != null ? `${status.gpu_clock_mhz} MHz` : t("cu_na")}
-            </span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label={t("sys_clock_cpu")}>
-            <span style={{ color: status.cpu_clock_mhz ? "#a24bfa" : "#888", fontWeight: "bold" }}>
-              {status.cpu_clock_mhz != null ? `${status.cpu_clock_mhz} MHz` : t("cu_na")}
             </span>
           </Field>
         </PanelSectionRow>
@@ -842,7 +841,7 @@ function SystemTab() {
           )}
         </PanelSection>
       )}
-    </>
+    </Focusable>
   );
 }
 

@@ -34,7 +34,7 @@ Community-Datenbank mit optimierten Startoptionen für den BC-250 — direkt aus
   - **Auto (≈8 GB) ist der empfohlene sichere Wert** — bei Grafikartefakten (z. B. grünen Störungen) nach einer Änderung zurück auf Auto stellen
 
 ### System-Tab
-- CPU/GPU-Temperaturen in Echtzeit
+- CPU/GPU-Temperaturen in Echtzeit, Lüfterdrehzahl und GPU/CPU-Takt
 - **Ressourcen** — aktivierter System-RAM (was dem OS nach dem UMA-Carve-out bleibt), belegter RAM mit Prozentanzeige und Anzahl aktiver CUs
 - scx_lavd-Status, Tuned-Profil, Gamemode-Daemon-Status
 - Manuelle Aktualisierungsschaltfläche für [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)

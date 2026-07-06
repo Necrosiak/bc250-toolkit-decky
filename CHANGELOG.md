@@ -2,6 +2,16 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.5] - 2026-07-06
+
+### Fixed
+- **System tab is scrollable with a controller again.** The tab is made of
+  display-only fields (no focusable element when bc250-tweaks isn't installed),
+  so after the fan/clock rows were added the gamepad got stuck at the top and
+  couldn't reach the lower info. The tab is now wrapped in a scrollable
+  focusable container, and the temperature + clock are shown on one line per
+  chip (CPU / GPU) to keep it short.
+
 ## [0.4.4] - 2026-07-06
 
 ### Added
