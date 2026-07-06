@@ -134,8 +134,15 @@ def _sudo_cmd(cmd: list) -> list:
     return ["sudo", "-n"] + cmd
 
 
+def _is_ostree() -> bool:
+    """Système immuable basé sur ostree (Bazzite/SteamOS/Silverblue) : rpm-ostree
+    ET dnf y coexistent, mais seul rpm-ostree installe (le / est en lecture seule)."""
+    return _cmd_exists("rpm-ostree") and (
+        os.path.isdir("/run/ostree") or os.path.isdir("/ostree"))
+
+
 def _umr_install_hint() -> str:
-    if _cmd_exists("rpm-ostree"):
+    if _is_ostree():
         return "rpm-ostree install --apply-live umr"
     if _cmd_exists("pacman"):
         return "sudo pacman -S umr"
@@ -145,6 +152,10 @@ def _umr_install_hint() -> str:
         return "yay -S umr"
     if _cmd_exists("shelly"):
         return "shelly aur install umr"
+    if _cmd_exists("dnf"):
+        return "sudo dnf install umr"
+    if _cmd_exists("apt-get"):
+        return "sudo apt install umr"
     return "installer le paquet umr"
 
 
@@ -948,21 +959,28 @@ class Plugin:
     # ── umr auto-install ──────────────────────────────────────────────────────
 
     async def install_umr(self) -> dict:
-        """Installe umr sur rpm-ostree ou Arch/CachyOS. Bloquant ~30s."""
+        """Installe umr selon l'OS : rpm-ostree (Bazzite/SteamOS), pacman/paru/yay
+        (Arch/CachyOS), dnf (Fedora), apt (Debian/Ubuntu). Bloquant ~30s."""
         if _find_umr():
             return {"ok": True, "already": True}
 
         commands: list[tuple[str, list]] = []
-        if _cmd_exists("rpm-ostree"):
+        if _is_ostree():
+            # Immuable : rpm-ostree est LA méthode (dnf échouerait sur / en RO).
             commands.append(("rpm-ostree", ["rpm-ostree", "install", "--apply-live", "--assumeyes", "umr"]))
-        if _cmd_exists("pacman"):
-            commands.append(("pacman", _sudo_cmd(["pacman", "-S", "--noconfirm", "umr"])))
-        if _cmd_exists("paru"):
-            commands.append(("paru", ["paru", "-S", "--noconfirm", "umr"]))
-        if _cmd_exists("yay"):
-            commands.append(("yay", ["yay", "-S", "--noconfirm", "umr"]))
-        if _cmd_exists("shelly"):
-            commands.append(("shelly", ["shelly", "aur", "install", "umr"]))
+        else:
+            if _cmd_exists("pacman"):
+                commands.append(("pacman", _sudo_cmd(["pacman", "-S", "--noconfirm", "umr"])))
+            if _cmd_exists("paru"):
+                commands.append(("paru", ["paru", "-S", "--noconfirm", "umr"]))
+            if _cmd_exists("yay"):
+                commands.append(("yay", ["yay", "-S", "--noconfirm", "umr"]))
+            if _cmd_exists("shelly"):
+                commands.append(("shelly", ["shelly", "aur", "install", "umr"]))
+            if _cmd_exists("dnf"):
+                commands.append(("dnf", _sudo_cmd(["dnf", "install", "-y", "umr"])))
+            if _cmd_exists("apt-get"):
+                commands.append(("apt", _sudo_cmd(["apt-get", "install", "-y", "umr"])))
 
         if not commands:
             return {"ok": False, "error": f"Aucun gestionnaire de paquets supporté trouvé — {_umr_install_hint()}"}
