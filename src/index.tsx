@@ -724,103 +724,89 @@ function SystemTab() {
     : null;
   const ramColor = ramPct == null ? "#888" : ramPct > 85 ? "#f44336" : ramPct > 70 ? "#ff9800" : "#4caf50";
 
+  // Chaque ligne d'info est enveloppée dans un Focusable → devient un arrêt de
+  // navigation manette : le D-pad descend de ligne en ligne et le QAM défile
+  // pour suivre le focus (sinon, avec des champs d'affichage non focusables, la
+  // manette reste bloquée en haut et on ne voit pas le bas de l'onglet).
+  const InfoRow = ({ label, children }: any) => (
+    <PanelSectionRow>
+      <Focusable style={{ borderRadius: 4 }}>
+        <Field label={label} bottomSeparator="none">{children}</Field>
+      </Focusable>
+    </PanelSectionRow>
+  );
   return (
-    // Focusable + overflow : l'onglet Système n'a que des champs d'affichage
-    // (rien de focusable quand bc250-tweaks n'est pas installé) → sans ce
-    // conteneur la manette reste bloquée en haut et ne peut pas défiler.
-    <Focusable style={{ maxHeight: "74vh", overflowY: "scroll" }}>
+    <>
       <PanelSection title={t("sys_temps")}>
-        {/* Compact : température + fréquence sur une seule ligne par puce, pour
-            que l'onglet reste court (nav manette). */}
-        <PanelSectionRow>
-          <Field label="CPU">
-            <span style={{ fontWeight: "bold" }}>
-              <span style={{ color: tempColor(status.cpu_temp) }}>
-                {status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na")}
-              </span>
-              {status.cpu_clock_mhz != null &&
-                <span style={{ color: "#a24bfa" }}>{`  ·  ${status.cpu_clock_mhz} MHz`}</span>}
+        <InfoRow label="CPU">
+          <span style={{ fontWeight: "bold" }}>
+            <span style={{ color: tempColor(status.cpu_temp) }}>
+              {status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na")}
             </span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label="GPU">
-            <span style={{ fontWeight: "bold" }}>
-              <span style={{ color: tempColor(status.gpu_temp) }}>
-                {status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na")}
-              </span>
-              {status.gpu_clock_mhz != null &&
-                <span style={{ color: "#a24bfa" }}>{`  ·  ${status.gpu_clock_mhz} MHz`}</span>}
+            {status.cpu_clock_mhz != null &&
+              <span style={{ color: "#a24bfa" }}>{`  ·  ${status.cpu_clock_mhz} MHz`}</span>}
+          </span>
+        </InfoRow>
+        <InfoRow label="GPU">
+          <span style={{ fontWeight: "bold" }}>
+            <span style={{ color: tempColor(status.gpu_temp) }}>
+              {status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na")}
             </span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label={t("sys_fan")}>
-            <span style={{ color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }}>
-              {status.fan_rpm != null ? `${status.fan_rpm} RPM` : t("cu_na")}
-            </span>
-          </Field>
-        </PanelSectionRow>
+            {status.gpu_clock_mhz != null &&
+              <span style={{ color: "#a24bfa" }}>{`  ·  ${status.gpu_clock_mhz} MHz`}</span>}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("sys_fan")}>
+          <span style={{ color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }}>
+            {status.fan_rpm != null ? `${status.fan_rpm} RPM` : t("cu_na")}
+          </span>
+        </InfoRow>
       </PanelSection>
 
       <PanelSection title={t("sys_res")}>
-        <PanelSectionRow>
-          <Field label={t("sys_ram")}>
-            <span style={{ color: "#67a3ff", fontWeight: "bold" }}>
-              {status.mem_total_mb != null ? gb(status.mem_total_mb) : t("cu_na")}
-            </span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label={t("sys_ram_used")}>
-            <span style={{ color: ramColor, fontWeight: "bold" }}>
-              {status.mem_used_mb != null
-                ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
-                : t("cu_na")}
-            </span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label={t("sys_cu")}>
-            <span style={{ color: "#67a3ff", fontWeight: "bold" }}>
-              {cu?.cu_count != null && cu.cu_count > 0 ? `${cu.cu_count} / 40` : t("cu_na")}
-            </span>
-          </Field>
-        </PanelSectionRow>
+        <InfoRow label={t("sys_ram")}>
+          <span style={{ color: "#67a3ff", fontWeight: "bold" }}>
+            {status.mem_total_mb != null ? gb(status.mem_total_mb) : t("cu_na")}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("sys_ram_used")}>
+          <span style={{ color: ramColor, fontWeight: "bold" }}>
+            {status.mem_used_mb != null
+              ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
+              : t("cu_na")}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("sys_cu")}>
+          <span style={{ color: "#67a3ff", fontWeight: "bold" }}>
+            {cu?.cu_count != null && cu.cu_count > 0 ? `${cu.cu_count} / 40` : t("cu_na")}
+          </span>
+        </InfoRow>
       </PanelSection>
 
       <PanelSection title={t("sys_status")}>
-        <PanelSectionRow>
-          <Field label={t("sys_scheduler")}>
-            <span style={{ color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }}>
-              {status.scx_state === "enabled"
-                ? `✓ ${status.scx_sched ?? "scx"}`
-                : `✗ ${status.scx_state ?? t("sys_unknown")}`}
-            </span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label={t("sys_tuned")}>
-            <span style={{ fontSize: "11px", color: "#ccc" }}>{status.tuned_profile ?? t("sys_unknown")}</span>
-          </Field>
-        </PanelSectionRow>
-        <PanelSectionRow>
-          <Field label={t("sys_gamemode")}>
-            <span style={{ color: status.gamemode_active ? "#4caf50" : "#f44336" }}>
-              {status.gamemode_active ? t("sys_active") : t("sys_inactive")}
-            </span>
-          </Field>
-        </PanelSectionRow>
+        <InfoRow label={t("sys_scheduler")}>
+          <span style={{ color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }}>
+            {status.scx_state === "enabled"
+              ? `✓ ${status.scx_sched ?? "scx"}`
+              : `✗ ${status.scx_state ?? t("sys_unknown")}`}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("sys_tuned")}>
+          <span style={{ fontSize: "11px", color: "#ccc" }}>{status.tuned_profile ?? t("sys_unknown")}</span>
+        </InfoRow>
+        <InfoRow label={t("sys_gamemode")}>
+          <span style={{ color: status.gamemode_active ? "#4caf50" : "#f44336" }}>
+            {status.gamemode_active ? t("sys_active") : t("sys_inactive")}
+          </span>
+        </InfoRow>
       </PanelSection>
 
       {status.tweaks_installed && (
         <PanelSection title="bc250-tweaks">
           {status.tweaks_last_update && (
-            <PanelSectionRow>
-              <Field label={t("sys_last_update")}>
-                <span style={{ fontSize: "10px", color: "#aaa" }}>{status.tweaks_last_update}</span>
-              </Field>
-            </PanelSectionRow>
+            <InfoRow label={t("sys_last_update")}>
+              <span style={{ fontSize: "10px", color: "#aaa" }}>{status.tweaks_last_update}</span>
+            </InfoRow>
           )}
           <PanelSectionRow>
             <ActionCard disabled={updating} onClick={handleUpdate}>
@@ -841,7 +827,7 @@ function SystemTab() {
           )}
         </PanelSection>
       )}
-    </Focusable>
+    </>
   );
 }
 

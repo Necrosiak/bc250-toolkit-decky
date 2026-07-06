@@ -2,6 +2,14 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.6] - 2026-07-06
+
+### Fixed
+- **System tab really scrolls with a controller now.** Each info row is wrapped
+  in a focusable so the D-pad steps through them and the Quick Access Menu
+  scrolls to follow the focus (the previous scroll-container approach didn't
+  move without focusable children).
+
 ## [0.4.5] - 2026-07-06
 
 ### Fixed
