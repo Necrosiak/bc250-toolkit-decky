@@ -512,6 +512,24 @@ class Plugin:
                     edge = hwmon / "temp1_input"
                     if edge.exists():
                         status["gpu_temp"] = round(int(edge.read_text()) / 1000, 1)
+                    freq = hwmon / "freq1_input"     # GPU shader clock (Hz)
+                    if freq.exists():
+                        try:
+                            status["gpu_clock_mhz"] = round(
+                                int(freq.read_text()) / 1_000_000)
+                        except (OSError, ValueError):
+                            pass
+        except Exception:
+            pass
+
+        # CPU clock — average of the per-core current MHz (cpufreq isn't always
+        # exposed on this APU, so read /proc/cpuinfo which always is).
+        try:
+            mhz = [float(l.split(":")[1]) for l in
+                   Path("/proc/cpuinfo").read_text().splitlines()
+                   if l.lower().startswith("cpu mhz")]
+            if mhz:
+                status["cpu_clock_mhz"] = round(sum(mhz) / len(mhz))
         except Exception:
             pass
 

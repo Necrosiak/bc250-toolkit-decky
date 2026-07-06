@@ -2,6 +2,15 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.4] - 2026-07-06
+
+### Added
+- **Live GPU and CPU clocks** in the System tab, next to the temperatures and
+  fan. GPU shader clock from the amdgpu sensor, CPU clock averaged from
+  `/proc/cpuinfo`. (Fan *control* was evaluated and deliberately left out — the
+  board's PWM mode isn't reliably controllable and forcing it risks
+  overheating; monitoring only.)
+
 ## [0.4.3] - 2026-07-06
 
 ### Added

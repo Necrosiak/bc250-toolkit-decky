@@ -93,6 +93,8 @@ interface SystemStatus {
   cpu_temp?: number;
   gpu_temp?: number;
   fan_rpm?: number;
+  gpu_clock_mhz?: number;
+  cpu_clock_mhz?: number;
   mem_total_mb?: number;
   mem_used_mb?: number;
   scx_state?: string;
@@ -743,6 +745,20 @@ function SystemTab() {
           <Field label={t("sys_fan")}>
             <span style={{ color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }}>
               {status.fan_rpm != null ? `${status.fan_rpm} RPM` : t("cu_na")}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("sys_clock_gpu")}>
+            <span style={{ color: status.gpu_clock_mhz ? "#a24bfa" : "#888", fontWeight: "bold" }}>
+              {status.gpu_clock_mhz != null ? `${status.gpu_clock_mhz} MHz` : t("cu_na")}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("sys_clock_cpu")}>
+            <span style={{ color: status.cpu_clock_mhz ? "#a24bfa" : "#888", fontWeight: "bold" }}>
+              {status.cpu_clock_mhz != null ? `${status.cpu_clock_mhz} MHz` : t("cu_na")}
             </span>
           </Field>
         </PanelSectionRow>
