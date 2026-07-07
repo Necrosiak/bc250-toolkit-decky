@@ -181,7 +181,7 @@ const T = {
         uma_writing: "Writing...",
         uma_not_supported: "⚠ Unsupported BIOS ({detail}) — UMA control disabled",
         // System
-        sys_temps: "Temperatures",
+        sys_temps: "Temperatures", sys_fan: "Fan", sys_clock_gpu: "GPU clock", sys_clock_cpu: "CPU clock",
         sys_res: "Resources",
         sys_ram: "Enabled RAM",
         sys_ram_used: "Used RAM",
@@ -264,7 +264,7 @@ const T = {
         uma_done: "✓ UMA {label} écrit dans le BIOS — redémarre pour appliquer",
         uma_writing: "Écriture...",
         uma_not_supported: "⚠ BIOS non supporté ({detail}) — contrôle UMA désactivé",
-        sys_temps: "Températures", sys_status: "Statut", sys_scheduler: "Scheduler",
+        sys_temps: "Températures", sys_fan: "Ventilateur", sys_clock_gpu: "Fréq. GPU", sys_clock_cpu: "Fréq. CPU", sys_status: "Statut", sys_scheduler: "Scheduler",
         sys_res: "Ressources", sys_ram: "RAM activée", sys_ram_used: "RAM utilisée", sys_cu: "CU actifs",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actif", sys_inactive: "✗ inactif", sys_unknown: "inconnu",
@@ -327,7 +327,7 @@ const T = {
         uma_done: "✓ UMA {label} ins BIOS geschrieben — zum Anwenden neu starten",
         uma_writing: "Schreibe...",
         uma_not_supported: "⚠ Nicht unterstütztes BIOS ({detail}) — UMA-Steuerung deaktiviert",
-        sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Scheduler",
+        sys_temps: "Temperaturen", sys_fan: "Lüfter", sys_clock_gpu: "GPU-Takt", sys_clock_cpu: "CPU-Takt", sys_status: "Status", sys_scheduler: "Scheduler",
         sys_res: "Ressourcen", sys_ram: "Aktivierter RAM", sys_ram_used: "Belegter RAM", sys_cu: "Aktive CUs",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktiv", sys_inactive: "✗ inaktiv", sys_unknown: "unbekannt",
@@ -383,7 +383,7 @@ const T = {
         uma_done: "✓ UMA {label} escrito en el BIOS — reinicia para aplicar",
         uma_writing: "Escribiendo...",
         uma_not_supported: "⚠ BIOS no soportado ({detail}) — control UMA desactivado",
-        sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Planificador",
+        sys_temps: "Temperaturas", sys_fan: "Ventilador", sys_clock_gpu: "Frec. GPU", sys_clock_cpu: "Frec. CPU", sys_status: "Estado", sys_scheduler: "Planificador",
         sys_res: "Recursos", sys_ram: "RAM activada", sys_ram_used: "RAM usada", sys_cu: "CUs activos",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ activo", sys_inactive: "✗ inactivo", sys_unknown: "desconocido",
@@ -439,7 +439,7 @@ const T = {
         uma_done: "✓ UMA {label} scritto nel BIOS — riavvia per applicare",
         uma_writing: "Scrittura...",
         uma_not_supported: "⚠ BIOS non supportato ({detail}) — controllo UMA disattivato",
-        sys_temps: "Temperature", sys_status: "Stato", sys_scheduler: "Scheduler",
+        sys_temps: "Temperature", sys_fan: "Ventola", sys_clock_gpu: "Freq. GPU", sys_clock_cpu: "Freq. CPU", sys_status: "Stato", sys_scheduler: "Scheduler",
         sys_res: "Risorse", sys_ram: "RAM attiva", sys_ram_used: "RAM usata", sys_cu: "CU attivi",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ attivo", sys_inactive: "✗ inattivo", sys_unknown: "sconosciuto",
@@ -495,7 +495,7 @@ const T = {
         uma_done: "✓ UMA {label} escrito no BIOS — reinicie para aplicar",
         uma_writing: "A escrever...",
         uma_not_supported: "⚠ BIOS não suportado ({detail}) — controlo UMA desativado",
-        sys_temps: "Temperaturas", sys_status: "Estado", sys_scheduler: "Scheduler",
+        sys_temps: "Temperaturas", sys_fan: "Ventoinha", sys_clock_gpu: "Freq. GPU", sys_clock_cpu: "Freq. CPU", sys_status: "Estado", sys_scheduler: "Scheduler",
         sys_res: "Recursos", sys_ram: "RAM ativada", sys_ram_used: "RAM usada", sys_cu: "CUs ativos",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ ativo", sys_inactive: "✗ inativo", sys_unknown: "desconhecido",
@@ -551,7 +551,7 @@ const T = {
         uma_done: "✓ UMA {label} naar het BIOS geschreven — herstart om toe te passen",
         uma_writing: "Schrijven...",
         uma_not_supported: "⚠ Niet-ondersteund BIOS ({detail}) — UMA-beheer uitgeschakeld",
-        sys_temps: "Temperaturen", sys_status: "Status", sys_scheduler: "Planner",
+        sys_temps: "Temperaturen", sys_fan: "Ventilator", sys_clock_gpu: "GPU-klok", sys_clock_cpu: "CPU-klok", sys_status: "Status", sys_scheduler: "Planner",
         sys_res: "Systeembronnen", sys_ram: "Geactiveerd RAM", sys_ram_used: "Gebruikt RAM", sys_cu: "Actieve CU's",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actief", sys_inactive: "✗ inactief", sys_unknown: "onbekend",
@@ -607,7 +607,7 @@ const T = {
         uma_done: "✓ UMA {label} zapisane w BIOS-ie — uruchom ponownie, aby zastosować",
         uma_writing: "Zapisywanie...",
         uma_not_supported: "⚠ Nieobsługiwany BIOS ({detail}) — sterowanie UMA wyłączone",
-        sys_temps: "Temperatury", sys_status: "Status", sys_scheduler: "Harmonogram",
+        sys_temps: "Temperatury", sys_fan: "Wentylator", sys_clock_gpu: "Zegar GPU", sys_clock_cpu: "Zegar CPU", sys_status: "Status", sys_scheduler: "Harmonogram",
         sys_res: "Zasoby", sys_ram: "Aktywna pamięć RAM", sys_ram_used: "Użyta pamięć RAM", sys_cu: "Aktywne CU",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktywny", sys_inactive: "✗ nieaktywny", sys_unknown: "nieznany",
@@ -663,7 +663,7 @@ const T = {
         uma_done: "✓ UMA {label} записано в BIOS — перезагрузитесь для применения",
         uma_writing: "Запись...",
         uma_not_supported: "⚠ Неподдерживаемый BIOS ({detail}) — управление UMA отключено",
-        sys_temps: "Температуры", sys_status: "Состояние", sys_scheduler: "Планировщик",
+        sys_temps: "Температуры", sys_fan: "Вентилятор", sys_clock_gpu: "Частота GPU", sys_clock_cpu: "Частота CPU", sys_status: "Состояние", sys_scheduler: "Планировщик",
         sys_res: "Ресурсы", sys_ram: "Активная ОЗУ", sys_ram_used: "Использовано ОЗУ", sys_cu: "Активные CU",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ активен", sys_inactive: "✗ неактивен", sys_unknown: "неизвестно",
@@ -825,13 +825,10 @@ function GamesTab({ gamesDb, savedVariants }) {
                                                             padding: "3px 8px", fontSize: 10, minHeight: 0, minWidth: 0, margin: 0, borderRadius: 5,
                                                             color: "#fff", fontWeight: isActive ? 700 : 400,
                                                             background: isActive ? color : "rgba(255,255,255,0.08)",
-                                                            // Halo blanc + léger zoom = curseur manette (focus).
-                                                            boxShadow: isFocused ? "0 0 0 2px #fff, 0 0 8px 1px " + color : "none",
-                                                            transform: isFocused ? "scale(1.06)" : "scale(1)",
-                                                            transition: "box-shadow .08s ease, transform .08s ease",
-                                                            zIndex: isFocused ? 1 : 0,
+                                                            // Halo blanc + lueur + léger zoom = curseur manette (kit partagé).
+                                                            ...focusHalo(color, isFocused, 1.06),
                                                         }, children: v.label }, i));
-                                                }) })), SP_JSX.jsxs("div", { style: { fontSize: 10, color: "#aaa", lineHeight: 1.45 }, children: [SP_JSX.jsxs("div", { children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_proton"), ":"] }), " ", dispProton, selected?.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }), selected?.game.proton_note && SP_JSX.jsx("div", { style: { color: "#ff9800" }, children: selected.game.proton_note }), dispLaunch && SP_JSX.jsxs("div", { style: { wordBreak: "break-all" }, children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_launch"), ":"] }), " ", dispLaunch] }), dispRadv && SP_JSX.jsxs("div", { children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_radv"), ":"] }), " ", Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ")] }), dispRequires?.uma_min_mb && (SP_JSX.jsxs("div", { style: { color: "#ff9800", borderLeft: "3px solid #ff9800", paddingLeft: 6, marginTop: 2 }, children: [t("req_uma", { mb: dispRequires.uma_min_mb }), dispRequires.note ? ` — ${dispRequires.note}` : ""] })), selected?.game.notes && SP_JSX.jsx("div", { style: { color: "#ccc", marginTop: 2 }, children: selected.game.notes })] }), SP_JSX.jsx(Btn, { disabled: applying || applied, onClick: handleApply, style: { width: "100%", padding: "5px 0", fontSize: 11, minHeight: 0, margin: 0 }, children: applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply") })] }))] }, entry.appid));
+                                                }) })), SP_JSX.jsxs("div", { style: { fontSize: 10, color: "#aaa", lineHeight: 1.45 }, children: [SP_JSX.jsxs("div", { children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_proton"), ":"] }), " ", dispProton, selected?.game.proton_branch ? ` — ${selected.game.proton_branch}` : ""] }), selected?.game.proton_note && SP_JSX.jsx("div", { style: { color: "#ff9800" }, children: selected.game.proton_note }), dispLaunch && SP_JSX.jsxs("div", { style: { wordBreak: "break-all" }, children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_launch"), ":"] }), " ", dispLaunch] }), dispRadv && SP_JSX.jsxs("div", { children: [SP_JSX.jsxs("span", { style: { color: "#67a3ff" }, children: [t("label_radv"), ":"] }), " ", Object.entries(dispRadv.options).map(([k, v]) => `${k}=${v}`).join(", ")] }), dispRequires?.uma_min_mb && (SP_JSX.jsxs("div", { style: { color: "#ff9800", borderLeft: "3px solid #ff9800", paddingLeft: 6, marginTop: 2 }, children: [t("req_uma", { mb: dispRequires.uma_min_mb }), dispRequires.note ? ` — ${dispRequires.note}` : ""] })), selected?.game.notes && SP_JSX.jsx("div", { style: { color: "#ccc", marginTop: 2 }, children: selected.game.notes })] }), SP_JSX.jsx(ActionCard, { color: "#4caf50", active: applied, disabled: applying || applied, onClick: handleApply, children: applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply") })] }))] }, entry.appid));
                         }) }) }) })) : (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { color: "#888", fontSize: "12px", textAlign: "center", padding: "8px 0" }, children: t("no_games") }) }) }) })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { onClick: refresh, children: ["\uD83D\uDD04 ", t("btn_refresh")] }) }) })] }));
 }
 // ── Onglet CU ─────────────────────────────────────────────────────────────────
@@ -1026,11 +1023,18 @@ function SystemTab() {
         ? Math.round((status.mem_used_mb / status.mem_total_mb) * 100)
         : null;
     const ramColor = ramPct == null ? "#888" : ramPct > 85 ? "#f44336" : ramPct > 70 ? "#ff9800" : "#4caf50";
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_temps"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "CPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp), fontWeight: "bold" }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: "GPU", children: SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp), fontWeight: "bold" }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na") }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_res"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_ram"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: status.mem_total_mb != null ? gb(status.mem_total_mb) : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_ram_used"), children: SP_JSX.jsx("span", { style: { color: ramColor, fontWeight: "bold" }, children: status.mem_used_mb != null
-                                    ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
-                                    : t("cu_na") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_cu"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: cu?.cu_count != null && cu.cu_count > 0 ? `${cu.cu_count} / 40` : t("cu_na") }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_status"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_scheduler"), children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
-                                    ? `✓ ${status.scx_sched ?? "scx"}`
-                                    : `✗ ${status.scx_state ?? t("sys_unknown")}` }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_tuned"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? t("sys_unknown") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_gamemode"), children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? t("sys_active") : t("sys_inactive") }) }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_last_update"), children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: updating, onClick: handleUpdate, children: ["\uD83D\uDD04 ", updating ? t("sys_btn_updating") : t("sys_btn_update")] }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_log"), children: SP_JSX.jsx("div", { style: {
+    // Chaque ligne d'info est enveloppée dans un Focusable → devient un arrêt de
+    // navigation manette : le D-pad descend de ligne en ligne et le QAM défile
+    // pour suivre le focus (sinon, avec des champs d'affichage non focusables, la
+    // manette reste bloquée en haut et on ne voit pas le bas de l'onglet).
+    const InfoRow = ({ label, children }) => (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { style: { borderRadius: 4 }, children: SP_JSX.jsx(DFL.Field, { label: label, bottomSeparator: "none", children: children }) }) }));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_temps"), children: [SP_JSX.jsx(InfoRow, { label: "CPU", children: SP_JSX.jsxs("span", { style: { fontWeight: "bold" }, children: [SP_JSX.jsx("span", { style: { color: tempColor(status.cpu_temp) }, children: status.cpu_temp != null ? `${status.cpu_temp}°C` : t("cu_na") }), status.cpu_clock_mhz != null &&
+                                    SP_JSX.jsx("span", { style: { color: "#a24bfa" }, children: `  ·  ${status.cpu_clock_mhz} MHz` })] }) }), SP_JSX.jsx(InfoRow, { label: "GPU", children: SP_JSX.jsxs("span", { style: { fontWeight: "bold" }, children: [SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp) }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na") }), status.gpu_clock_mhz != null &&
+                                    SP_JSX.jsx("span", { style: { color: "#a24bfa" }, children: `  ·  ${status.gpu_clock_mhz} MHz` })] }) }), SP_JSX.jsx(InfoRow, { label: t("sys_fan"), children: SP_JSX.jsx("span", { style: { color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }, children: status.fan_rpm != null ? `${status.fan_rpm} RPM` : t("cu_na") }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_res"), children: [SP_JSX.jsx(InfoRow, { label: t("sys_ram"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: status.mem_total_mb != null ? gb(status.mem_total_mb) : t("cu_na") }) }), SP_JSX.jsx(InfoRow, { label: t("sys_ram_used"), children: SP_JSX.jsx("span", { style: { color: ramColor, fontWeight: "bold" }, children: status.mem_used_mb != null
+                                ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
+                                : t("cu_na") }) }), SP_JSX.jsx(InfoRow, { label: t("sys_cu"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: cu?.cu_count != null && cu.cu_count > 0 ? `${cu.cu_count} / 40` : t("cu_na") }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_status"), children: [SP_JSX.jsx(InfoRow, { label: t("sys_scheduler"), children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
+                                ? `✓ ${status.scx_sched ?? "scx"}`
+                                : `✗ ${status.scx_state ?? t("sys_unknown")}` }) }), SP_JSX.jsx(InfoRow, { label: t("sys_tuned"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? t("sys_unknown") }) }), SP_JSX.jsx(InfoRow, { label: t("sys_gamemode"), children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? t("sys_active") : t("sys_inactive") }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(InfoRow, { label: t("sys_last_update"), children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: updating, onClick: handleUpdate, children: ["\uD83D\uDD04 ", updating ? t("sys_btn_updating") : t("sys_btn_update")] }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_log"), children: SP_JSX.jsx("div", { style: {
                                     fontSize: "10px", fontFamily: "monospace", color: "#aaa",
                                     maxHeight: "100px", overflow: "auto", whiteSpace: "pre-wrap",
                                 }, children: updateLog.slice(-1500) }) }) }))] }))] }));
@@ -1106,10 +1110,24 @@ const TAB_DEFS = [
 ];
 const BtnTab = DFL.DialogButton;
 const Btn = DFL.DialogButton;
+// Accent Discord blurple — accent principal, comme SkullKey/Steamcord.
+const ACCENT = "#5865f2";
+// Halo de focus partagé : anneau blanc + lueur couleur + léger zoom (signature
+// visuelle SkullKey). Unique source de vérité, injectée dans le style de chaque
+// contrôle → tous les plugins Necrosiak se ressemblent.
+function focusHalo(color, focused, scale = 1.02) {
+    const c = color || ACCENT;
+    return {
+        boxShadow: focused ? `0 0 0 2px #fff, 0 0 8px 1px ${c}` : "none",
+        transform: focused ? `scale(${scale})` : "scale(1)",
+        transition: "box-shadow .08s ease, transform .08s ease",
+        zIndex: focused ? 1 : 0,
+    };
+}
 // Carte cliquable réutilisable façon Steamcord (liste de profils/actions) : fond
 // couleur si actif, halo blanc + lueur au focus manette. Hoistée (function).
 function CardBtn({ active, focused, color, disabled, center, onClick, onFocus, onBlur, children }) {
-    const c = color || "#5865f2";
+    const c = color || ACCENT;
     return (SP_JSX.jsx(Btn, { disabled: disabled, onClick: onClick, onFocus: onFocus, onBlur: onBlur, style: {
             display: "flex", alignItems: "center", justifyContent: center ? "center" : "flex-start",
             gap: 8, width: "100%",
@@ -1117,10 +1135,8 @@ function CardBtn({ active, focused, color, disabled, center, onClick, onFocus, o
             borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: active ? 700 : 400,
             background: active ? c : "rgba(255,255,255,0.05)",
             border: active ? "1px solid " + c : "1px solid transparent",
-            boxShadow: focused ? "0 0 0 2px #fff, 0 0 8px 1px " + c : "none",
-            transform: focused ? "scale(1.02)" : "scale(1)",
-            transition: "box-shadow .08s ease, transform .08s ease",
-            opacity: disabled ? 0.5 : 1, zIndex: focused ? 1 : 0,
+            opacity: disabled ? 0.5 : 1,
+            ...focusHalo(c, focused),
         }, children: children }));
 }
 // CardBtn d'action isolé (Système / Réglages) : gère son propre focus, centré.
@@ -1142,7 +1158,7 @@ function GameRow({ name, appid, selected, focused, onClick, onFocus, onBlur }) {
             padding: "6px 8px", margin: 0, minHeight: 0, boxSizing: "border-box", borderRadius: 6,
             background: focused ? "rgba(88,101,242,0.55)" : selected ? "rgba(88,101,242,0.25)" : "rgba(255,255,255,0.04)",
             border: selected ? "1px solid rgba(88,101,242,0.6)" : "1px solid transparent",
-            boxShadow: focused ? "0 0 0 2px #fff" : "none",
+            ...focusHalo(ACCENT, focused),
         }, children: [iconUrl ? (SP_JSX.jsx("img", { src: iconUrl, width: 24, height: 24, style: { borderRadius: 6, flexShrink: 0, display: "block" } })) : (SP_JSX.jsx("div", { style: { width: 24, height: 24, borderRadius: 6, background: "#5865f2", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#fff" }, children: (name || "?")[0].toUpperCase() })), SP_JSX.jsx("span", { style: { flex: 1, textAlign: "left", fontSize: 12, fontWeight: selected ? 700 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: name }), selected && SP_JSX.jsx("span", { style: { fontSize: 10, color: "#67a3ff", flexShrink: 0 }, children: "\u25B6" })] }));
 }
 // Onglet façon Steamcord : fond bleu plein au focus manette, bleu estompé si
@@ -1156,9 +1172,9 @@ function TabBtn({ active, focused, onClick, onFocus, onBlur, children }) {
             background: focused
                 ? "rgba(88,101,242,0.85)"
                 : active ? "rgba(88,101,242,0.35)" : "rgba(255,255,255,0.06)",
-            boxShadow: focused ? "0 0 0 2px #fff" : "none",
             fontWeight: active ? 700 : 400,
-            transition: "background .08s ease, box-shadow .08s ease",
+            ...focusHalo(ACCENT, focused),
+            transition: "background .08s ease, box-shadow .08s ease, transform .08s ease",
         }, children: children }));
 }
 function TabBar({ tab, setTab }) {

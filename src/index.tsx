@@ -288,11 +288,8 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
                                     padding: "3px 8px", fontSize: 10, minHeight: 0, minWidth: 0, margin: 0, borderRadius: 5,
                                     color: "#fff", fontWeight: isActive ? 700 : 400,
                                     background: isActive ? color : "rgba(255,255,255,0.08)",
-                                    // Halo blanc + léger zoom = curseur manette (focus).
-                                    boxShadow: isFocused ? "0 0 0 2px #fff, 0 0 8px 1px " + color : "none",
-                                    transform: isFocused ? "scale(1.06)" : "scale(1)",
-                                    transition: "box-shadow .08s ease, transform .08s ease",
-                                    zIndex: isFocused ? 1 : 0,
+                                    // Halo blanc + lueur + léger zoom = curseur manette (kit partagé).
+                                    ...focusHalo(color, isFocused, 1.06),
                                   }}>
                                   {v.label}
                                 </Btn>
@@ -312,10 +309,9 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
                           )}
                           {selected?.game.notes && <div style={{ color: "#ccc", marginTop: 2 }}>{selected.game.notes}</div>}
                         </div>
-                        <Btn disabled={applying || applied} onClick={handleApply}
-                          style={{ width: "100%", padding: "5px 0", fontSize: 11, minHeight: 0, margin: 0 }}>
+                        <ActionCard color="#4caf50" active={applied} disabled={applying || applied} onClick={handleApply}>
                           {applying ? t("btn_applying") : applied ? t("btn_applied") : t("btn_apply")}
-                        </Btn>
+                        </ActionCard>
                       </div>
                     )}
                   </div>
@@ -984,10 +980,26 @@ const TAB_DEFS: TabDef[] = [
 const BtnTab = DialogButton as any;
 const Btn = DialogButton as any;
 
+// Accent Discord blurple — accent principal, comme SkullKey/Steamcord.
+const ACCENT = "#5865f2";
+
+// Halo de focus partagé : anneau blanc + lueur couleur + léger zoom (signature
+// visuelle SkullKey). Unique source de vérité, injectée dans le style de chaque
+// contrôle → tous les plugins Necrosiak se ressemblent.
+function focusHalo(color: string, focused: boolean, scale = 1.02) {
+  const c = color || ACCENT;
+  return {
+    boxShadow: focused ? `0 0 0 2px #fff, 0 0 8px 1px ${c}` : "none",
+    transform: focused ? `scale(${scale})` : "scale(1)",
+    transition: "box-shadow .08s ease, transform .08s ease",
+    zIndex: focused ? 1 : 0,
+  };
+}
+
 // Carte cliquable réutilisable façon Steamcord (liste de profils/actions) : fond
 // couleur si actif, halo blanc + lueur au focus manette. Hoistée (function).
 function CardBtn({ active, focused, color, disabled, center, onClick, onFocus, onBlur, children }: any) {
-  const c = color || "#5865f2";
+  const c = color || ACCENT;
   return (
     <Btn
       disabled={disabled}
@@ -1001,10 +1013,8 @@ function CardBtn({ active, focused, color, disabled, center, onClick, onFocus, o
         borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: active ? 700 : 400,
         background: active ? c : "rgba(255,255,255,0.05)",
         border: active ? "1px solid " + c : "1px solid transparent",
-        boxShadow: focused ? "0 0 0 2px #fff, 0 0 8px 1px " + c : "none",
-        transform: focused ? "scale(1.02)" : "scale(1)",
-        transition: "box-shadow .08s ease, transform .08s ease",
-        opacity: disabled ? 0.5 : 1, zIndex: focused ? 1 : 0,
+        opacity: disabled ? 0.5 : 1,
+        ...focusHalo(c, focused),
       }}
     >
       {children}
@@ -1050,7 +1060,7 @@ function GameRow({ name, appid, selected, focused, onClick, onFocus, onBlur }: a
         padding: "6px 8px", margin: 0, minHeight: 0, boxSizing: "border-box", borderRadius: 6,
         background: focused ? "rgba(88,101,242,0.55)" : selected ? "rgba(88,101,242,0.25)" : "rgba(255,255,255,0.04)",
         border: selected ? "1px solid rgba(88,101,242,0.6)" : "1px solid transparent",
-        boxShadow: focused ? "0 0 0 2px #fff" : "none",
+        ...focusHalo(ACCENT, focused),
       }}
     >
       {iconUrl ? (
@@ -1084,9 +1094,9 @@ function TabBtn({ active, focused, onClick, onFocus, onBlur, children }: any) {
         background: focused
           ? "rgba(88,101,242,0.85)"
           : active ? "rgba(88,101,242,0.35)" : "rgba(255,255,255,0.06)",
-        boxShadow: focused ? "0 0 0 2px #fff" : "none",
         fontWeight: active ? 700 : 400,
-        transition: "background .08s ease, box-shadow .08s ease",
+        ...focusHalo(ACCENT, focused),
+        transition: "background .08s ease, box-shadow .08s ease, transform .08s ease",
       }}
     >
       {children}
