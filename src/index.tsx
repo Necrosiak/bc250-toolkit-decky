@@ -856,8 +856,9 @@ function SettingsTab({
   // ── Mises à jour (release-based) ──
   const [autoUpd, setAutoUpd] = useState(true);
   const [updStatus, setUpdStatus] = useState<
-    "idle" | "checking" | "available" | "uptodate" | "installing"
+    "idle" | "checking" | "available" | "uptodate" | "installing" | "failed"
   >("idle");
+  const [updErr, setUpdErr] = useState("");
   const [updLatest, setUpdLatest] = useState("");
   const [updCurrent, setUpdCurrent] = useState("");
   const [updUrl, setUpdUrl] = useState("");
@@ -886,8 +887,13 @@ function SettingsTab({
 
   const installUpd = async () => {
     setUpdStatus("installing");
-    // Backend unpacks the release and restarts plugin_loader on success.
-    try { await call<[string], boolean>("apply_update", updUrl); } catch {}
+    // Backend unpacks the release and restarts plugin_loader on success. On
+    // failure it returns {ok:false, error} — show it instead of hanging on
+    // "installing…" forever.
+    try {
+      const r: any = await call<[string], any>("apply_update", updUrl);
+      if (!(r === true || r?.ok)) { setUpdErr(r?.error || ""); setUpdStatus("failed"); }
+    } catch { setUpdStatus("failed"); }
   };
 
   const updLabel =
@@ -895,6 +901,7 @@ function SettingsTab({
     : updStatus === "installing" ? t("update_installing")
     : updStatus === "available" ? t("update_install", { v: updLatest })
     : updStatus === "uptodate" ? t("update_up_to_date", { v: updCurrent })
+    : updStatus === "failed" ? t("update_failed")
     : t("update_check");
 
   return (
@@ -943,9 +950,14 @@ function SettingsTab({
           disabled={updStatus === "checking" || updStatus === "installing"}
           onClick={updStatus === "available" ? installUpd : checkUpd}
         >
-          {updStatus === "available" ? "⬇️ " : "🔄 "}{updLabel}
+          {updStatus === "available" ? "⬇️ " : updStatus === "failed" ? "⚠️ " : "🔄 "}{updLabel}
         </ActionCard>
       </PanelSectionRow>
+      {updStatus === "failed" && updErr ? (
+        <PanelSectionRow>
+          <div style={{ fontSize: 11, opacity: 0.8, wordBreak: "break-word" }}>{updErr}</div>
+        </PanelSectionRow>
+      ) : null}
     </PanelSection>
 
     {/* À propos rapide */}

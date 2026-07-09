@@ -1,6 +1,6 @@
 {
   "name": "bc250-toolkit",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "DeckyLoader plugin for ASRock BC-250 gaming optimization",
   "type": "module",
   "scripts": {

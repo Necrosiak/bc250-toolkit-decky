@@ -208,6 +208,7 @@ const T = {
         update_checking: "Checking…",
         update_install: "Install {v}",
         update_installing: "Installing…",
+        update_failed: "Update failed — see the message below",
         update_up_to_date: "Up to date ({v})",
         set_refresh_db: "Refresh DB from GitHub",
         set_refreshing: "Refreshing...",
@@ -279,6 +280,7 @@ const T = {
         update_checking: "Vérification…",
         update_install: "Installer {v}",
         update_installing: "Installation…",
+        update_failed: "Échec de la mise à jour — voir le message dessous",
         update_up_to_date: "À jour ({v})",
         set_refresh_db: "Rafraîchir DB depuis GitHub", set_refreshing: "Rafraîchissement...",
         set_db_date: "DB mise à jour le", set_contribute: "Contribuer", toast_db_ok: "DB mise à jour",
@@ -1059,6 +1061,7 @@ function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
     // ── Mises à jour (release-based) ──
     const [autoUpd, setAutoUpd] = SP_REACT.useState(true);
     const [updStatus, setUpdStatus] = SP_REACT.useState("idle");
+    const [updErr, setUpdErr] = SP_REACT.useState("");
     const [updLatest, setUpdLatest] = SP_REACT.useState("");
     const [updCurrent, setUpdCurrent] = SP_REACT.useState("");
     const [updUrl, setUpdUrl] = SP_REACT.useState("");
@@ -1089,18 +1092,27 @@ function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
     };
     const installUpd = async () => {
         setUpdStatus("installing");
-        // Backend unpacks the release and restarts plugin_loader on success.
+        // Backend unpacks the release and restarts plugin_loader on success. On
+        // failure it returns {ok:false, error} — show it instead of hanging on
+        // "installing…" forever.
         try {
-            await call("apply_update", updUrl);
+            const r = await call("apply_update", updUrl);
+            if (!(r === true || r?.ok)) {
+                setUpdErr(r?.error || "");
+                setUpdStatus("failed");
+            }
         }
-        catch { }
+        catch {
+            setUpdStatus("failed");
+        }
     };
     const updLabel = updStatus === "checking" ? t("update_checking")
         : updStatus === "installing" ? t("update_installing")
             : updStatus === "available" ? t("update_install", { v: updLatest })
                 : updStatus === "uptodate" ? t("update_up_to_date", { v: updCurrent })
-                    : t("update_check");
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("set_auto"), description: t("set_auto_desc"), checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: refreshing, onClick: doRefresh, children: ["\uD83D\uDD04 ", refreshing ? t("set_refreshing") : t("set_refresh_db")] }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_db_date"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_contribute"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("update_section"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("update_auto"), checked: autoUpd, onChange: onToggleAutoUpd }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: updStatus === "available" ? "#23a55a" : undefined, active: updStatus === "available", disabled: updStatus === "checking" || updStatus === "installing", onClick: updStatus === "available" ? installUpd : checkUpd, children: [updStatus === "available" ? "⬇️ " : "🔄 ", updLabel] }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("about"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: 11, color: "#aaa", lineHeight: 1.6 }, children: [SP_JSX.jsxs("div", { children: [SP_JSX.jsx("b", { style: { color: "#fff" }, children: "BC250 Toolkit" }), version ? ` v${version}` : ""] }), SP_JSX.jsxs("div", { children: [t("about_by"), " ", SP_JSX.jsx("span", { style: { color: "#67a3ff" }, children: "Necrosiak" })] })] }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { onClick: () => openUrl("https://github.com/Necrosiak/bc250-toolkit-decky"), children: "\uD83D\uDD17 GitHub" }) })] })] }));
+                    : updStatus === "failed" ? t("update_failed")
+                        : t("update_check");
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("set_auto"), description: t("set_auto_desc"), checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: refreshing, onClick: doRefresh, children: ["\uD83D\uDD04 ", refreshing ? t("set_refreshing") : t("set_refresh_db")] }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_db_date"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_contribute"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("update_section"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("update_auto"), checked: autoUpd, onChange: onToggleAutoUpd }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: updStatus === "available" ? "#23a55a" : undefined, active: updStatus === "available", disabled: updStatus === "checking" || updStatus === "installing", onClick: updStatus === "available" ? installUpd : checkUpd, children: [updStatus === "available" ? "⬇️ " : updStatus === "failed" ? "⚠️ " : "🔄 ", updLabel] }) }), updStatus === "failed" && updErr ? (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: 11, opacity: 0.8, wordBreak: "break-word" }, children: updErr }) })) : null] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("about"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: 11, color: "#aaa", lineHeight: 1.6 }, children: [SP_JSX.jsxs("div", { children: [SP_JSX.jsx("b", { style: { color: "#fff" }, children: "BC250 Toolkit" }), version ? ` v${version}` : ""] }), SP_JSX.jsxs("div", { children: [t("about_by"), " ", SP_JSX.jsx("span", { style: { color: "#67a3ff" }, children: "Necrosiak" })] })] }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { onClick: () => openUrl("https://github.com/Necrosiak/bc250-toolkit-decky"), children: "\uD83D\uDD17 GitHub" }) })] })] }));
 }
 const TAB_DEFS = [
     { id: "games", tKey: "tab_games", icon: "🎮" },

@@ -2,6 +2,13 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.7] - 2026-07-09
+
+### Fixed
+- **Update failures are now visible.** When installing an update fails (for
+  example on a root-owned local install: Permission denied), the QAM shows the
+  error under the update button instead of staying on "installing…" forever.
+
 ## [0.4.6] - 2026-07-06
 
 ### Fixed

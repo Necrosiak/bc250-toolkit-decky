@@ -382,10 +382,10 @@ class Plugin:
         return updater.get_current_version()
 
     async def apply_update(self, url):
-        ok = await updater.apply(url)
-        if ok:
+        res = await updater.apply(url)
+        if res.get("ok"):
             updater.restart_loader()
-        return ok
+        return res
 
     async def get_autoupdate(self):
         return updater.is_autoupdate_enabled()
