@@ -1,6 +1,6 @@
 # BC250 Toolkit — Plugin DeckyLoader
 
-> 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
+> 🌐 [EN](../README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
 
 Plugin [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) pour l'**ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) sous Bazzite, SteamOS Linux ou CachyOS.
 
@@ -11,12 +11,12 @@ Base de données communautaire d'options de lancement optimisées pour le BC-250
 ## Captures d'écran
 
 <p align="center">
-  <img src="assets/screenshots/toolkit-games.jpg" width="49%" alt="Games tab"/>
-  <img src="assets/screenshots/toolkit-cu.jpg" width="49%" alt="CU/UMA tab"/>
+  <img src="../assets/screenshots/toolkit-games.jpg" width="49%" alt="Games tab"/>
+  <img src="../assets/screenshots/toolkit-cu.jpg" width="49%" alt="CU/UMA tab"/>
 </p>
 <p align="center">
-  <img src="assets/screenshots/toolkit-uma.jpg" width="49%" alt="UMA frame buffer"/>
-  <img src="assets/screenshots/toolkit-system.jpg" width="49%" alt="System tab"/>
+  <img src="../assets/screenshots/toolkit-uma.jpg" width="49%" alt="UMA frame buffer"/>
+  <img src="../assets/screenshots/toolkit-system.jpg" width="49%" alt="System tab"/>
 </p>
 
 ---
@@ -92,7 +92,7 @@ sudo systemctl restart plugin_loader
 
 ## Base de données des jeux
 
-La DB est dans [`games_db.json`](games_db.json) et se met à jour automatiquement depuis GitHub.
+La DB est dans [`games_db.json`](../games_db.json) et se met à jour automatiquement depuis GitHub.
 
 ### Jeux référencés
 

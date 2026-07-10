@@ -1,6 +1,6 @@
 # BC250 Toolkit — DeckyLoader Plugin
 
-> 🌐 [EN](README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
+> 🌐 [EN](README.md) · [FR](docs/README.fr.md) · [DE](docs/README.de.md) · [ES](docs/README.es.md) · [IT](docs/README.it.md) · [PT](docs/README.pt.md) · [NL](docs/README.nl.md) · [PL](docs/README.pl.md) · [RU](docs/README.ru.md)
 
 A [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) plugin for the **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) running Bazzite, SteamOS Linux, or CachyOS.
 
