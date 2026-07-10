@@ -11,13 +11,12 @@ Base de données communautaire d'options de lancement optimisées pour le BC-250
 ## Captures d'écran
 
 <p align="center">
-  <img src="assets/screenshots/tab-games.png" width="32%" alt="Onglet Jeux"/>
-  <img src="assets/screenshots/tab-cu.png" width="32%" alt="Onglet CU"/>
-  <img src="assets/screenshots/tab-system.png" width="32%" alt="Onglet Système"/>
+  <img src="assets/screenshots/toolkit-games.jpg" width="49%" alt="Games tab"/>
+  <img src="assets/screenshots/toolkit-cu.jpg" width="49%" alt="CU/UMA tab"/>
 </p>
 <p align="center">
-  <img src="assets/screenshots/tab-settings.png" width="32%" alt="Onglet Réglages"/>
-  <img src="assets/screenshots/game-crimson-desert.png" width="32%" alt="Settings Crimson Desert"/>
+  <img src="assets/screenshots/toolkit-uma.jpg" width="49%" alt="UMA frame buffer"/>
+  <img src="assets/screenshots/toolkit-system.jpg" width="49%" alt="System tab"/>
 </p>
 
 ---
