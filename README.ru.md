@@ -57,7 +57,11 @@
 ## Установка
 
 ### Через DeckyLoader (рекомендуется)
-> Плагин ожидает отправки в Decky Plugin Store.
+1. Включите **режим разработчика** в общих настройках Decky
+2. Настройки Decky → **Разработчик** → *Установить плагин по URL*:
+   `https://github.com/Necrosiak/bc250-toolkit-decky/releases/latest/download/BC250-Toolkit.zip`
+
+> Decky Plugin Store: заявка в процессе — нужны тестеры ([откройте issue](https://github.com/Necrosiak/bc250-toolkit-decky/issues), если хотите помочь).
 
 Ручная установка в ожидании:
 

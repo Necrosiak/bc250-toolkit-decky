@@ -57,7 +57,11 @@ O plugin deteta automaticamente o idioma do Steam:
 ## Instalação
 
 ### Via DeckyLoader (recomendado)
-> Plugin a aguardar submissão à Decky Plugin Store.
+1. Ative o **modo de programador** nas definições gerais do Decky
+2. Definições do Decky → **Programador** → *Instalar plugin a partir de URL*:
+   `https://github.com/Necrosiak/bc250-toolkit-decky/releases/latest/download/BC250-Toolkit.zip`
+
+> Decky Plugin Store: submissão em curso — testers bem-vindos ([abra uma issue](https://github.com/Necrosiak/bc250-toolkit-decky/issues) para ajudar).
 
 Instalação manual entretanto:
 
