@@ -61,7 +61,7 @@ De plugin detecteert automatisch de Steam-taal:
 2. Decky-instellingen → **Ontwikkelaar** → *Plugin installeren vanaf URL*:
    `https://github.com/Necrosiak/bc250-toolkit-decky/releases/latest/download/BC250-Toolkit.zip`
 
-> Decky Plugin Store: indiening loopt — testers welkom ([open een issue](https://github.com/Necrosiak/bc250-toolkit-decky/issues) als je wilt helpen).
+> Directe distributie via GitHub: de URL hierboven wijst altijd naar de nieuwste release, daarna houdt de plugin zichzelf up-to-date met de ingebouwde auto-update.
 
 Handmatige installatie in de tussentijd:
 

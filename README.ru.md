@@ -61,7 +61,7 @@
 2. Настройки Decky → **Разработчик** → *Установить плагин по URL*:
    `https://github.com/Necrosiak/bc250-toolkit-decky/releases/latest/download/BC250-Toolkit.zip`
 
-> Decky Plugin Store: заявка в процессе — нужны тестеры ([откройте issue](https://github.com/Necrosiak/bc250-toolkit-decky/issues), если хотите помочь).
+> Распространение напрямую через GitHub: ссылка выше всегда ведёт на последний релиз, дальше плагин обновляется сам через встроенный авто-апдейт.
 
 Ручная установка в ожидании:
 
