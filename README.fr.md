@@ -118,6 +118,13 @@ La DB est dans [`games_db.json`](games_db.json) et se met à jour automatiquemen
 
 ## Contribuer
 
+🐛 **Bugs et idées : ouvrez des issues !** Chaque retour oriente directement la
+prochaine release. Quelques lignes suffisent — idéalement avec votre OS
+(Bazzite, CachyOS…), la version du plugin, l'onglet du QAM concerné, et si
+possible les logs (`~/homebrew/logs/BC250-Toolkit/`, `journalctl -u
+plugin_loader`). Les demandes de fonctionnalités et les retours « ça marche
+sur X » sont tout aussi bienvenus.
+
 La force de ce plugin, c'est la communauté BC-250.
 
 ### Méthode simple — Formulaire web

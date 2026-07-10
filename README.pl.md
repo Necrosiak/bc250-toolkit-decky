@@ -104,6 +104,13 @@ Baza danych znajduje się w [`games_db.json`](games_db.json) i aktualizuje się 
 
 ## Współtworzenie
 
+🐛 **Bugi i pomysły: zgłaszajcie issues!** Każde zgłoszenie bezpośrednio
+kształtuje następne wydanie. Wystarczy kilka linijek — najlepiej z twoim OS
+(Bazzite, CachyOS…), wersją wtyczki, kartą QAM, której to dotyczy, i jeśli to
+możliwe logami (`~/homebrew/logs/BC250-Toolkit/`, `journalctl -u
+plugin_loader`). Prośby o funkcje i zgłoszenia „działa na X” są równie mile
+widziane.
+
 ### Prosta metoda — Formularz internetowy
 
 Użyj **[formularza zgłoszeniowego](https://necrosiak.github.io/bc250-toolkit-decky/)** — wypełnij dane, kliknij Wyślij, a issue na GitHub zostanie automatycznie utworzone. Po zatwierdzeniu gra jest dodawana przez PR.

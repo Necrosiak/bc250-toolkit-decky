@@ -104,6 +104,12 @@ La DB está en [`games_db.json`](games_db.json) y se actualiza automáticamente 
 
 ## Contribuir
 
+🐛 **Bugs e ideas: ¡abre issues!** Cada informe orienta directamente la próxima
+release. Bastan unas líneas — idealmente con tu OS (Bazzite, CachyOS…), la
+versión del plugin, la pestaña del QAM afectada y, si puedes, los logs
+(`~/homebrew/logs/BC250-Toolkit/`, `journalctl -u plugin_loader`). Las
+peticiones de funciones y los «funciona en X» son igual de bienvenidos.
+
 ### Método fácil — Formulario web
 
 Usa el **[formulario de envío](https://necrosiak.github.io/bc250-toolkit-decky/)** — rellena los datos, haz clic en Enviar y se creará un issue en GitHub automáticamente. Tras su aprobación, el juego se añade mediante PR.
