@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-07-13",
+"updated": "2026-07-20",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -5350,7 +5350,7 @@
 },
 {
 "appid": "65790",
-"name": "ARMA: Cold War Assault"
+"name": "Arma: Cold War Assault Remastered"
 },
 {
 "appid": "17300",
