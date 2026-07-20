@@ -2,6 +2,23 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.8] - 2026-07-20
+
+### Changed
+- **Monochrome SVG icons across the QAM UI**, matching the rest of the
+  Necrosiak plugin suite (Steamcord v1.16.1). Color emoji (tabs, refresh,
+  download, warning, GitHub) were replaced with monochrome vector icons that
+  inherit the surrounding text size and color.
+
+### Fixed
+- **In-plugin updates failed on root-owned installs.** The updater overwrote
+  files with `shutil.copy2`, which ends with a `chmod` on the destination —
+  something a non-root process cannot do on root-owned files even when they
+  are world-writable. Files are now replaced via a temp file + atomic
+  `os.replace`, which only needs write permission on the directory — and
+  every replaced file becomes owned by the user, so a root-owned install
+  heals itself as it updates.
+
 ## [0.4.7] - 2026-07-09
 
 ### Fixed
