@@ -1,5 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, ReactNode } from "react";
 import { FaMicrochip } from "react-icons/fa";
+import {
+  IcController, IcDownload, IcGear, IcGithub, IcLightning, IcRefresh,
+  IcThermometer, IcWarn,
+} from "./components/Icons";
 import {
   staticClasses,
   PanelSection,
@@ -334,7 +338,7 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
 
       <PanelSection>
         <PanelSectionRow>
-          <ActionCard onClick={refresh}>🔄 {t("btn_refresh")}</ActionCard>
+          <ActionCard onClick={refresh}><IcRefresh /> {t("btn_refresh")}</ActionCard>
         </PanelSectionRow>
       </PanelSection>
     </>
@@ -495,7 +499,7 @@ function CuTab() {
             </PanelSectionRow>
             <PanelSectionRow>
               <ActionCard disabled={installingUmr} onClick={handleInstallUmr}>
-                ⬇️ {installingUmr ? t("cu_installing_umr") : t("cu_install_umr")}
+                <IcDownload /> {installingUmr ? t("cu_installing_umr") : t("cu_install_umr")}
               </ActionCard>
             </PanelSectionRow>
           </>
@@ -806,7 +810,7 @@ function SystemTab() {
           )}
           <PanelSectionRow>
             <ActionCard disabled={updating} onClick={handleUpdate}>
-              🔄 {updating ? t("sys_btn_updating") : t("sys_btn_update")}
+              <IcRefresh /> {updating ? t("sys_btn_updating") : t("sys_btn_update")}
             </ActionCard>
           </PanelSectionRow>
           {updateLog && (
@@ -917,7 +921,7 @@ function SettingsTab({
       </PanelSectionRow>
       <PanelSectionRow>
         <ActionCard disabled={refreshing} onClick={doRefresh}>
-          🔄 {refreshing ? t("set_refreshing") : t("set_refresh_db")}
+          <IcRefresh /> {refreshing ? t("set_refreshing") : t("set_refresh_db")}
         </ActionCard>
       </PanelSectionRow>
       {meta?.updated && (
@@ -950,7 +954,7 @@ function SettingsTab({
           disabled={updStatus === "checking" || updStatus === "installing"}
           onClick={updStatus === "available" ? installUpd : checkUpd}
         >
-          {updStatus === "available" ? "⬇️ " : updStatus === "failed" ? "⚠️ " : "🔄 "}{updLabel}
+          {updStatus === "available" ? <IcDownload /> : updStatus === "failed" ? <IcWarn /> : <IcRefresh />} {updLabel}
         </ActionCard>
       </PanelSectionRow>
       {updStatus === "failed" && updErr ? (
@@ -970,7 +974,7 @@ function SettingsTab({
       </PanelSectionRow>
       <PanelSectionRow>
         <ActionCard onClick={() => openUrl("https://github.com/Necrosiak/bc250-toolkit-decky")}>
-          🔗 GitHub
+<IcGithub /> GitHub
         </ActionCard>
       </PanelSectionRow>
     </PanelSection>
@@ -980,13 +984,13 @@ function SettingsTab({
 
 // ── Barre d'onglets ───────────────────────────────────────────────────────────
 
-type TabDef = { id: TabId; tKey: string; icon: string };
+type TabDef = { id: TabId; tKey: string; icon: ReactNode };
 
 const TAB_DEFS: TabDef[] = [
-  { id: "games",    tKey: "tab_games",    icon: "🎮" },
-  { id: "cu",       tKey: "tab_cu",       icon: "⚡" },
-  { id: "system",   tKey: "tab_system",   icon: "🌡️" },
-  { id: "settings", tKey: "tab_settings", icon: "⚙️" },
+  { id: "games",    tKey: "tab_games",    icon: <IcController /> },
+  { id: "cu",       tKey: "tab_cu",       icon: <IcLightning /> },
+  { id: "system",   tKey: "tab_system",   icon: <IcThermometer /> },
+  { id: "settings", tKey: "tab_settings", icon: <IcGear /> },
 ];
 
 const BtnTab = DialogButton as any;

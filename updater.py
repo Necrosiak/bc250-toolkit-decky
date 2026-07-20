@@ -158,7 +158,29 @@ def _apply_blocking(url: str) -> None:
                 dst.mkdir(parents=True, exist_ok=True)
             else:
                 dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src, dst)
+                _replace_file(src, dst)
+
+
+def _replace_file(src: Path, dst: Path) -> None:
+    """Copy src over dst via a same-directory tmp file + atomic os.replace.
+
+    shutil.copy2 ends with a chmod on the destination, which a non-root
+    process cannot do on root-owned files even when they are world-writable —
+    so updates failed on root-owned installs. os.replace only needs write
+    permission on the parent directory, and the replaced file then belongs to
+    the current user, healing such installs one update at a time.
+    """
+    tmp_dst = dst.parent / (dst.name + ".bc250tk-new")
+    try:
+        shutil.copyfile(src, tmp_dst)
+        shutil.copymode(src, tmp_dst)  # our own file: keeps +x on binaries
+        os.replace(tmp_dst, dst)
+    except OSError:
+        try:
+            os.unlink(tmp_dst)
+        except OSError:
+            pass
+        raise
 
 
 async def apply(url: str) -> dict:
@@ -174,9 +196,12 @@ async def apply(url: str) -> dict:
         return {"ok": True}
     except PermissionError as e:
         logger.error(f"[updater] apply failed: {e}")
+        # Files are replaced via os.replace (only needs directory write
+        # access), so reaching this means a *directory* is not writable.
         return {"ok": False,
                 "error": f"Permission denied ({getattr(e, 'filename', '')}) — "
-                         "plugin files not writable (root-owned local install?)"}
+                         "run: sudo chown -R $(id -un) "
+                         f"{PLUGIN_DIR} then retry"}
     except Exception as e:
         logger.error(f"[updater] apply failed: {e}")
         return {"ok": False, "error": str(e)}
