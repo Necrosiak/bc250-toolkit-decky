@@ -848,7 +848,7 @@ function GamesTab({ gamesDb, savedVariants }) {
                                             marginLeft: 10, marginTop: 4, marginBottom: 6, paddingLeft: 8,
                                             borderLeft: "2px solid rgba(88,101,242,0.45)",
                                             display: "flex", flexDirection: "column", gap: 5,
-                                        }, children: [hasConfigs && (SP_JSX.jsx(DFL.Focusable, { "flow-children": "horizontal", style: { display: "flex", flexWrap: "wrap", gap: 4 }, children: variants.map((v, i) => {
+                                        }, children: [hasConfigs && (SP_JSX.jsx(DFL.Focusable, { "flow-children": "row", style: { display: "flex", flexWrap: "wrap", gap: 4 }, children: variants.map((v, i) => {
                                                     const isActive = variantIdx === i;
                                                     const isFocused = variantFocus === i;
                                                     const color = v.stability === "experimental" ? "#ff9800" : "#4caf50";
@@ -1220,7 +1220,7 @@ function TabBtn({ active, focused, onClick, onFocus, onBlur, children }) {
 }
 function TabBar({ tab, setTab }) {
     const [focused, setFocused] = SP_REACT.useState(null);
-    return (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { "flow-children": "horizontal", style: { display: "flex", gap: 4, width: "100%", boxSizing: "border-box" }, children: TAB_DEFS.map(({ id, tKey, icon }) => (SP_JSX.jsxs(TabBtn, { active: tab === id, focused: focused === id, onClick: () => setTab(id), onFocus: () => setFocused(id), onBlur: () => setFocused((f) => (f === id ? null : f)), children: [SP_JSX.jsx("span", { children: icon }), SP_JSX.jsx("span", { style: { overflow: "hidden", textOverflow: "ellipsis" }, children: t(tKey) })] }, id))) }) }) }));
+    return (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { "flow-children": "row", style: { display: "flex", gap: 4, width: "100%", boxSizing: "border-box" }, children: TAB_DEFS.map(({ id, tKey, icon }) => (SP_JSX.jsxs(TabBtn, { active: tab === id, focused: focused === id, onClick: () => setTab(id), onFocus: () => setFocused(id), onBlur: () => setFocused((f) => (f === id ? null : f)), children: [SP_JSX.jsx("span", { children: icon }), SP_JSX.jsx("span", { style: { overflow: "hidden", textOverflow: "ellipsis" }, children: t(tKey) })] }, id))) }) }) }));
 }
 // ── Plugin principal ──────────────────────────────────────────────────────────
 function Content() {

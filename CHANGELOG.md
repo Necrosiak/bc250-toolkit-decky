@@ -2,6 +2,15 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.4.9] - 2026-07-23
+
+### Fixed
+- **Controller navigation rows could log "Unhandled flow-children" errors.**
+  The current Steam client only accepts `row`/`column` (and their variants)
+  as `flow-children` values; the legacy `horizontal` value is rejected on
+  every render, which can degrade controller navigation on the affected
+  button rows. All occurrences now use `row`.
+
 ## [0.4.8] - 2026-07-20
 
 ### Changed
