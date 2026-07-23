@@ -279,7 +279,7 @@ function GamesTab({ gamesDb, savedVariants }: { gamesDb: GamesDB; savedVariants:
                         display: "flex", flexDirection: "column", gap: 5,
                       }}>
                         {hasConfigs && (
-                          <Focusable flow-children="horizontal" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          <Focusable flow-children="row" style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                             {variants.map((v, i) => {
                               const isActive = variantIdx === i;
                               const isFocused = variantFocus === i;
@@ -1126,7 +1126,7 @@ function TabBar({ tab, setTab }: { tab: TabId; setTab: (t: TabId) => void }) {
     <PanelSection>
       <PanelSectionRow>
         <Focusable
-          flow-children="horizontal"
+          flow-children="row"
           style={{ display: "flex", gap: 4, width: "100%", boxSizing: "border-box" }}
         >
           {TAB_DEFS.map(({ id, tKey, icon }) => (
