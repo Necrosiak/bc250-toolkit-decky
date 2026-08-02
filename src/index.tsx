@@ -99,6 +99,8 @@ interface SystemStatus {
   fan_rpm?: number;
   gpu_clock_mhz?: number;
   cpu_clock_mhz?: number;
+  cpu_cores?: number;
+  cpu_threads?: number;
   mem_total_mb?: number;
   mem_used_mb?: number;
   scx_state?: string;
@@ -107,6 +109,18 @@ interface SystemStatus {
   gamemode_active?: boolean;
   tweaks_installed?: boolean;
   tweaks_last_update?: string;
+}
+
+interface CpuUnlockStatus {
+  ok: boolean;
+  error?: string | null;
+  board_is_bc250?: boolean;
+  cores?: number | null;
+  threads?: number | null;
+  mask?: string | null;
+  eligible?: boolean;
+  already_unlocked?: boolean;
+  governor?: { unit: string | null; active: boolean };
 }
 
 interface CuStatus {
@@ -661,6 +675,8 @@ function CuTab() {
         </PanelSection>
       )}
 
+      <CpuUnlockSection />
+
       <PanelSection>
         <PanelSectionRow>
           <Field>
@@ -674,6 +690,126 @@ function CuTab() {
         </PanelSectionRow>
       </PanelSection>
     </>
+  );
+}
+
+// ── Déverrouillage des 2 cœurs CPU désactivés ────────────────────────────────
+// Volontairement présenté comme un TEST DE COMPATIBILITÉ temporaire, pas comme
+// un réglage permanent : le masque ne survit pas à une coupure secteur, et la
+// vraie persistance passe par le BIOS modifié. C'est aussi la démarche que
+// recommande l'upstream — éprouver la stabilité AVANT de flasher quoi que ce soit.
+function CpuUnlockSection() {
+  const [st, setSt] = useState<CpuUnlockStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const refresh = () =>
+    call<[], CpuUnlockStatus>("get_cpu_unlock_status")
+      .then(setSt)
+      .catch((e) => setSt({ ok: false, error: String(e) }));
+
+  useEffect(() => { refresh(); }, []);
+
+  const unlock = async () => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const r = await call<[], { ok: boolean; error?: string; need_reboot?: boolean }>(
+        "apply_cpu_unlock");
+      setMsg(r.ok ? `✓ ${t("cpu_unlock_done")}` : `✗ ${r.error ?? t("cpu_unlock_failed")}`);
+      if (r.ok) notify({ title: "BC250 Toolkit", body: t("cpu_unlock_done") });
+      await refresh();
+    } catch (e) {
+      setMsg(`✗ ${String(e)}`);
+    }
+    setBusy(false);
+  };
+
+  // Carte non BC-250 : la section n'a aucun sens, on ne l'affiche pas du tout.
+  if (st && st.ok && st.board_is_bc250 === false) return null;
+
+  const unlocked = (st?.cores ?? 0) >= 8;
+  const line = st == null
+    ? t("cu_reading")
+    : unlocked
+      ? `8C / 16T — ${t("cpu_unlock_active")}`
+      : `${st.cores ?? "?"}C / ${st.threads ?? "?"}T${st.mask ? `  ·  ${t("cpu_unlock_mask")} ${st.mask}` : ""}`;
+
+  return (
+    <PanelSection title={t("cpu_unlock_title")}>
+      <PanelSectionRow>
+        <Field label={t("sys_cpu")}>
+          <span style={{ fontWeight: "bold", fontSize: "14px", color: unlocked ? "#4caf50" : "#67a3ff" }}>
+            {line}
+          </span>
+        </Field>
+      </PanelSectionRow>
+
+      {/* Sur `st.error` et PAS sur `!st.ok` : la sonde peut très bien s'exécuter
+          correctement (ok=true) tout en rapportant qu'elle n'a pas pu lire le
+          masque (pas de root) ou que la carte n'est pas concernée. Se fier à
+          `ok` laissait ces cas-là muets à l'écran. */}
+      {/* Uniquement quand le masque n'a PAS pu être lu : si on l'a, le cas
+          « non éligible » est expliqué juste en dessous dans la langue de
+          l'utilisateur, et afficher les deux ferait doublon. */}
+      {st?.error && !unlocked && !st.mask && (
+        <PanelSectionRow>
+          <Field>
+            <div style={{
+              fontSize: "12px", color: "#ff9800", lineHeight: "1.4",
+              borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+            }}>{st.error}</div>
+          </Field>
+        </PanelSectionRow>
+      )}
+
+      {st?.ok && !unlocked && st.eligible && (
+        <>
+          <PanelSectionRow>
+            <Field>
+              <div style={{
+                fontSize: "11px", color: "#ff9800", lineHeight: "1.5",
+                borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+              }}>{t("cpu_unlock_warn")}</div>
+            </Field>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <ActionCard color="#ff9800" disabled={busy} onClick={unlock}>
+              <FaMicrochip /> {busy ? t("cpu_unlock_working") : t("cpu_unlock_btn")}
+            </ActionCard>
+          </PanelSectionRow>
+        </>
+      )}
+
+      {st?.ok && !unlocked && !st.eligible && st.mask && (
+        <PanelSectionRow>
+          <Field>
+            <div style={{ fontSize: "11px", color: "#888", lineHeight: "1.5" }}>
+              {t("cpu_unlock_not_eligible")}
+            </div>
+          </Field>
+        </PanelSectionRow>
+      )}
+
+      {msg && (
+        <PanelSectionRow>
+          <Field>
+            <div style={{
+              fontSize: "12px", lineHeight: "1.4",
+              color: msg.startsWith("✓") ? "#4caf50" : "#f44336",
+            }}>{msg}</div>
+          </Field>
+        </PanelSectionRow>
+      )}
+
+      <PanelSectionRow>
+        <Field>
+          <div style={{ fontSize: "10px", color: "#888", lineHeight: "1.5", whiteSpace: "pre-line" }}>
+            {t("cpu_unlock_legend")}
+          </div>
+        </Field>
+      </PanelSectionRow>
+    </PanelSection>
   );
 }
 
@@ -773,6 +909,15 @@ function SystemTab() {
           <span style={{ color: ramColor, fontWeight: "bold" }}>
             {status.mem_used_mb != null
               ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
+              : t("cu_na")}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("sys_cpu")}>
+          {/* 6C/12T d'origine, 8C/16T une fois les 2 cœurs désactivés réveillés
+              — on passe au vert dans ce cas pour que l'état saute aux yeux. */}
+          <span style={{ color: (status.cpu_cores ?? 0) >= 8 ? "#4caf50" : "#67a3ff", fontWeight: "bold" }}>
+            {status.cpu_cores != null && status.cpu_threads != null
+              ? `${status.cpu_cores}C / ${status.cpu_threads}T`
               : t("cu_na")}
           </span>
         </InfoRow>

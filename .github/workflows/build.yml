@@ -33,6 +33,10 @@ jobs:
           mkdir -p out/BC250-Toolkit/dist
           cp dist/index.js out/BC250-Toolkit/dist/
           cp main.py updater.py bios_uma.py plugin.json package.json games_db.json games_catalog.json README.md out/BC250-Toolkit/
+          # Déverrouillage 8 cœurs : notre sonde de statut + le script upstream de
+          # rw-r-r-0644 avec sa licence MIT (obligatoire, et gardée byte-identique).
+          cp -r core_unlock out/BC250-Toolkit/
+          test -f out/BC250-Toolkit/core_unlock/upstream/LICENSE
           cd out
           zip -r ../BC250-Toolkit.zip BC250-Toolkit/
 

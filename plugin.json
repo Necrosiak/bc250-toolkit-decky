@@ -1,7 +1,7 @@
 {
   "name": "BC250 Toolkit",
   "author": "Necrosiak",
-  "flags": ["_root"],
+  "flags": ["root"],
   "api_version": 1,
   "publish": {
     "tags": ["bc250", "amd", "apu", "gaming", "optimizer", "launch-options", "proton"],

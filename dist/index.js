@@ -214,7 +214,12 @@ const T = {
         sys_res: "Resources",
         sys_ram: "Enabled RAM",
         sys_ram_used: "Used RAM",
-        sys_cu: "Active CUs",
+        sys_cpu: "CPU cores", sys_cu: "Active CUs",
+        cpu_unlock_title: "8-core unlock", cpu_unlock_active: "unlocked", cpu_unlock_mask: "mask",
+        cpu_unlock_btn: "Unlock 8 cores / 16 threads", cpu_unlock_working: "Unlocking…",
+        cpu_unlock_done: "Done — reboot to bring up all 8 cores.", cpu_unlock_failed: "Unlock failed",
+        cpu_unlock_warn: "These 2 cores were disabled by the factory. Stress-test the system before relying on them.", cpu_unlock_not_eligible: "This board does not report the expected mask, so it is left alone on purpose.",
+        cpu_unlock_legend: "Temporary: a full power-off reverts it. Treat it as a compatibility test — permanent unlock needs the modified BIOS. See the README.",
         sys_status: "Status",
         sys_scheduler: "Scheduler",
         sys_tuned: "Tuned",
@@ -295,7 +300,12 @@ const T = {
         uma_writing: "Écriture...",
         uma_not_supported: "⚠ BIOS non supporté ({detail}) — contrôle UMA désactivé",
         sys_temps: "Températures", sys_fan: "Ventilateur", sys_clock_gpu: "Fréq. GPU", sys_clock_cpu: "Fréq. CPU", sys_status: "Statut", sys_scheduler: "Scheduler",
-        sys_res: "Ressources", sys_ram: "RAM activée", sys_ram_used: "RAM utilisée", sys_cu: "CU actifs",
+        sys_res: "Ressources", sys_ram: "RAM activée", sys_ram_used: "RAM utilisée", sys_cpu: "Cœurs CPU", sys_cu: "CU actifs",
+        cpu_unlock_title: "Déverrouillage 8 cœurs", cpu_unlock_active: "déverrouillé", cpu_unlock_mask: "masque",
+        cpu_unlock_btn: "Déverrouiller 8 cœurs / 16 threads", cpu_unlock_working: "Déverrouillage…",
+        cpu_unlock_done: "Fait — redémarre pour activer les 8 cœurs.", cpu_unlock_failed: "Échec du déverrouillage",
+        cpu_unlock_warn: "Ces 2 cœurs ont été désactivés en usine. Teste la stabilité avant de compter dessus.", cpu_unlock_not_eligible: "Cette carte ne rend pas le masque attendu : on n'y touche pas, volontairement.",
+        cpu_unlock_legend: "Temporaire : une coupure secteur l'annule. À voir comme un test de compatibilité — la permanence passe par le BIOS modifié. Voir le README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actif", sys_inactive: "✗ inactif", sys_unknown: "inconnu",
         sys_last_update: "Dernier update",
@@ -359,7 +369,12 @@ const T = {
         uma_writing: "Schreibe...",
         uma_not_supported: "⚠ Nicht unterstütztes BIOS ({detail}) — UMA-Steuerung deaktiviert",
         sys_temps: "Temperaturen", sys_fan: "Lüfter", sys_clock_gpu: "GPU-Takt", sys_clock_cpu: "CPU-Takt", sys_status: "Status", sys_scheduler: "Scheduler",
-        sys_res: "Ressourcen", sys_ram: "Aktivierter RAM", sys_ram_used: "Belegter RAM", sys_cu: "Aktive CUs",
+        sys_res: "Ressourcen", sys_ram: "Aktivierter RAM", sys_ram_used: "Belegter RAM", sys_cpu: "CPU-Kerne", sys_cu: "Aktive CUs",
+        cpu_unlock_title: "8-Kern-Freischaltung", cpu_unlock_active: "freigeschaltet", cpu_unlock_mask: "Maske",
+        cpu_unlock_btn: "8 Kerne / 16 Threads freischalten", cpu_unlock_working: "Wird freigeschaltet…",
+        cpu_unlock_done: "Fertig — neu starten, um alle 8 Kerne zu nutzen.", cpu_unlock_failed: "Freischaltung fehlgeschlagen",
+        cpu_unlock_warn: "Diese 2 Kerne wurden ab Werk deaktiviert. Teste die Stabilität, bevor du dich darauf verlässt.", cpu_unlock_not_eligible: "Dieses Board liefert nicht die erwartete Maske und wird bewusst nicht angetastet.",
+        cpu_unlock_legend: "Vorübergehend: ein vollständiges Ausschalten setzt es zurück. Als Kompatibilitätstest gedacht — dauerhaft nur per modifiziertem BIOS. Siehe README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktiv", sys_inactive: "✗ inaktiv", sys_unknown: "unbekannt",
         sys_last_update: "Letztes Update",
@@ -415,7 +430,12 @@ const T = {
         uma_writing: "Escribiendo...",
         uma_not_supported: "⚠ BIOS no soportado ({detail}) — control UMA desactivado",
         sys_temps: "Temperaturas", sys_fan: "Ventilador", sys_clock_gpu: "Frec. GPU", sys_clock_cpu: "Frec. CPU", sys_status: "Estado", sys_scheduler: "Planificador",
-        sys_res: "Recursos", sys_ram: "RAM activada", sys_ram_used: "RAM usada", sys_cu: "CUs activos",
+        sys_res: "Recursos", sys_ram: "RAM activada", sys_ram_used: "RAM usada", sys_cpu: "Núcleos de CPU", sys_cu: "CUs activos",
+        cpu_unlock_title: "Desbloqueo de 8 núcleos", cpu_unlock_active: "desbloqueado", cpu_unlock_mask: "máscara",
+        cpu_unlock_btn: "Desbloquear 8 núcleos / 16 hilos", cpu_unlock_working: "Desbloqueando…",
+        cpu_unlock_done: "Listo — reinicia para activar los 8 núcleos.", cpu_unlock_failed: "Fallo al desbloquear",
+        cpu_unlock_warn: "Estos 2 núcleos se desactivaron de fábrica. Prueba la estabilidad antes de confiar en ellos.", cpu_unlock_not_eligible: "Esta placa no devuelve la máscara esperada, así que se deja intacta a propósito.",
+        cpu_unlock_legend: "Temporal: un apagado completo lo revierte. Tómalo como una prueba de compatibilidad — la permanencia exige la BIOS modificada. Consulta el README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ activo", sys_inactive: "✗ inactivo", sys_unknown: "desconocido",
         sys_last_update: "Última actualización",
@@ -471,7 +491,12 @@ const T = {
         uma_writing: "Scrittura...",
         uma_not_supported: "⚠ BIOS non supportato ({detail}) — controllo UMA disattivato",
         sys_temps: "Temperature", sys_fan: "Ventola", sys_clock_gpu: "Freq. GPU", sys_clock_cpu: "Freq. CPU", sys_status: "Stato", sys_scheduler: "Scheduler",
-        sys_res: "Risorse", sys_ram: "RAM attiva", sys_ram_used: "RAM usata", sys_cu: "CU attivi",
+        sys_res: "Risorse", sys_ram: "RAM attiva", sys_ram_used: "RAM usata", sys_cpu: "Core CPU", sys_cu: "CU attivi",
+        cpu_unlock_title: "Sblocco a 8 core", cpu_unlock_active: "sbloccato", cpu_unlock_mask: "maschera",
+        cpu_unlock_btn: "Sblocca 8 core / 16 thread", cpu_unlock_working: "Sblocco in corso…",
+        cpu_unlock_done: "Fatto — riavvia per attivare tutti gli 8 core.", cpu_unlock_failed: "Sblocco non riuscito",
+        cpu_unlock_warn: "Questi 2 core sono stati disattivati in fabbrica. Verifica la stabilità prima di farci affidamento.", cpu_unlock_not_eligible: "Questa scheda non riporta la maschera attesa: viene lasciata intatta di proposito.",
+        cpu_unlock_legend: "Temporaneo: uno spegnimento completo lo annulla. Consideralo un test di compatibilità — la permanenza richiede il BIOS modificato. Vedi il README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ attivo", sys_inactive: "✗ inattivo", sys_unknown: "sconosciuto",
         sys_last_update: "Ultimo aggiornamento",
@@ -527,7 +552,12 @@ const T = {
         uma_writing: "A escrever...",
         uma_not_supported: "⚠ BIOS não suportado ({detail}) — controlo UMA desativado",
         sys_temps: "Temperaturas", sys_fan: "Ventoinha", sys_clock_gpu: "Freq. GPU", sys_clock_cpu: "Freq. CPU", sys_status: "Estado", sys_scheduler: "Scheduler",
-        sys_res: "Recursos", sys_ram: "RAM ativada", sys_ram_used: "RAM usada", sys_cu: "CUs ativos",
+        sys_res: "Recursos", sys_ram: "RAM ativada", sys_ram_used: "RAM usada", sys_cpu: "Núcleos de CPU", sys_cu: "CUs ativos",
+        cpu_unlock_title: "Desbloqueio de 8 núcleos", cpu_unlock_active: "desbloqueado", cpu_unlock_mask: "máscara",
+        cpu_unlock_btn: "Desbloquear 8 núcleos / 16 threads", cpu_unlock_working: "A desbloquear…",
+        cpu_unlock_done: "Concluído — reinicia para ativar os 8 núcleos.", cpu_unlock_failed: "Falha ao desbloquear",
+        cpu_unlock_warn: "Estes 2 núcleos foram desativados de fábrica. Testa a estabilidade antes de contares com eles.", cpu_unlock_not_eligible: "Esta placa não devolve a máscara esperada, por isso é deixada intacta de propósito.",
+        cpu_unlock_legend: "Temporário: um desligamento completo reverte-o. Encara-o como um teste de compatibilidade — a permanência exige a BIOS modificada. Vê o README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ ativo", sys_inactive: "✗ inativo", sys_unknown: "desconhecido",
         sys_last_update: "Última atualização",
@@ -583,7 +613,12 @@ const T = {
         uma_writing: "Schrijven...",
         uma_not_supported: "⚠ Niet-ondersteund BIOS ({detail}) — UMA-beheer uitgeschakeld",
         sys_temps: "Temperaturen", sys_fan: "Ventilator", sys_clock_gpu: "GPU-klok", sys_clock_cpu: "CPU-klok", sys_status: "Status", sys_scheduler: "Planner",
-        sys_res: "Systeembronnen", sys_ram: "Geactiveerd RAM", sys_ram_used: "Gebruikt RAM", sys_cu: "Actieve CU's",
+        sys_res: "Systeembronnen", sys_ram: "Geactiveerd RAM", sys_ram_used: "Gebruikt RAM", sys_cpu: "CPU-kernen", sys_cu: "Actieve CU's",
+        cpu_unlock_title: "8-kern-ontgrendeling", cpu_unlock_active: "ontgrendeld", cpu_unlock_mask: "masker",
+        cpu_unlock_btn: "8 kernen / 16 threads ontgrendelen", cpu_unlock_working: "Bezig met ontgrendelen…",
+        cpu_unlock_done: "Klaar — herstart om alle 8 kernen te gebruiken.", cpu_unlock_failed: "Ontgrendelen mislukt",
+        cpu_unlock_warn: "Deze 2 kernen zijn in de fabriek uitgeschakeld. Test de stabiliteit voordat je erop vertrouwt.", cpu_unlock_not_eligible: "Dit bord geeft niet het verwachte masker terug en wordt bewust met rust gelaten.",
+        cpu_unlock_legend: "Tijdelijk: volledig uitschakelen draait het terug. Zie het als een compatibiliteitstest — permanent kan alleen via de aangepaste BIOS. Zie de README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ actief", sys_inactive: "✗ inactief", sys_unknown: "onbekend",
         sys_last_update: "Laatste update",
@@ -639,7 +674,12 @@ const T = {
         uma_writing: "Zapisywanie...",
         uma_not_supported: "⚠ Nieobsługiwany BIOS ({detail}) — sterowanie UMA wyłączone",
         sys_temps: "Temperatury", sys_fan: "Wentylator", sys_clock_gpu: "Zegar GPU", sys_clock_cpu: "Zegar CPU", sys_status: "Status", sys_scheduler: "Harmonogram",
-        sys_res: "Zasoby", sys_ram: "Aktywna pamięć RAM", sys_ram_used: "Użyta pamięć RAM", sys_cu: "Aktywne CU",
+        sys_res: "Zasoby", sys_ram: "Aktywna pamięć RAM", sys_ram_used: "Użyta pamięć RAM", sys_cpu: "Rdzenie CPU", sys_cu: "Aktywne CU",
+        cpu_unlock_title: "Odblokowanie 8 rdzeni", cpu_unlock_active: "odblokowane", cpu_unlock_mask: "maska",
+        cpu_unlock_btn: "Odblokuj 8 rdzeni / 16 wątków", cpu_unlock_working: "Odblokowywanie…",
+        cpu_unlock_done: "Gotowe — uruchom ponownie, aby użyć wszystkich 8 rdzeni.", cpu_unlock_failed: "Odblokowanie nie powiodło się",
+        cpu_unlock_warn: "Te 2 rdzenie wyłączono fabrycznie. Sprawdź stabilność, zanim na nich polegniesz.", cpu_unlock_not_eligible: "Ta płyta nie zwraca oczekiwanej maski, więc celowo pozostaje nietknięta.",
+        cpu_unlock_legend: "Tymczasowe: pełne wyłączenie zasilania cofa zmianę. Traktuj to jako test zgodności — trwałość wymaga zmodyfikowanego BIOS-u. Zobacz README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ aktywny", sys_inactive: "✗ nieaktywny", sys_unknown: "nieznany",
         sys_last_update: "Ostatnia aktualizacja",
@@ -695,7 +735,12 @@ const T = {
         uma_writing: "Запись...",
         uma_not_supported: "⚠ Неподдерживаемый BIOS ({detail}) — управление UMA отключено",
         sys_temps: "Температуры", sys_fan: "Вентилятор", sys_clock_gpu: "Частота GPU", sys_clock_cpu: "Частота CPU", sys_status: "Состояние", sys_scheduler: "Планировщик",
-        sys_res: "Ресурсы", sys_ram: "Активная ОЗУ", sys_ram_used: "Использовано ОЗУ", sys_cu: "Активные CU",
+        sys_res: "Ресурсы", sys_ram: "Активная ОЗУ", sys_ram_used: "Использовано ОЗУ", sys_cpu: "Ядра ЦП", sys_cu: "Активные CU",
+        cpu_unlock_title: "Разблокировка 8 ядер", cpu_unlock_active: "разблокировано", cpu_unlock_mask: "маска",
+        cpu_unlock_btn: "Разблокировать 8 ядер / 16 потоков", cpu_unlock_working: "Разблокировка…",
+        cpu_unlock_done: "Готово — перезагрузите, чтобы задействовать все 8 ядер.", cpu_unlock_failed: "Не удалось разблокировать",
+        cpu_unlock_warn: "Эти 2 ядра отключены на заводе. Проверьте стабильность, прежде чем на них полагаться.", cpu_unlock_not_eligible: "Эта плата не возвращает ожидаемую маску, поэтому намеренно не трогается.",
+        cpu_unlock_legend: "Временно: полное отключение питания сбрасывает это. Считайте это проверкой совместимости — постоянство даёт только модифицированный BIOS. См. README.",
         sys_tuned: "Tuned", sys_gamemode: "Gamemode",
         sys_active: "✓ активен", sys_inactive: "✗ неактивен", sys_unknown: "неизвестно",
         sys_last_update: "Последнее обновление",
@@ -1010,10 +1055,58 @@ function CuTab() {
                                     fontSize: "11px",
                                     color: umaMsg.startsWith("✓") ? "#4caf50" : "#f44336",
                                     lineHeight: "1.4",
-                                }, children: umaMsg }) }) }))] })), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                }, children: umaMsg }) }) }))] })), SP_JSX.jsx(CpuUnlockSection, {}), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
                                 fontSize: "10px", color: "#888", lineHeight: "1.5",
                                 whiteSpace: "pre-line", textAlign: "center",
                             }, children: t("cu_legend") }) }) }) })] }));
+}
+// ── Déverrouillage des 2 cœurs CPU désactivés ────────────────────────────────
+// Volontairement présenté comme un TEST DE COMPATIBILITÉ temporaire, pas comme
+// un réglage permanent : le masque ne survit pas à une coupure secteur, et la
+// vraie persistance passe par le BIOS modifié. C'est aussi la démarche que
+// recommande l'upstream — éprouver la stabilité AVANT de flasher quoi que ce soit.
+function CpuUnlockSection() {
+    const [st, setSt] = SP_REACT.useState(null);
+    const [busy, setBusy] = SP_REACT.useState(false);
+    const [msg, setMsg] = SP_REACT.useState(null);
+    const refresh = () => call("get_cpu_unlock_status")
+        .then(setSt)
+        .catch((e) => setSt({ ok: false, error: String(e) }));
+    SP_REACT.useEffect(() => { refresh(); }, []);
+    const unlock = async () => {
+        setBusy(true);
+        setMsg(null);
+        try {
+            const r = await call("apply_cpu_unlock");
+            setMsg(r.ok ? `✓ ${t("cpu_unlock_done")}` : `✗ ${r.error ?? t("cpu_unlock_failed")}`);
+            if (r.ok)
+                notify({ title: "BC250 Toolkit", body: t("cpu_unlock_done") });
+            await refresh();
+        }
+        catch (e) {
+            setMsg(`✗ ${String(e)}`);
+        }
+        setBusy(false);
+    };
+    // Carte non BC-250 : la section n'a aucun sens, on ne l'affiche pas du tout.
+    if (st && st.ok && st.board_is_bc250 === false)
+        return null;
+    const unlocked = (st?.cores ?? 0) >= 8;
+    const line = st == null
+        ? t("cu_reading")
+        : unlocked
+            ? `8C / 16T — ${t("cpu_unlock_active")}`
+            : `${st.cores ?? "?"}C / ${st.threads ?? "?"}T${st.mask ? `  ·  ${t("cpu_unlock_mask")} ${st.mask}` : ""}`;
+    return (SP_JSX.jsxs(DFL.PanelSection, { title: t("cpu_unlock_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_cpu"), children: SP_JSX.jsx("span", { style: { fontWeight: "bold", fontSize: "14px", color: unlocked ? "#4caf50" : "#67a3ff" }, children: line }) }) }), st?.error && !unlocked && !st.mask && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                            fontSize: "12px", color: "#ff9800", lineHeight: "1.4",
+                            borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                        }, children: st.error }) }) })), st?.ok && !unlocked && st.eligible && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                    fontSize: "11px", color: "#ff9800", lineHeight: "1.5",
+                                    borderLeft: "3px solid #ff9800", paddingLeft: "8px",
+                                }, children: t("cpu_unlock_warn") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: "#ff9800", disabled: busy, onClick: unlock, children: [SP_JSX.jsx(FaMicrochip, {}), " ", busy ? t("cpu_unlock_working") : t("cpu_unlock_btn")] }) })] })), st?.ok && !unlocked && !st.eligible && st.mask && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#888", lineHeight: "1.5" }, children: t("cpu_unlock_not_eligible") }) }) })), msg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                            fontSize: "12px", lineHeight: "1.4",
+                            color: msg.startsWith("✓") ? "#4caf50" : "#f44336",
+                        }, children: msg }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "10px", color: "#888", lineHeight: "1.5", whiteSpace: "pre-line" }, children: t("cpu_unlock_legend") }) }) })] }));
 }
 // ── Onglet Système ────────────────────────────────────────────────────────────
 function SystemTab() {
@@ -1063,6 +1156,8 @@ function SystemTab() {
                                     SP_JSX.jsx("span", { style: { color: "#a24bfa" }, children: `  ·  ${status.cpu_clock_mhz} MHz` })] }) }), SP_JSX.jsx(InfoRow, { label: "GPU", children: SP_JSX.jsxs("span", { style: { fontWeight: "bold" }, children: [SP_JSX.jsx("span", { style: { color: tempColor(status.gpu_temp) }, children: status.gpu_temp != null ? `${status.gpu_temp}°C` : t("cu_na") }), status.gpu_clock_mhz != null &&
                                     SP_JSX.jsx("span", { style: { color: "#a24bfa" }, children: `  ·  ${status.gpu_clock_mhz} MHz` })] }) }), SP_JSX.jsx(InfoRow, { label: t("sys_fan"), children: SP_JSX.jsx("span", { style: { color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }, children: status.fan_rpm != null ? `${status.fan_rpm} RPM` : t("cu_na") }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_res"), children: [SP_JSX.jsx(InfoRow, { label: t("sys_ram"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: status.mem_total_mb != null ? gb(status.mem_total_mb) : t("cu_na") }) }), SP_JSX.jsx(InfoRow, { label: t("sys_ram_used"), children: SP_JSX.jsx("span", { style: { color: ramColor, fontWeight: "bold" }, children: status.mem_used_mb != null
                                 ? `${gb(status.mem_used_mb)}${ramPct != null ? ` (${ramPct}%)` : ""}`
+                                : t("cu_na") }) }), SP_JSX.jsx(InfoRow, { label: t("sys_cpu"), children: SP_JSX.jsx("span", { style: { color: (status.cpu_cores ?? 0) >= 8 ? "#4caf50" : "#67a3ff", fontWeight: "bold" }, children: status.cpu_cores != null && status.cpu_threads != null
+                                ? `${status.cpu_cores}C / ${status.cpu_threads}T`
                                 : t("cu_na") }) }), SP_JSX.jsx(InfoRow, { label: t("sys_cu"), children: SP_JSX.jsx("span", { style: { color: "#67a3ff", fontWeight: "bold" }, children: cu?.cu_count != null && cu.cu_count > 0 ? `${cu.cu_count} / 40` : t("cu_na") }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("sys_status"), children: [SP_JSX.jsx(InfoRow, { label: t("sys_scheduler"), children: SP_JSX.jsx("span", { style: { color: status.scx_state === "enabled" ? "#4caf50" : "#f44336", fontSize: "12px" }, children: status.scx_state === "enabled"
                                 ? `✓ ${status.scx_sched ?? "scx"}`
                                 : `✗ ${status.scx_state ?? t("sys_unknown")}` }) }), SP_JSX.jsx(InfoRow, { label: t("sys_tuned"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#ccc" }, children: status.tuned_profile ?? t("sys_unknown") }) }), SP_JSX.jsx(InfoRow, { label: t("sys_gamemode"), children: SP_JSX.jsx("span", { style: { color: status.gamemode_active ? "#4caf50" : "#f44336" }, children: status.gamemode_active ? t("sys_active") : t("sys_inactive") }) })] }), status.tweaks_installed && (SP_JSX.jsxs(DFL.PanelSection, { title: "bc250-tweaks", children: [status.tweaks_last_update && (SP_JSX.jsx(InfoRow, { label: t("sys_last_update"), children: SP_JSX.jsx("span", { style: { fontSize: "10px", color: "#aaa" }, children: status.tweaks_last_update }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: updating, onClick: handleUpdate, children: [SP_JSX.jsx(IcRefresh, {}), " ", updating ? t("sys_btn_updating") : t("sys_btn_update")] }) }), updateLog && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("sys_log"), children: SP_JSX.jsx("div", { style: {

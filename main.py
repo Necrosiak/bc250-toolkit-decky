@@ -160,7 +160,7 @@ def _umr_install_hint() -> str:
 
 
 def _umr_cmd_prefix(umr: str) -> list:
-    # Le plugin tourne en tant que bazzite (non-root) — umr a besoin de root pour debugfs
+    # Repli si le flag root du plugin.json n'a pas été honoré : umr exige root pour debugfs
     if os.geteuid() != 0:
         return ["sudo", "-n", umr]
     return [umr]
@@ -405,7 +405,9 @@ class Plugin:
 
     def _write_settings(self, data: dict) -> None:
         BC250_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        _chown_user(BC250_DATA_DIR)
         TOOLKIT_SETTINGS_FILE.write_text(json.dumps(data, indent=2))
+        _chown_user(TOOLKIT_SETTINGS_FILE)
 
     async def get_auto_apply(self) -> bool:
         return bool(self._read_settings().get("auto_apply", False))
@@ -435,12 +437,19 @@ class Plugin:
         """Installe ExecStartPre dans le service Steam pour appliquer les VDF pending."""
         try:
             BC250_DATA_DIR.mkdir(parents=True, exist_ok=True)
+            _chown_user(BC250_DATA_DIR)
             PRE_STEAM_SCRIPT.write_text(_APPLY_VDF_SCRIPT)
             PRE_STEAM_SCRIPT.chmod(0o755)
+            _chown_user(PRE_STEAM_SCRIPT)
             STEAM_DROPIN_DIR.mkdir(parents=True, exist_ok=True)
+            _chown_user(STEAM_DROPIN_DIR)
             STEAM_DROPIN.write_text(f"[Service]\nExecStartPre=-{PRE_STEAM_SCRIPT}\n")
-            # daemon-reload dans le contexte user (plugin tourne en root)
-            user_uid = BC250_DATA_DIR.stat().st_uid if BC250_DATA_DIR.exists() else None
+            _chown_user(STEAM_DROPIN)
+            # daemon-reload dans le contexte user (le plugin tourne en root).
+            # _user_uid() et PAS le propriétaire de BC250_DATA_DIR : ce dossier
+            # est créé par nous, donc par root — on aurait pointé
+            # XDG_RUNTIME_DIR sur /run/user/0 et parlé au mauvais systemd.
+            user_uid = _user_uid()
             if user_uid:
                 subprocess.run(
                     ["systemctl", "--user", "daemon-reload"],
@@ -530,6 +539,34 @@ class Plugin:
                    if l.lower().startswith("cpu mhz")]
             if mhz:
                 status["cpu_clock_mhz"] = round(sum(mhz) / len(mhz))
+        except Exception:
+            pass
+
+        # CPU topology — cores / threads. The BC-250 enumerates 6 of the 8 Zen 2
+        # cores on its Oberon die (6C/12T); boards running the community core
+        # unlock report 8C/16T, so surfacing both numbers makes the state
+        # obvious. /proc/cpuinfo only lists ONLINE CPUs, and its "physical id"
+        # + "core id" pair is what distinguishes a core from its SMT sibling.
+        try:
+            pairs, threads = set(), 0
+            phys = core = None
+            for line in Path("/proc/cpuinfo").read_text().splitlines() + [""]:
+                key, _, val = line.partition(":")
+                key, val = key.strip(), val.strip()
+                if key == "processor":
+                    threads += 1
+                elif key == "physical id":
+                    phys = val
+                elif key == "core id":
+                    core = val
+                elif not key:                       # blank line = end of block
+                    if core is not None:
+                        pairs.add((phys, core))
+                    phys = core = None
+            if threads:
+                status["cpu_threads"] = threads
+            if pairs:
+                status["cpu_cores"] = len(pairs)
         except Exception:
             pass
 
@@ -684,7 +721,9 @@ class Plugin:
                 except Exception:
                     pass
             pending[str(app_id)] = launch_options
+            _chown_user(BC250_DATA_DIR)
             PENDING_LO_FILE.write_text(json.dumps(pending))
+            _chown_user(PENDING_LO_FILE)
         except Exception:
             pass
 
@@ -774,7 +813,9 @@ class Plugin:
                 state.pop(str(app_id), None)
             else:
                 state[str(app_id)] = {"match": match, "options": options}
+            _chown_user(BC250_DATA_DIR)
             RADV_STATE_FILE.write_text(json.dumps(state, indent=2))
+            _chown_user(RADV_STATE_FILE)
             self._regenerate_drirc()
             return {"ok": True}
         except Exception as e:
@@ -1035,6 +1076,104 @@ class Plugin:
 
         return {"ok": False, "error": "\n".join(errors)[-1000:]}
 
+    # ── Déverrouillage des 2 cœurs CPU désactivés (6C/12T → 8C/16T) ───────────
+    # Le BC-250 n'énumère que 6 des 8 cœurs Zen 2 de sa puce Oberon. Le masque de
+    # présence (SMN 0x0115A870) n'est PAS accessible en écriture depuis l'hôte :
+    # il faut passer par une primitive SMU. Tout l'écriture est déléguée au script
+    # de rw-r-r-0644 (tools/bc250-core-unlock/, MIT, gardé intact) ; nous ne
+    # faisons que la lecture d'état et l'orchestration.
+    #
+    # ⚠️ VOLATILE, ET C'EST VOULU : le masque tient les redémarrages à chaud mais
+    # une coupure secteur le remet à 0x77. On n'installe DÉLIBÉRÉMENT aucun
+    # service au boot — le rendre permanent exigerait un reboot automatique
+    # supplémentaire à chaque démarrage à froid. La vraie persistance passe par
+    # le BIOS modifié « -T » (voir le README), qui l'expose avec un interrupteur.
+
+    def _core_tool(self, name: str) -> Path:
+        """Chemin d'un outil, que le plugin soit déployé à plat ou en dépôt."""
+        here = Path(__file__).resolve().parent
+        for base in (here / "core_unlock", here / "defaults" / "core_unlock"):
+            p = base / name
+            if p.exists():
+                return p
+        return here / "core_unlock" / name
+
+    async def get_cpu_unlock_status(self) -> dict:
+        """État du déverrouillage. Lecture seule, n'écrit jamais le masque."""
+        script = self._core_tool("bc250-core-status.py")
+        if not script.exists():
+            return {"ok": False, "error": "sonde de statut introuvable"}
+        try:
+            r = await asyncio.get_event_loop().run_in_executor(
+                None, lambda: subprocess.run(
+                    _sudo_cmd(["python3", str(script)]),
+                    capture_output=True, text=True, timeout=20))
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+        if r.returncode != 0 or not r.stdout.strip():
+            # Cas le plus courant hors Bazzite : pas de sudo sans mot de passe.
+            # On le dit explicitement plutôt que de rendre un état vide.
+            err = (r.stderr or "").strip() or f"code de sortie {r.returncode}"
+            if "password" in err.lower() or "sudo" in err.lower():
+                err = ("privilèges root indisponibles (sudo sans mot de passe "
+                       "non configuré)")
+            return {"ok": False, "error": err}
+        try:
+            data = json.loads(r.stdout.strip().splitlines()[-1])
+        except Exception as e:
+            return {"ok": False, "error": f"sortie illisible: {e}"}
+        data["ok"] = True
+        return data
+
+    async def apply_cpu_unlock(self) -> dict:
+        """Écrit le masque via le script upstream. Effectif au PROCHAIN reboot."""
+        status = await self.get_cpu_unlock_status()
+        if not status.get("ok"):
+            return status
+        if status.get("already_unlocked"):
+            return {"ok": True, "already": True,
+                    "need_reboot": (status.get("cores") or 0) < 8}
+        if not status.get("eligible"):
+            return {"ok": False,
+                    "error": status.get("error") or "carte non éligible"}
+
+        script = self._core_tool("upstream/bc250-unlock-cores.py")
+        if not script.exists():
+            return {"ok": False, "error": "script de déverrouillage introuvable"}
+
+        # Le gouverneur SMU se dispute la boîte aux lettres : on l'arrête le
+        # temps de l'écriture, et on le REMET quoi qu'il arrive — le laisser à
+        # l'arrêt priverait la carte de sa gestion de fréquences.
+        gov = (status.get("governor") or {}).get("unit")
+        was_active = bool((status.get("governor") or {}).get("active"))
+        loop = asyncio.get_event_loop()
+
+        def _run(cmd, timeout=30):
+            return subprocess.run(_sudo_cmd(cmd), capture_output=True,
+                                  text=True, timeout=timeout)
+
+        try:
+            if gov and was_active:
+                await loop.run_in_executor(
+                    None, lambda: _run(["systemctl", "stop", gov + ".service"]))
+            r = await loop.run_in_executor(
+                None, lambda: _run(["python3", str(script)], 60))
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+        finally:
+            if gov and was_active:
+                try:
+                    await loop.run_in_executor(
+                        None,
+                        lambda: _run(["systemctl", "start", gov + ".service"]))
+                except Exception:
+                    pass
+
+        out = ((r.stdout or "") + (r.stderr or "")).strip()
+        if r.returncode != 0:
+            return {"ok": False, "error": out or f"code de sortie {r.returncode}"}
+        return {"ok": True, "need_reboot": True, "output": out}
+
     # ── UMA (VRAM) via variable EFI AmdSetup ──────────────────────────────────
     # Contrairement aux CU (pokés à chaud), l'UMA est un carve-out décidé au POST :
     # on patche la NVRAM du BIOS et le changement ne prend effet qu'au REBOOT.
@@ -1085,7 +1224,42 @@ def _read_vram_total_mb() -> int | None:
 
 
 def _user_uid() -> int:
+    """UID du VRAI utilisateur, jamais celui du plugin.
+
+    On interroge le HOME et pas BC250_DATA_DIR : le plugin tourne en root, donc
+    il crée lui-même ce dossier et son propriétaire serait alors `0`. On
+    renverrait root, et le chown de ~/.drirc donnerait la config mesa de
+    l'utilisateur à root — silencieusement. Le home, lui, appartient toujours à
+    l'utilisateur. BC250_DATA_DIR ne sert plus que de repli, et seulement s'il
+    n'appartient pas à root.
+    """
     try:
-        return BC250_DATA_DIR.stat().st_uid if BC250_DATA_DIR.exists() else _USER_HOME.stat().st_uid
+        uid = _USER_HOME.stat().st_uid
+        if uid != 0:
+            return uid
     except Exception:
-        return 1000
+        pass
+    try:
+        uid = BC250_DATA_DIR.stat().st_uid
+        if uid != 0:
+            return uid
+    except Exception:
+        pass
+    return 1000
+
+
+def _chown_user(path) -> None:
+    """Rend à l'utilisateur un fichier que le plugin vient de créer en root.
+
+    Sans ça, tout ce que le plugin écrit dans le home appartiendrait à root :
+    illisible en écriture pour les outils qui tournent en session, et un piège
+    si le plugin repassait un jour en non-root (il ne pourrait plus rien
+    réécrire de ce qu'il a lui-même produit).
+    """
+    if os.geteuid() != 0:
+        return
+    try:
+        uid = _user_uid()
+        os.chown(path, uid, uid)
+    except Exception:
+        pass

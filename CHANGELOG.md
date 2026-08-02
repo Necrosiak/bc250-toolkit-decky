@@ -2,6 +2,47 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.5.0] - 2026-08-02
+
+### Added
+- **8-core CPU unlock (6C/12T → 8C/16T).** The BC-250 enumerates only 6 of the
+  8 Zen 2 cores on its Oberon die. The CU/UMA tab now reads the core presence
+  mask, shows whether this particular board is eligible, and can wake the other
+  two cores up. Only a mask of exactly `0x77` is acted on — an asymmetric mask
+  looks like genuine factory defect binning, and the SMU primitive writes `0xFF`
+  regardless, so those boards are deliberately left alone.
+  - **Temporary by design.** The mask survives warm reboots but a full power-off
+    reverts it. It is presented as a *compatibility test* to run before
+    considering the modified BIOS, which is the only way to make it permanent.
+  - The SMU governor is stopped for the write and restarted whatever happens.
+    Its unit name is auto-detected (`cyan-skillfish-governor-smu`,
+    `oberon-governor`, …) and its absence is handled, so this works on any
+    distribution.
+  - The status probe requires three consistent reads before it reports a mask:
+    the governor shares the same SMN window, so a read taken mid-transaction
+    returns an unrelated register.
+  - Credit: the unlock primitive and script are the work of
+    [rw-r-r-0644](https://github.com/rw-r-r-0644/bc250-core-unlock) (MIT),
+    vendored untouched with its licence.
+- **CPU cores and threads** in the System tab's Resources section — `6C / 12T`,
+  turning green at `8C / 16T`.
+
+### Fixed
+- **The plugin was not running as root at all.** The privileged flag in
+  `plugin.json` was spelled `_root` instead of `root`, so DeckyLoader ignored it
+  and the backend ran as the normal user. Everything that needs privileges — CU
+  management, UMA/VRAM writes — was silently relying on passwordless `sudo`
+  being configured, which is not the case on most systems. Now fixed.
+- **The user ID lookup could return root**, which the fix above would have made
+  reachable. `_user_uid()` read the owner of `~/.local/share/bc250-toolkit`
+  first; now that the plugin creates that directory itself as root, the function
+  returned `0` — and `~/.drirc` would have been chowned to root, silently taking
+  the user's mesa configuration away from them. It now asks the home directory,
+  which never belongs to root. The same mistake is fixed for the user-context
+  `systemctl --user daemon-reload`, which would have talked to root's systemd.
+- **Files written into the home directory are now given back to the user**,
+  instead of staying root-owned.
+
 ## [0.4.9] - 2026-07-23
 
 ### Fixed

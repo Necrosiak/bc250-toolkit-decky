@@ -46,8 +46,49 @@ Community database of optimized launch options for the BC-250 — apply in one c
   - Writing to the BIOS requires an up-to-date [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) (provides the root helper `bc250-uma-helper` — no sudo password prompt)
   - **Auto (≈8 GB) is the recommended safe value** — if you get graphical artifacts (e.g. green glitches) after a change, switch back to Auto
 
+### 8-core CPU unlock (6C/12T → 8C/16T)
+
+The BC-250 enumerates only 6 of the 8 Zen 2 cores on its Oberon die. The panel
+reads the core presence mask and, when the board is eligible, can wake the other
+two up.
+
+- **Status** — cores/threads currently online, plus the raw mask
+- **Eligibility** — only a mask of exactly `0x77` is acted on. An asymmetric mask
+  looks like genuine factory defect binning, and the SMU primitive writes `0xFF`
+  regardless, so those boards are deliberately left alone
+- **Unlock button** — takes effect at the **next reboot**
+- The SMU governor is stopped for the write and restarted right after, whatever
+  happens. Its unit name is auto-detected (`cyan-skillfish-governor-smu`,
+  `oberon-governor`, …) so this works on any distribution — and it is fine if no
+  governor is installed at all
+
+> [!WARNING]
+> **This is temporary by design.** The mask survives warm reboots, but a full
+> power-off reverts it. Treat the button as a **compatibility test**: unlock,
+> reboot, then stress-test for a few hours and check `dmesg` for machine-check
+> errors before relying on those cores. They were disabled at the factory and
+> nobody knows exactly why.
+
+**Making it permanent** is a BIOS matter, not a software one. The community
+firmware [AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script](https://github.com/Forbidden-Darkness/AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script)
+(MIT) ships images suffixed `-T` that expose *Unlock CPU Cores* as a BIOS option
+with an on/off toggle — permanent **and** reversible. They are published as the
+`release-0.1.3.zip` asset, not in the repository's `Firmware/` folder. Flashing
+firmware can brick the board, its `menu.nsh` backs your current firmware up
+first, and **we ship no ROM ourselves** — verify what you flash by checksum.
+
+Known side effect of the software unlock: `pp_dpm_sclk` and hwmon `freq1_input`
+start reporting nonsense GPU clocks (tens of MHz instead of hundreds). The GPU
+and the SMU are fine — only amdgpu's derived value is wrong, so the panel's GPU
+clock readout becomes unreliable until the next cold boot.
+
+Credit: the unlock primitive and the script are the work of
+[rw-r-r-0644](https://github.com/rw-r-r-0644/bc250-core-unlock) (MIT, vendored
+untouched in `core_unlock/upstream/` with its licence).
+
 ### System Tab
 - Real-time CPU/GPU temperatures, fan speed and GPU/CPU clocks
+- **CPU cores** — cores and threads currently online (`6C / 12T`, green at `8C / 16T`)
 - **Resources** — enabled system RAM (what the OS keeps after the UMA carve-out), used RAM with usage percentage, and active CU count
 - scx_lavd status, tuned profile, gamemode daemon status
 - Manual update button for [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
@@ -193,6 +234,9 @@ sudo systemctl restart plugin_loader
 ## Community contributors
 
 - [@AyeZeeBB](https://github.com/AyeZeeBB) — CachyOS/Arch support for the umr installation + GPU instance fallback (merged from their fork)
+- [@rw-r-r-0644](https://github.com/rw-r-r-0644) — found the 8-core unlock: the core presence mask at SMN `0x0115A870` and the ungated SMU queue-3 message that can write it, plus the decision to act only on a `0x77` mask. Their script is vendored untouched in `core_unlock/upstream/` (MIT) and does all the writing
+- [@Forbidden-Darkness](https://github.com/Forbidden-Darkness) — the modified P3.00 firmware that exposes the 8-core unlock as a BIOS option with an on/off toggle, and the flashing menu that backs your current firmware up first ([AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script](https://github.com/Forbidden-Darkness/AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script), MIT)
+- [Old Lamer](https://www.youtube.com/@OldLamer) — the videos that documented both unlock routes end to end and brought them to a wider audience
 
 ---
 
