@@ -169,18 +169,47 @@ def _replace_file(src: Path, dst: Path) -> None:
     so updates failed on root-owned installs. os.replace only needs write
     permission on the parent directory, and the replaced file then belongs to
     the current user, healing such installs one update at a time.
+
+    But Decky only root-owns the plugin's top-level directory and plugin.json
+    at install time (everything else is chowned to the host user recursively) —
+    so on a real install it is the *directory* that is unwritable, while dst
+    itself, when it already exists, usually is not. tmp+rename cannot work
+    there, since creating the tmp file needs directory write access too, while
+    overwriting an existing file's content only needs write permission on the
+    file. Fall back to that. Same fix as SkullKey v1.11.2 and Steamcord #16.
     """
     tmp_dst = dst.parent / (dst.name + ".bc250tk-new")
     try:
         shutil.copyfile(src, tmp_dst)
         shutil.copymode(src, tmp_dst)  # our own file: keeps +x on binaries
+        if dst.suffix in (".sh", ".py"):
+            # chmod the tmp file, which is ours — chmod-ing a root-owned dst
+            # is the same EPERM trap that copy2's copystat fell into.
+            os.chmod(tmp_dst, 0o755)
         os.replace(tmp_dst, dst)
+        return
+    except PermissionError:
+        try:
+            os.unlink(tmp_dst)
+        except OSError:
+            pass
+        if not dst.exists() or not os.access(dst, os.W_OK):
+            raise
     except OSError:
         try:
             os.unlink(tmp_dst)
         except OSError:
             pass
         raise
+
+    # Non-atomic (a crash mid-write leaves dst truncated), but src has already
+    # been downloaded and extracted successfully before this ever runs, and the
+    # alternative here is a guaranteed Permission denied.
+    with open(src, "rb") as s, open(dst, "wb") as d:
+        shutil.copyfileobj(s, d)
+    shutil.copymode(src, dst)
+    if dst.suffix in (".sh", ".py"):
+        os.chmod(dst, 0o755)
 
 
 async def apply(url: str) -> dict:

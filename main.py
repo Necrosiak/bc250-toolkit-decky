@@ -370,8 +370,15 @@ class Plugin:
             if not info.get("update_available"):
                 return
             print(f"[BC250 updater] {info['latest']} available (have {info['current']}); auto-applying")
-            if await updater.apply(info["url"]):
+            # apply() returns a dict: {"ok": False, "error": …} is always
+            # truthy, so a failure used to pass for a success and the loader
+            # was restarted anyway — on a loop, since the installed version
+            # had not changed. Read the field, not the dict.
+            res = await updater.apply(info["url"])
+            if res.get("ok"):
                 updater.restart_loader()
+            else:
+                print(f"[BC250 updater] update aborted: {res.get('error', 'unknown reason')}")
         except Exception as e:
             print(f"[BC250 updater] auto-check error: {e}")
 

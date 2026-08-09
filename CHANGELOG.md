@@ -2,6 +2,21 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.5.1] - 2026-08-09
+
+### Fixed
+- **The in-plugin updater could not update anything on a normal install, and
+  said it had.** Decky root-owns the plugin's top-level directory, so creating
+  the temporary file the updater writes through failed with `Permission
+  denied` — even though the files being replaced belong to the user. Writing
+  in place is now used as a fallback when the temporary file cannot be created
+  but the destination exists and is writable.
+- **A failed automatic update was reported as a success.** `apply()` returns a
+  dict, and `{"ok": False, "error": …}` is always truthy in Python, so the
+  boot-time auto-updater restarted Decky after a failure as if the update had
+  landed — repeating on every boot, since the installed version never changed.
+  It now reads the result and logs why it gave up.
+
 ## [0.5.0] - 2026-08-02
 
 ### Added
