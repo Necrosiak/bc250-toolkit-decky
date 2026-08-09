@@ -117,6 +117,12 @@ The plugin automatically detects the Steam interface language:
 
 > Distributed directly from GitHub: the URL above always points to the latest release, and the plugin then keeps itself current with its built-in auto-update.
 
+> **A note on automatic updates.** Decky owns the plugin's top-level directory,
+> so the built-in updater can rewrite existing files but cannot create new ones.
+> A release that adds a file at the top level therefore has to be installed the
+> normal way — *Install plugin from URL*, above — rather than through the
+> automatic update. The release notes say so whenever that is the case.
+
 Manual installation:
 
 ```bash
