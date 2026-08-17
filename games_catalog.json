@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-08-10",
+"updated": "2026-08-17",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -43,7 +43,8 @@
 },
 {
 "appid": "1623730",
-"name": "Palworld"
+"name": "Palworld",
+"top": true
 },
 {
 "appid": "1599340",
@@ -51,7 +52,8 @@
 },
 {
 "appid": "2358720",
-"name": "Black Myth: Wukong"
+"name": "Black Myth: Wukong",
+"top": true
 },
 {
 "appid": "304930",
@@ -122,7 +124,8 @@
 },
 {
 "appid": "1085660",
-"name": "Destiny 2"
+"name": "Destiny 2",
+"top": true
 },
 {
 "appid": "105600",
@@ -150,7 +153,8 @@
 },
 {
 "appid": "292030",
-"name": "The Witcher 3: Wild Hunt"
+"name": "The Witcher 3: Wild Hunt",
+"top": true
 },
 {
 "appid": "291550",
@@ -159,7 +163,8 @@
 },
 {
 "appid": "2246340",
-"name": "Monster Hunter Wilds"
+"name": "Monster Hunter Wilds",
+"top": true
 },
 {
 "appid": "552990",
@@ -175,7 +180,8 @@
 },
 {
 "appid": "238960",
-"name": "Path of Exile"
+"name": "Path of Exile",
+"top": true
 },
 {
 "appid": "945360",
@@ -248,8 +254,7 @@
 },
 {
 "appid": "3164500",
-"name": "Schedule I",
-"top": true
+"name": "Schedule I"
 },
 {
 "appid": "252950",
@@ -291,7 +296,8 @@
 },
 {
 "appid": "582010",
-"name": "Monster Hunter: World"
+"name": "Monster Hunter: World",
+"top": true
 },
 {
 "appid": "377160",
@@ -479,8 +485,7 @@
 },
 {
 "appid": "646570",
-"name": "Slay the Spire",
-"top": true
+"name": "Slay the Spire"
 },
 {
 "appid": "766570",
@@ -513,8 +518,7 @@
 },
 {
 "appid": "1551360",
-"name": "Forza Horizon 5",
-"top": true
+"name": "Forza Horizon 5"
 },
 {
 "appid": "365670",
@@ -535,7 +539,8 @@
 },
 {
 "appid": "2183900",
-"name": "Warhammer 40,000: Space Marine 2"
+"name": "Warhammer 40,000: Space Marine 2",
+"top": true
 },
 {
 "appid": "1286830",
@@ -547,8 +552,7 @@
 },
 {
 "appid": "440900",
-"name": "Conan Exiles Enhanced",
-"top": true
+"name": "Conan Exiles Enhanced"
 },
 {
 "appid": "1172620",
@@ -661,8 +665,7 @@
 },
 {
 "appid": "264710",
-"name": "Subnautica",
-"top": true
+"name": "Subnautica"
 },
 {
 "appid": "812140",
@@ -1000,8 +1003,7 @@
 },
 {
 "appid": "39210",
-"name": "FINAL FANTASY XIV Online",
-"top": true
+"name": "FINAL FANTASY XIV Online"
 },
 {
 "appid": "2379780",
@@ -1376,7 +1378,8 @@
 },
 {
 "appid": "460930",
-"name": "Tom Clancy's Ghost Recon Wildlands"
+"name": "Tom Clancy's Ghost Recon Wildlands",
+"top": true
 },
 {
 "appid": "1217060",
@@ -2753,8 +2756,7 @@
 },
 {
 "appid": "2344520",
-"name": "Diablo IV",
-"top": true
+"name": "Diablo IV"
 },
 {
 "appid": "216150",
@@ -5930,7 +5932,8 @@
 },
 {
 "appid": "2142790",
-"name": "Fields of Mistria"
+"name": "Fields of Mistria",
+"top": true
 },
 {
 "appid": "1934680",
@@ -5950,7 +5953,8 @@
 },
 {
 "appid": "2231380",
-"name": "Tom Clancy's Ghost Recon Breakpoint"
+"name": "Tom Clancy's Ghost Recon Breakpoint",
+"top": true
 },
 {
 "appid": "2208920",
