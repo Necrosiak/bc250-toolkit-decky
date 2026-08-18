@@ -193,3 +193,7 @@ sudo systemctl restart plugin_loader
 ## 🐧 Compatibilidade
 
 Trabalhamos ativamente para que este plugin funcione em **todos os sistemas operativos documentados para a BC-250** ([documentação da comunidade](https://elektricm.github.io/amd-bc250-docs)) — Bazzite, SteamOS, CachyOS/Arch, Fedora… — com **deteção automática do SO** (gestor de pacotes, instância GPU) para aplicar o método certo na sua distribuição.
+
+## Aviso sobre IA
+
+Foi usada IA na criação deste projeto: para engenharia reversa, desenvolvimento e documentação. **Não** foi usada para arte nem escrita criativa. Tudo o que é publicado é revisto por um humano, e o resultado é da minha responsabilidade. Se isso o incomoda, fica avisado.
