@@ -461,8 +461,8 @@ class Plugin:
                 subprocess.run(
                     ["systemctl", "--user", "daemon-reload"],
                     capture_output=True, timeout=5,
-                    env={**os.environ, "HOME": str(_USER_HOME),
-                         "XDG_RUNTIME_DIR": f"/run/user/{user_uid}"},
+                    env=_clean_env(HOME=str(_USER_HOME),
+                                   XDG_RUNTIME_DIR=f"/run/user/{user_uid}"),
                 )
         except Exception:
             pass
@@ -627,8 +627,8 @@ class Plugin:
             r = subprocess.run(
                 ["systemctl", "--user", "is-active", "gamemoded"],
                 capture_output=True, text=True, timeout=2,
-                env={**os.environ, "HOME": str(_USER_HOME),
-                     "XDG_RUNTIME_DIR": f"/run/user/{_user_uid()}"},
+                env=_clean_env(HOME=str(_USER_HOME),
+                               XDG_RUNTIME_DIR=f"/run/user/{_user_uid()}"),
             )
             status["gamemode_active"] = r.stdout.strip() == "active"
         except Exception:
@@ -1253,6 +1253,27 @@ def _user_uid() -> int:
     except Exception:
         pass
     return 1000
+
+
+def _clean_env(**overrides) -> dict:
+    """Env pour un binaire SYSTÈME, débarrassé de l'env PyInstaller.
+
+    plugin_loader est un binaire PyInstaller : il pointe LD_LIBRARY_PATH (et
+    parfois LD_PRELOAD) vers ses libs embarquées (/tmp/_MEI...). Un enfant les
+    hérite, donc `systemctl`/`flatpak` chargent le mauvais libcrypto et
+    abandonnent (« OPENSSL_3.4.0 not found »). PyInstaller garde l'original dans
+    LD_LIBRARY_PATH_ORIG : on le restaure, sinon on retire la variable.
+    Trouvé via Steamcord #38, où le même défaut cassait le partage d'écran sur
+    SteamOS — invisible sur Bazzite, dont les libs système sont compatibles.
+    """
+    env = {**os.environ, **overrides}
+    orig = env.pop("LD_LIBRARY_PATH_ORIG", None)
+    if orig is not None:
+        env["LD_LIBRARY_PATH"] = orig
+    else:
+        env.pop("LD_LIBRARY_PATH", None)
+    env.pop("LD_PRELOAD", None)
+    return env
 
 
 def _chown_user(path) -> None:
