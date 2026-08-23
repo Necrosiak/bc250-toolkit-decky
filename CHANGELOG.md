@@ -2,6 +2,20 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.5.2] - 2026-08-23
+
+### Fixed
+- **Calls to `systemctl --user` inherited the plugin loader's PyInstaller
+  environment.** Decky's loader is a PyInstaller binary and points
+  `LD_LIBRARY_PATH` (and sometimes `LD_PRELOAD`) at its own bundled libraries.
+  Child processes inherited them, so system binaries loaded the wrong
+  `libcrypto` and aborted with `OPENSSL_3.4.0 not found`. That silently broke
+  the user-systemd reload on unload and made gamemode always report itself as
+  inactive. Both call sites now run with a cleaned environment, restoring the
+  original `LD_LIBRARY_PATH` that PyInstaller saves aside. This never showed on
+  Bazzite, whose system libraries happen to match the bundled ones; it was found
+  while fixing the same flaw in Steamcord ([Steamcord #38](https://github.com/Necrosiak/Steamcord/issues/38)).
+
 ## [0.5.1] - 2026-08-09
 
 ### Fixed
