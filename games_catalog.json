@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-08-17",
+"updated": "2026-08-24",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -148,8 +148,7 @@
 },
 {
 "appid": "2694490",
-"name": "Path of Exile 2",
-"top": true
+"name": "Path of Exile 2"
 },
 {
 "appid": "292030",
@@ -296,8 +295,7 @@
 },
 {
 "appid": "582010",
-"name": "Monster Hunter: World",
-"top": true
+"name": "Monster Hunter: World"
 },
 {
 "appid": "377160",
@@ -1007,8 +1005,7 @@
 },
 {
 "appid": "2379780",
-"name": "Balatro",
-"top": true
+"name": "Balatro"
 },
 {
 "appid": "1142710",
@@ -1242,7 +1239,8 @@
 },
 {
 "appid": "1643320",
-"name": "S.T.A.L.K.E.R. 2: Heart of Chornobyl"
+"name": "S.T.A.L.K.E.R. 2: Heart of Chornobyl",
+"top": true
 },
 {
 "appid": "962130",
@@ -5953,8 +5951,7 @@
 },
 {
 "appid": "2231380",
-"name": "Tom Clancy's Ghost Recon Breakpoint",
-"top": true
+"name": "Tom Clancy's Ghost Recon Breakpoint"
 },
 {
 "appid": "2208920",
