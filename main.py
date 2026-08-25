@@ -269,6 +269,7 @@ _APPLY_VDF_SCRIPT = r'''#!/usr/bin/env python3
 """Applique les launch options en attente dans localconfig.vdf.
 Lancé via ExecStartPre avant que Steam démarre."""
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -279,13 +280,48 @@ except ImportError:
 
 PENDING_FILE = Path.home() / ".local/share/bc250-toolkit/pending_launch_options.json"
 
+def _pick_active_steam_user(users, home):
+    """SteamID64 du compte ACTIF parmi ceux de loginusers.vdf, ou None.
+
+    ⚠️ Steam a CHANGÉ ce fichier (constaté le 25/08/2026) : "MostRecent" a
+    disparu, remplacé par "AutoLogin" + "Timestamp", et registry.vdf n'expose
+    plus "ActiveUser" numérique mais "AutoLoginUser" (le NOM du compte). Le code
+    d'origine retombait alors sur « le PREMIER utilisateur du fichier » — juste
+    par hasard sur une machine mono-compte, faux dès qu'il y en a plusieurs.
+    On garde "MostRecent" en premier : un Steam plus ancien ne change pas.
+    """
+    autologin_name = ""
+    try:
+        reg = (home / ".steam/registry.vdf").read_text(errors="ignore")
+        m = re.search(r'"AutoLoginUser"\s+"([^"]+)"', reg)
+        if m:
+            autologin_name = m.group(1)
+    except Exception:
+        pass
+    by_name = by_flag = by_time = None
+    newest = -1
+    for uid, info in (users or {}).items():
+        if not isinstance(info, dict):
+            continue
+        if autologin_name and info.get("AccountName") == autologin_name:
+            by_name = by_name or uid
+        if by_flag is None and (info.get("MostRecent") == "1"
+                                or info.get("AutoLogin") == "1"):
+            by_flag = uid
+        try:
+            ts = int(info.get("Timestamp", 0))
+        except (TypeError, ValueError):
+            ts = 0
+        if ts > newest:
+            newest, by_time = ts, uid
+    return by_name or by_flag or by_time
+
+
 def find_userid():
     try:
         data = _vdf.load(open(Path.home() / ".steam/steam/config/loginusers.vdf"))
-        for uid, info in data.get("users", {}).items():
-            if info.get("MostRecent") == "1":
-                return str(int(uid) & 0xFFFFFFFF)
-        for uid in data.get("users", {}):
+        uid = _pick_active_steam_user(data.get("users", {}), Path.home())
+        if uid:
             return str(int(uid) & 0xFFFFFFFF)
     except Exception:
         pass
@@ -342,6 +378,43 @@ def main():
 if __name__ == "__main__":
     main()
 '''
+
+
+def _pick_active_steam_user(users, home):
+    """SteamID64 du compte ACTIF parmi ceux de loginusers.vdf, ou None.
+
+    ⚠️ Steam a CHANGÉ ce fichier (constaté le 25/08/2026) : "MostRecent" a
+    disparu, remplacé par "AutoLogin" + "Timestamp", et registry.vdf n'expose
+    plus "ActiveUser" numérique mais "AutoLoginUser" (le NOM du compte). Le code
+    d'origine retombait alors sur « le PREMIER utilisateur du fichier » — juste
+    par hasard sur une machine mono-compte, faux dès qu'il y en a plusieurs.
+    On garde "MostRecent" en premier : un Steam plus ancien ne change pas.
+    """
+    autologin_name = ""
+    try:
+        reg = (home / ".steam/registry.vdf").read_text(errors="ignore")
+        m = re.search(r'"AutoLoginUser"\s+"([^"]+)"', reg)
+        if m:
+            autologin_name = m.group(1)
+    except Exception:
+        pass
+    by_name = by_flag = by_time = None
+    newest = -1
+    for uid, info in (users or {}).items():
+        if not isinstance(info, dict):
+            continue
+        if autologin_name and info.get("AccountName") == autologin_name:
+            by_name = by_name or uid
+        if by_flag is None and (info.get("MostRecent") == "1"
+                                or info.get("AutoLogin") == "1"):
+            by_flag = uid
+        try:
+            ts = int(info.get("Timestamp", 0))
+        except (TypeError, ValueError):
+            ts = 0
+        if ts > newest:
+            newest, by_time = ts, uid
+    return by_name or by_flag or by_time
 
 
 class Plugin:
@@ -674,11 +747,8 @@ class Plugin:
         try:
             loginusers = _USER_HOME / ".steam" / "steam" / "config" / "loginusers.vdf"
             data = _vdf.load(open(loginusers))
-            users = data.get("users", {})
-            for uid, info in users.items():
-                if info.get("MostRecent") == "1":
-                    return str(int(uid) & 0xFFFFFFFF)
-            for uid in users:
+            uid = _pick_active_steam_user(data.get("users", {}), _USER_HOME)
+            if uid:
                 return str(int(uid) & 0xFFFFFFFF)
         except Exception:
             pass
