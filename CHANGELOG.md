@@ -2,6 +2,32 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.5.4] - 2026-08-25
+
+### Added
+- **A GPU load that is actually measured.** The BC-250's firmware does not
+  report GPU activity at all: `gpu_busy_percent` answers *operation not
+  supported*, and `average_gfx_activity` in the driver's metrics table holds
+  `0xFFFF`, the "unsupported" sentinel. Overlays divide that by 100 and show
+  **655 %** — a number that never moves, whatever the machine is doing.
+
+  The Resources tab now derives the figure from the kernel's per-engine
+  accounting (`drm-engine-gfx` in `fdinfo`), the same source `nvtop` uses.
+  Measured on a BC-250: about 58 % with only the Steam interface drawn, 68-75 %
+  in a game, tracking the GPU temperature as it climbs from 40 to 46 °C.
+
+### Fixed
+- **The SoC temperature is now read from the metrics table** alongside the GPU
+  temperature, instead of being unavailable.
+
+### Not shown, deliberately
+- **Power draw.** The same metrics table carries GPU and package wattage, and
+  both are unusable on this chip: under a *constant* load the GPU figure swings
+  between 0.9 W and 62 W within seconds. The decoding is sound — the temperature
+  beside it is steady and the CPU power field holds its sentinel — so the
+  firmware itself is at fault. Overlays read that field too, which is where
+  their wattages come from. No number is better than an invented one.
+
 ## [0.5.3] - 2026-08-25
 
 The Toolkit degraded differently: with no `MostRecent`, it fell back to the *first* account listed, which is right only by luck when several exist.
