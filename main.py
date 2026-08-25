@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import re
+import struct
 import shutil
 import subprocess
 import time
@@ -584,8 +585,42 @@ class Plugin:
 
     # ── System status ─────────────────────────────────────────────────────────
 
+    # Instantané fdinfo précédent, pour calculer la charge GPU par DIFFÉRENCE.
+    # L'interface interroge périodiquement : chaque appel mesure donc la charge
+    # écoulée depuis le précédent, sans thread ni échantillonnage bloquant.
+    _gpu_prev: tuple | None = None
+
     async def get_system_status(self) -> dict:
         status: dict = {}
+
+        # ── GPU : mesures RÉELLES (cf. _read_gpu_metrics / _drm_gfx_snapshot) ──
+        try:
+            metrics = _read_gpu_metrics()
+            status.update({k: v for k, v in metrics.items()
+                           if k != "gfx_activity_supported"})
+            # Dit à l'interface que le MATÉRIEL ne mesure pas la charge : c'est
+            # cette sentinelle que MangoHud affiche en 655 %.
+            status["gpu_activity_from_firmware"] = metrics.get(
+                "gfx_activity_supported", False)
+        except Exception:
+            pass
+        try:
+            now = time.monotonic_ns()
+            snap = _drm_gfx_snapshot()
+            prev = self._gpu_prev
+            self._gpu_prev = (snap, now)
+            if prev:
+                old_snap, old_ns = prev
+                elapsed = now - old_ns
+                # Sous ~200 ms la division amplifie le bruit d'échantillonnage ;
+                # au-delà de 30 s l'instantané précédent ne décrit plus rien.
+                if 200_000_000 <= elapsed <= 30_000_000_000:
+                    busy = sum(max(0, ns - old_snap.get(cid, ns))
+                               for cid, ns in snap.items())
+                    status["gpu_load_pct"] = round(
+                        min(100.0, busy / elapsed * 100), 1)
+        except Exception:
+            pass
 
         try:
             for hwmon in Path("/sys/class/hwmon").iterdir():
@@ -1288,6 +1323,102 @@ class Plugin:
 
     async def get_db_game_count(self) -> int:
         return sum(1 for k in self._games_db if not k.startswith("_"))
+
+
+# ── Mesures GPU réelles sur BC-250 ────────────────────────────────────────────
+# Le firmware de cette puce NE MESURE PAS la charge GPU : `gpu_busy_percent`
+# répond EOPNOTSUPP, et `gpu_metrics.average_gfx_activity` vaut 0xFFFF, la
+# sentinelle « non supporté ». MangoHud la divise par 100 et affiche 655 %.
+# On ne convertit donc JAMAIS une sentinelle : on rend None, et l'interface dit
+# « non mesuré » plutôt que d'inventer un chiffre.
+#
+# La charge, elle, se calcule depuis les compteurs par moteur de fdinfo
+# (`drm-engine-gfx`, en ns) — la méthode de nvtop/btop. Vérifié sur BC-250 :
+# ~58 % interface Steam seule, ~75 % en jeu, corrélé à la température (40→44 °C)
+# et à la puissance GPU (28,7→43,7 W).
+# ⚠️ NE PAS échantillonner mmGRBM_STATUS : sur gfx1013 il rend une valeur
+# CONSTANTE avec et sans charge (vérifié sur des dizaines de lectures).
+_GPU_SENTINELS = (0xFFFF, 0xFFFFFFFF)
+
+
+def _drm_gfx_snapshot() -> dict:
+    """{drm-client-id: nanosecondes GFX cumulées}.
+
+    Dédupliqué par client : un même client ouvre plusieurs fd, les additionner
+    compterait son temps plusieurs fois.
+    """
+    out: dict = {}
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        d = f"/proc/{pid}/fdinfo"
+        try:
+            fds = os.listdir(d)
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                with open(f"{d}/{fd}") as f:
+                    txt = f.read()
+            except OSError:
+                continue
+            if "drm-engine-gfx" not in txt:
+                continue
+            cid = re.search(r"drm-client-id:\s*(\d+)", txt)
+            ns = re.search(r"drm-engine-gfx:\s*(\d+)", txt)
+            if cid and ns:
+                out[cid.group(1)] = int(ns.group(1))
+    return out
+
+
+def _read_gpu_metrics() -> dict:
+    """Champs utiles de `gpu_metrics`, sentinelles écartées.
+
+    Struct gpu_metrics_v2_x (APU). On ne lit que ce qu'on a VÉRIFIÉ sur BC-250 :
+    températures gfx/soc (centièmes de °C) et puissances soc/gfx (mW).
+    `average_socket_power` est volontairement ignoré : relevé à 19,5 W alors que
+    le GPU seul en consommait 43,7 — champ incohérent sur cette puce.
+    """
+    out: dict = {}
+    try:
+        raw = Path("/sys/class/drm/card1/device/gpu_metrics").read_bytes()
+    except OSError:
+        for c in sorted(Path("/sys/class/drm").glob("card*/device/gpu_metrics")):
+            try:
+                raw = c.read_bytes()
+                break
+            except OSError:
+                continue
+        else:
+            return out
+    if len(raw) < 64:
+        return out
+    try:
+        _size, fmt, _cont = struct.unpack_from("<HBB", raw, 0)
+        if fmt != 2:                      # v1_x = dGPU, pas la table APU
+            return out
+        o = 4
+        tgfx, tsoc = struct.unpack_from("<HH", raw, o); o += 4
+        o += 2 * 10                       # temperature_core[8] + temperature_l3[2]
+        act, _mm = struct.unpack_from("<HH", raw, o); o += 4
+        o += (8 - o % 8) % 8              # alignement du system_clock_counter
+        o += 8
+        # ⚠️ Les PUISSANCES de cette table sont INEXPLOITABLES sur BC-250 :
+        # mesuré sous charge CONSTANTE, average_gfx_power saute de 869 à
+        # 62460 mW et average_socket_power de 4447 à 50458 en quelques
+        # secondes. Le décodage est pourtant bon (la température est stable et
+        # average_cpu_power reste la sentinelle) : ce sont les données du
+        # firmware qui sont fausses. On ne les expose pas — MangoHud, lui, lit
+        # ce même champ, d'où ses watts fantaisistes.
+        for key, val, div in (("gpu_temp_c", tgfx, 100.0), ("soc_temp_c", tsoc, 100.0)):
+            if val not in _GPU_SENTINELS:
+                out[key] = round(val / div, 1)
+        # Rendu tel quel pour que l'interface puisse DIRE que le matériel ne le
+        # mesure pas, au lieu de laisser croire à une valeur manquante.
+        out["gfx_activity_supported"] = act not in _GPU_SENTINELS
+    except (struct.error, ValueError):
+        pass
+    return out
 
 
 def _read_vram_total_mb() -> int | None:

@@ -98,6 +98,9 @@ interface SystemStatus {
   gpu_temp?: number;
   fan_rpm?: number;
   gpu_clock_mhz?: number;
+  gpu_load_pct?: number;
+  soc_temp_c?: number;
+  gpu_activity_from_firmware?: boolean;
   cpu_clock_mhz?: number;
   cpu_cores?: number;
   cpu_threads?: number;
@@ -854,6 +857,9 @@ function SystemTab() {
   const tempColor = (v?: number) =>
     !v ? "#888" : v > 85 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
 
+  const loadColor = (v?: number) =>
+    v == null ? "#888" : v > 90 ? "#f44336" : v > 70 ? "#ff9800" : "#4caf50";
+
   const gb = (mb: number) => `${(mb / 1024).toFixed(1)} GB`;
   const ramPct = status.mem_total_mb && status.mem_used_mb != null
     ? Math.round((status.mem_used_mb / status.mem_total_mb) * 100)
@@ -891,6 +897,17 @@ function SystemTab() {
             {status.gpu_clock_mhz != null &&
               <span style={{ color: "#a24bfa" }}>{`  ·  ${status.gpu_clock_mhz} MHz`}</span>}
           </span>
+        </InfoRow>
+        {/* Charge GPU calculée depuis les compteurs par moteur de fdinfo. Le
+            firmware du BC-250 ne la mesure PAS (average_gfx_activity = 0xFFFF),
+            c'est cette sentinelle que MangoHud divise par 100 et affiche en
+            « 655 % ». On ne montre donc jamais la valeur du firmware. */}
+        <InfoRow label={t("sys_gpu_load")}>
+          <span style={{ color: loadColor(status.gpu_load_pct) }}>
+            {status.gpu_load_pct != null ? `${status.gpu_load_pct}%` : t("cu_na")}
+          </span>
+          {status.gpu_activity_from_firmware === false &&
+            <span style={{ color: "#666", fontSize: 10 }}>{`  ·  ${t("sys_gpu_load_note")}`}</span>}
         </InfoRow>
         <InfoRow label={t("sys_fan")}>
           <span style={{ color: status.fan_rpm ? "#67a3ff" : "#888", fontWeight: "bold" }}>
