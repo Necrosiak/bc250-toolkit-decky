@@ -2,6 +2,28 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## [0.5.5] - 2026-08-30
+
+### Added
+- **Keep the 8-core unlock across power cuts.** A new *Restore at boot* toggle
+  in the CPU unlock section. The CU profile can simply be re-poked at boot
+  because compute units are written live; cores cannot, since the presence mask
+  is only read when the CPU initialises. The service therefore checks the mask
+  at startup and, only when the cores are missing, rewrites it and reboots the
+  machine once. The mask survives warm reboots, so that extra reboot happens
+  only after a genuine power-off.
+- The unlock status now reports whether that service is enabled, so the toggle
+  reflects the real state of the system rather than a remembered preference.
+
+### Notes
+- A service that reboots the machine at boot is the most dangerous thing this
+  plugin can install, so it is capped at **two attempts** before giving up for
+  good, and `bc250.nocoreunlock` on the kernel command line disarms it without
+  needing a working system.
+- Its scripts are copied to `/usr/local/lib/bc250-core-unlock/`, outside the
+  plugin directory that Decky rewrites on every update.
+- The toggle needs the `bc250-core-boot` sudoers rules from bc250-tweaks.
+
 ## [0.5.4] - 2026-08-25
 
 ### Added
