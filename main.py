@@ -114,6 +114,15 @@ CU_SERVICE_NAME   = "bc250-cu-profile"
 CU_SERVICE_PATH   = Path(f"/etc/systemd/system/{CU_SERVICE_NAME}.service")
 CU_MANAGER        = Path("/usr/local/bin/bc250-cu-live-manager")
 CU_LIVE_CACHE     = Path("/tmp/bc250-cu-live.json")  # état courant, effacé au reboot
+
+# Déverrouillage CPU au boot (8C/16T). Les scripts sont RECOPIÉS hors du dossier
+# du plugin : celui-ci est réécrit à chaque mise à jour Decky, et un service du
+# système ne doit pas dépendre d'un chemin que Decky peut effacer.
+CORE_BOOT_SCRIPT   = Path("/usr/local/bin/bc250-core-boot")
+CORE_SERVICE_NAME  = "bc250-core-unlock"
+CORE_SERVICE_PATH  = Path(f"/etc/systemd/system/{CORE_SERVICE_NAME}.service")
+CORE_LIB_DIR       = Path("/usr/local/lib/bc250-core-unlock")
+CORE_STATE_DIR     = Path("/var/lib/bc250-core-unlock")
 _cu_reading       = False   # verrou simple pour éviter des lectures umr simultanées
 _cu_last_attempt  = 0.0     # timestamp du dernier lancement bg read (rate-limit 30s)
 
@@ -1235,6 +1244,14 @@ class Plugin:
         except Exception as e:
             return {"ok": False, "error": f"sortie illisible: {e}"}
         data["ok"] = True
+        # État du service de boot : lu ici pour que l'interface n'ait qu'un appel.
+        try:
+            r2 = subprocess.run(
+                ["systemctl", "is-enabled", f"{CORE_SERVICE_NAME}.service"],
+                capture_output=True, text=True, timeout=5)
+            data["boot_enabled"] = r2.stdout.strip() == "enabled"
+        except Exception:
+            data["boot_enabled"] = False
         return data
 
     async def apply_cpu_unlock(self) -> dict:
@@ -1285,6 +1302,182 @@ class Plugin:
         if r.returncode != 0:
             return {"ok": False, "error": out or f"code de sortie {r.returncode}"}
         return {"ok": True, "need_reboot": True, "output": out}
+
+    # ── Persistance du déverrouillage CPU au boot ─────────────────────────────
+    # Les CU se pokent à chaud : un service au boot suffit. Les cœurs, NON — le
+    # masque de présence n'est lu qu'à l'init du CPU, donc les 2 cœurs
+    # n'apparaissent qu'au redémarrage SUIVANT. Le service écrit donc le masque
+    # puis redémarre UNE fois, et seulement quand c'est nécessaire : le masque
+    # survit aux redémarrages à chaud, seule une coupure secteur le remet à 0x77.
+    # En pratique, ce redémarrage supplémentaire n'a lieu qu'après un démarrage
+    # à froid. La persistance sans ce coût existe : le BIOS modifié « -T ».
+    #
+    # Garde-fous, parce qu'un service qui redémarre la machine au boot est ce
+    # qu'on peut écrire de plus dangereux :
+    #   - 2 tentatives au maximum, comptées dans un fichier d'état persistant,
+    #     puis abandon définitif (pas de boucle de redémarrage) ;
+    #   - `bc250.nocoreunlock` sur la ligne de commande du noyau désarme tout,
+    #     ce qui donne une porte de sortie sans système démarré.
+
+    def _core_boot_script(self) -> str:
+        return f"""#!/usr/bin/bash
+# BC-250 : rétablit le masque 8C/16T au démarrage — BC250-Toolkit-Decky
+# Écrit par le plugin. Voir les garde-fous dans main.py (_core_boot_script).
+set -u
+STATE={CORE_STATE_DIR}
+LIB={CORE_LIB_DIR}
+STATUS="$LIB/bc250-core-status.py"
+UNLOCK="$LIB/bc250-unlock-cores.py"
+MAX_ATTEMPTS=2
+
+log() {{ printf 'bc250-core-boot: %s\n' "$*"; }}
+field() {{ printf '%s' "$JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('$1'))" 2>/dev/null; }}
+
+if grep -qw 'bc250.nocoreunlock' /proc/cmdline 2>/dev/null; then
+    log "désarmé par bc250.nocoreunlock sur la ligne de commande du noyau"
+    exit 0
+fi
+
+mkdir -p "$STATE"
+attempts=$(cat "$STATE/attempts" 2>/dev/null || echo 0)
+case "$attempts" in ''|*[!0-9]*) attempts=0 ;; esac
+
+JSON=$(python3 "$STATUS" 2>/dev/null | tail -1)
+if [ -z "$JSON" ]; then
+    log "sonde de statut muette — abandon (aucun redémarrage)"
+    exit 0
+fi
+
+cores=$(field cores)
+eligible=$(field eligible)
+unlocked=$(field already_unlocked)
+case "$cores" in ''|*[!0-9]*) cores=0 ;; esac
+
+if [ "$cores" -ge 8 ]; then
+    log "$cores cœurs déjà actifs — rien à faire"
+    rm -f "$STATE/attempts"
+    exit 0
+fi
+if [ "$eligible" != "True" ] && [ "$unlocked" != "True" ]; then
+    log "masque inattendu — cette carte n'est pas concernée"
+    exit 0
+fi
+if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
+    log "$attempts tentatives sans succès — abandon définitif ; désactiver le"
+    log "service depuis le Toolkit, ou flasher le BIOS -T pour une vraie persistance"
+    exit 0
+fi
+
+gov=$(printf '%s' "$JSON" | python3 -c "import json,sys; g=json.load(sys.stdin).get('governor') or {{}}; print(g.get('unit') or '')" 2>/dev/null)
+
+if [ "$unlocked" = "True" ]; then
+    log "masque déjà à 0xFF mais seulement $cores cœurs — redémarrage pour l'appliquer"
+else
+    # Le gouverneur SMU se dispute la boîte aux lettres : on l'arrête le temps
+    # de l'écriture et on le remet quoi qu'il arrive.
+    [ -n "$gov" ] && systemctl stop "$gov.service" 2>/dev/null
+    python3 "$UNLOCK" >/dev/null 2>&1
+    rc=$?
+    [ -n "$gov" ] && systemctl start "$gov.service" 2>/dev/null
+    if [ "$rc" -ne 0 ]; then
+        log "écriture du masque en échec (code $rc) — aucun redémarrage"
+        exit 1
+    fi
+    log "masque écrit"
+fi
+
+echo $((attempts + 1)) > "$STATE/attempts"
+log "redémarrage pour activer les 8 cœurs / 16 threads"
+systemctl reboot
+"""
+
+    def _write_core_boot_service(self) -> tuple[bool, str]:
+        """Installe le script de boot + le service, activés au démarrage."""
+        status_src = self._core_tool("bc250-core-status.py")
+        unlock_src = self._core_tool("upstream/bc250-unlock-cores.py")
+        if not status_src.exists() or not unlock_src.exists():
+            return False, "scripts de déverrouillage introuvables"
+
+        # Les scripts sont RECOPIÉS hors du dossier du plugin : Decky réécrit ce
+        # dossier à chaque mise à jour, et un service du système ne doit pas
+        # dépendre d'un chemin que Decky peut effacer entre deux démarrages.
+        r = subprocess.run(["sudo", "mkdir", "-p", str(CORE_LIB_DIR)],
+                           capture_output=True, timeout=10)
+        if r.returncode != 0:
+            return False, f"mkdir {CORE_LIB_DIR}: {r.stderr.decode().strip()}"
+        for src, name in ((status_src, "bc250-core-status.py"),
+                          (unlock_src, "bc250-unlock-cores.py")):
+            r = subprocess.run(["sudo", "tee", str(CORE_LIB_DIR / name)],
+                               input=src.read_text(), text=True,
+                               capture_output=True, timeout=10)
+            if r.returncode != 0:
+                return False, f"tee {name}: {r.stderr.strip()}"
+
+        r = subprocess.run(["sudo", "tee", str(CORE_BOOT_SCRIPT)],
+                           input=self._core_boot_script(), text=True,
+                           capture_output=True, timeout=10)
+        if r.returncode != 0:
+            return False, f"tee script de boot: {r.stderr.strip()}"
+        subprocess.run(["sudo", "chmod", "755", str(CORE_BOOT_SCRIPT)],
+                       capture_output=True, timeout=5)
+
+        service = "\n".join([
+            "[Unit]",
+            "Description=BC-250 8C/16T core unlock at boot",
+            "After=basic.target",
+            # Le redémarrage éventuel doit tomber AVANT la session graphique,
+            # sinon l'utilisateur le prend en pleine figure dans Steam.
+            "Before=display-manager.service graphical.target",
+            "",
+            "[Service]",
+            "Type=oneshot",
+            f"ExecStart={CORE_BOOT_SCRIPT}",
+            "RemainAfterExit=yes",
+            "",
+            "[Install]",
+            "WantedBy=multi-user.target",
+        ]) + "\n"
+        r = subprocess.run(["sudo", "tee", str(CORE_SERVICE_PATH)],
+                           input=service, text=True, capture_output=True, timeout=10)
+        if r.returncode != 0:
+            return False, f"tee service: {r.stderr.strip()}"
+
+        subprocess.run(["sudo", "systemctl", "daemon-reload"],
+                       capture_output=True, timeout=10)
+        r = subprocess.run(
+            ["sudo", "systemctl", "enable", f"{CORE_SERVICE_NAME}.service"],
+            capture_output=True, timeout=10)
+        if r.returncode != 0:
+            return False, f"systemctl enable: {r.stderr.decode().strip()}"
+        return True, "ok"
+
+    async def set_cpu_unlock_boot(self, enabled: bool) -> dict:
+        """Active ou désactive le rétablissement des 8 cœurs au démarrage."""
+        loop = asyncio.get_event_loop()
+        if not enabled:
+            def _disable():
+                subprocess.run(
+                    ["sudo", "systemctl", "disable",
+                     f"{CORE_SERVICE_NAME}.service"],
+                    capture_output=True, timeout=10)
+                # Le compteur de tentatives repart à zéro : une réactivation
+                # ultérieure ne doit pas hériter d'un abandon précédent.
+                subprocess.run(["sudo", "rm", "-f",
+                                str(CORE_STATE_DIR / "attempts")],
+                               capture_output=True, timeout=5)
+            await loop.run_in_executor(None, _disable)
+            return {"ok": True, "boot_enabled": False}
+
+        status = await self.get_cpu_unlock_status()
+        if not status.get("ok"):
+            return status
+        if not status.get("eligible") and not status.get("already_unlocked"):
+            return {"ok": False,
+                    "error": status.get("error") or "carte non éligible"}
+        ok, err = await loop.run_in_executor(None, self._write_core_boot_service)
+        if not ok:
+            return {"ok": False, "error": err}
+        return {"ok": True, "boot_enabled": True}
 
     # ── UMA (VRAM) via variable EFI AmdSetup ──────────────────────────────────
     # Contrairement aux CU (pokés à chaud), l'UMA est un carve-out décidé au POST :

@@ -57,6 +57,8 @@ two up.
   looks like genuine factory defect binning, and the SMU primitive writes `0xFF`
   regardless, so those boards are deliberately left alone
 - **Unlock button** — takes effect at the **next reboot**
+- **Restore at boot** — an optional toggle that brings the 8 cores back after a
+  power cut, at the cost of one extra reboot (see below)
 - The SMU governor is stopped for the write and restarted right after, whatever
   happens. Its unit name is auto-detected (`cyan-skillfish-governor-smu`,
   `oberon-governor`, …) so this works on any distribution — and it is fine if no
@@ -69,7 +71,32 @@ two up.
 > errors before relying on those cores. They were disabled at the factory and
 > nobody knows exactly why.
 
-**Making it permanent** is a BIOS matter, not a software one. The community
+### Restoring the unlock at every boot
+
+The CU profile can simply be re-poked at boot, because compute units are written
+live. Cores cannot: the presence mask is only read when the CPU initialises, so
+the two extra cores appear at the *next* boot, never the current one.
+
+The toggle deals with that honestly. At startup it checks the mask, and only if
+the cores are missing does it rewrite it and reboot the machine once. Since the
+mask survives warm reboots, that extra reboot happens only after a genuine
+power-off — a warm reboot finds 8 cores already up and does nothing.
+
+> [!WARNING]
+> A service that reboots the machine at boot is the most dangerous thing this
+> plugin can install, so it is capped: **two attempts, then it gives up for
+> good** and leaves the board at 6C/12T rather than looping. If you ever need to
+> disarm it without a working system, add `bc250.nocoreunlock` to the kernel
+> command line — the service then exits immediately.
+
+The scripts it runs are copied to `/usr/local/lib/bc250-core-unlock/`, outside
+the plugin directory, because Decky rewrites that directory on every update and
+a system service must not depend on a path that can disappear between boots.
+The toggle needs the `bc250-core-boot` sudoers rules from
+[bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks); without them the
+plugin cannot install the service and will say so.
+
+**Making it permanent without the extra reboot** is a BIOS matter, not a software one. The community
 firmware [AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script](https://github.com/Forbidden-Darkness/AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script)
 (MIT) ships images suffixed `-T` that expose *Unlock CPU Cores* as a BIOS option
 with an on/off toggle — permanent **and** reversible. They are published as the

@@ -124,6 +124,7 @@ interface CpuUnlockStatus {
   eligible?: boolean;
   already_unlocked?: boolean;
   governor?: { unit: string | null; active: boolean };
+  boot_enabled?: boolean;
 }
 
 interface CuStatus {
@@ -728,6 +729,20 @@ function CpuUnlockSection() {
     setBusy(false);
   };
 
+  const setBoot = async (on: boolean) => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const r = await call<[boolean], { ok: boolean; error?: string }>(
+        "set_cpu_unlock_boot", on);
+      if (!r.ok) setMsg(`✗ ${r.error ?? t("cpu_unlock_failed")}`);
+      await refresh();
+    } catch (e) {
+      setMsg(`✗ ${String(e)}`);
+    }
+    setBusy(false);
+  };
+
   // Carte non BC-250 : la section n'a aucun sens, on ne l'affiche pas du tout.
   if (st && st.ok && st.board_is_bc250 === false) return null;
 
@@ -782,6 +797,18 @@ function CpuUnlockSection() {
             </ActionCard>
           </PanelSectionRow>
         </>
+      )}
+
+      {st?.ok && (st.eligible || st.already_unlocked) && (
+        <PanelSectionRow>
+          <ToggleField
+            label={t("cpu_unlock_boot")}
+            description={t("cpu_unlock_boot_desc")}
+            checked={!!st.boot_enabled}
+            disabled={busy}
+            onChange={setBoot}
+          />
+        </PanelSectionRow>
       )}
 
       {st?.ok && !unlocked && !st.eligible && st.mask && (
