@@ -427,6 +427,27 @@ def _pick_active_steam_user(users, home):
     return by_name or by_flag or by_time
 
 
+# How many release checks, and how long between two. The check runs a few
+# seconds after the backend, which is often BEFORE the network is reachable:
+# the logs on the test machine show three boots out of four dying on
+# "Temporary failure in name resolution". Nothing retried, so the plugin stayed
+# on its version until the next boot — which failed the same way.
+UPDATE_CHECK_TRIES = 10
+UPDATE_CHECK_DELAY_S = 30
+
+
+async def _recheck(updater):
+    """`updater.check()`, retried for as long as it is the network that is missing."""
+    from asyncio import sleep as _sleep
+    info = await updater.check()
+    for _ in range(UPDATE_CHECK_TRIES - 1):
+        if not info.get("error"):
+            break
+        await _sleep(UPDATE_CHECK_DELAY_S)
+        info = await updater.check()
+    return info
+
+
 class Plugin:
     async def _main(self):
         self._games_db: dict = {}
@@ -449,21 +470,43 @@ class Plugin:
         try:
             if not updater.is_autoupdate_enabled():
                 return
-            info = await updater.check()
+            info = await _recheck(updater)
             if not info.get("update_available"):
                 return
-            print(f"[BC250 updater] {info['latest']} available (have {info['current']}); auto-applying")
+            print(f"[BC250 updater] {info['latest']} available (have {info['current']}); applying")
             # apply() returns a dict: {"ok": False, "error": …} is always
             # truthy, so a failure used to pass for a success and the loader
             # was restarted anyway — on a loop, since the installed version
             # had not changed. Read the field, not the dict.
+            # We apply it OURSELVES. This plugin declares `flags: ["root"]`, so
+            # its backend runs as root and can always write — which is exactly
+            # why it never hit the Permission denied the others did.
+            #
+            # ⛔ Do NOT delegate to `utilities/install_plugin`: that is the Decky
+            # Store route, and it reports the install to plugins.deckbrew.xyz.
+            # Our plugins are not there → 404 → the rest never runs: files
+            # written, plugin never reloaded, and a frozen modal across the
+            # Steam UI. Measured here on 2026-09-13.
             res = await updater.apply(info["url"])
             if res.get("ok"):
                 updater.restart_loader()
-            else:
-                print(f"[BC250 updater] update aborted: {res.get('error', 'unknown reason')}")
+                return
+            print(f"[BC250 updater] update aborted: {res.get('error', 'unknown reason')}")
+            self._pending_update = {"version": info["latest"],
+                                    "error": res.get("error", "")}
         except Exception as e:
             print(f"[BC250 updater] auto-check error: {e}")
+
+    # Failure notice parked by _autoupdate_check, taken by the frontend that notifies.
+    _pending_update = None
+
+    async def take_pending_update(self):
+        """Hand the failed-update notice to the frontend, once.
+
+        Cleared on read: the notification must fire ONCE, not on every QAM open.
+        """
+        pending, self._pending_update = self._pending_update, None
+        return pending or {}
 
     async def check_update(self):
         return await updater.check()

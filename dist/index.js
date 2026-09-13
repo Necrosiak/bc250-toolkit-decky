@@ -1384,7 +1384,40 @@ function Content() {
         return SP_JSX.jsx(DFL.SteamSpinner, {});
     return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(TabBar, { tab: tab, setTab: setTab }), tab === "games" && SP_JSX.jsx(GamesTab, { gamesDb: gamesDb, savedVariants: savedVariants }), tab === "cu" && SP_JSX.jsx(CuTab, {}), tab === "system" && SP_JSX.jsx(SystemTab, {}), tab === "settings" && (SP_JSX.jsx(SettingsTab, { autoApply: autoApply, setAutoApply: setAutoApply, gamesDb: gamesDb, onRefreshDb: refreshDb }))] }));
 }
+// ── Auto-update: the frontend only REPORTS ───────────────────────────────────
+// The backend installs (it may: the plugin directory is root-owned, but the
+// files inside belong to us). It is the only side that cannot raise a
+// notification — hence this relay.
+//
+// ⛔ Do NOT call `DeckyBackend.call('utilities/install_plugin', …)`: that is the
+// Decky Store route. It unpacks, then reports the install to
+// plugins.deckbrew.xyz, which does not know our plugins → 404 → the rest never
+// runs: files written, plugin never reloaded, and an "update in progress" modal
+// frozen across the Steam UI. Measured on 2026-09-13 on BC250-Toolkit.
+const UPDATE_POLL_MS = 5000;
+const UPDATE_POLL_TRIES = 36; // 3 minutes, enough for a cold Game Mode boot
+async function reportFailedUpdate() {
+    for (let i = 0; i < UPDATE_POLL_TRIES; i++) {
+        let notice = null;
+        try {
+            notice = await call("take_pending_update");
+        }
+        catch {
+            // Backend not reachable yet — not a failure, we come back.
+        }
+        if (notice?.version) {
+            notify({
+                title: "BC250 Toolkit",
+                body: `Update ${notice.version} could not be installed automatically. `
+                    + "Install it from Decky → Developer → Install plugin from URL.",
+            });
+            return;
+        }
+        await new Promise((r) => setTimeout(r, UPDATE_POLL_MS));
+    }
+}
 var index = definePlugin(() => {
+    reportFailedUpdate();
     // Auto-apply persistant : enregistré au chargement du plugin (= démarrage Steam),
     // actif toute la session même panneau fermé. À chaque jeu lancé connu de la DB,
     // si l'auto-apply est activé, on (ré)applique sa config (variante sauvegardée).
