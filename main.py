@@ -4,6 +4,7 @@ import os
 import re
 import struct
 import shutil
+import stat
 import subprocess
 import time
 import urllib.request
@@ -448,9 +449,223 @@ async def _recheck(updater):
     return info
 
 
+# ── Pont vers BC250 Control Center (movacx/bc250-control-center, MIT) ─────────
+# Quand le Control Center est installé, le Toolkit ne garde AUCUN état matériel
+# à lui : il passe par le helper root du Control Center, exactement comme le
+# plugin Decky livré avec ce dernier. Les deux interfaces lisent et écrivent
+# donc les mêmes fichiers (/etc/bc250-cu-live-manager.conf, /etc/bc250-smu-oc.conf,
+# TOML du governor…) : ce qui change au bureau apparaît en gamemode et
+# inversement, sans synchro à maintenir. Sans Control Center, le Toolkit
+# retombe sur son propre code.
+CC_HELPER = Path("/usr/libexec/bc250-control-center/bc250-quick-access-helper")
+CC_PROTOCOL = 13  # celui du helper de la v1.19.0 ; renvoyé par `status`
+CC_GPU_PROFILES = (
+    "recovery", "balanced", "gaming", "benchmark",
+    "oberon-1500", "oberon-1850", "oberon-2000",
+)
+CC_FAN_CHANNELS = (2, 3, 4, 5)
+CC_CPU_FREQUENCIES = tuple(range(3500, 4201, 50))
+CC_CPU_VIDS = tuple(range(950, 1326, 5))
+CC_CPU_SCALES = tuple(range(-50, 1))
+# Le statut complet coûte umr + hwmon + systemctl : l'onglet CU et l'onglet
+# Système le sondent toutes les 5-10 s, on partage donc une lecture récente.
+CC_STATUS_MAX_AGE = 4.0
+# Installation depuis l'onglet : version FIGÉE sur celle dont on parle le
+# protocole (CC_PROTOCOL) et empreinte vérifiée avant de passer le paquet à
+# rpm-ostree en root. Changer les trois ensemble, jamais « latest ».
+CC_RPM_VERSION = "1.19.0"
+CC_RPM_URL = ("https://github.com/movacx/bc250-control-center/releases/download/"
+              "v1.19.0/bc250-control-center-1.19.0-1.fc44.noarch.rpm")
+CC_RPM_SHA256 = "914d1879f6ab6c1cd7767ce52d142f5876a1864ec878018df1a36471c618309b"
+RPM_OSTREE = Path("/usr/bin/rpm-ostree")
+
+_cc_helper_lock = asyncio.Lock()     # sérialise TOUT appel au helper, lectures comprises
+_cc_operation_lock = asyncio.Lock()  # refuse une 2e écriture au lieu de la mettre en file
+_cc_status_cache: dict = {"at": 0.0, "value": None}
+
+
+def _cc_helper_trusted() -> bool:
+    """N'exécute jamais un helper remplacé : fichier régulier root, non inscriptible."""
+    try:
+        st = CC_HELPER.lstat()
+    except OSError:
+        return False
+    return (
+        stat.S_ISREG(st.st_mode)
+        and st.st_uid == 0
+        and not st.st_mode & 0o022
+        and bool(st.st_mode & stat.S_IXUSR)
+    )
+
+
+def _cc_run(*args: str, timeout: int = 190) -> dict:
+    if not _cc_helper_trusted():
+        return {"ok": False, "error": "BC250 Control Center helper is missing or not protected."}
+    try:
+        r = subprocess.run(
+            [str(CC_HELPER), *args], text=True, capture_output=True,
+            timeout=timeout, check=False,
+            env={"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"},
+        )
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "error": "BC250 Control Center operation timed out."}
+    except OSError as e:
+        return {"ok": False, "error": str(e)}
+    out = (r.stdout or "").strip()
+    if r.returncode:
+        return {"ok": False, "error": (r.stderr or out or "helper failed").strip()[-2000:]}
+    try:
+        payload = json.loads(out)
+    except json.JSONDecodeError:
+        payload = {"ok": True, "message": out[-2000:]}
+    return payload if isinstance(payload, dict) else {"ok": True, "value": payload}
+
+
+def _cc_status_blocking() -> dict:
+    r = _cc_run("status", timeout=20)
+    if r.get("ok") is False:
+        return r
+    if type(r.get("protocol")) is not int or r["protocol"] != CC_PROTOCOL:
+        return {
+            "ok": False,
+            "protocol_mismatch": True,
+            "error": f"helper protocol {r.get('protocol')!r}, expected {CC_PROTOCOL}",
+        }
+    return r
+
+
+def _cc_gpu_profiles(lo: int, hi: int, governor: str) -> list:
+    """Mêmes bornes que bc250cc/domain/gpu/profiles.py du Control Center."""
+    if governor == "oberon":
+        cands = (
+            ("oberon-1500", "Balanced", 1000, 1500),
+            ("oberon-1850", "Gaming", 1000, 1850),
+            ("oberon-2000", "Benchmark", 1000, 2000),
+        )
+    else:
+        cands = (
+            ("balanced", "Balanced", max(500, lo), 1500),
+            ("gaming", "Gaming", max(1000, lo), 1850),
+            ("benchmark", "Benchmark", max(1000, lo), 2000),
+        )
+    out = []
+    for key, name, pmin, pmax in cands:
+        a, b = max(lo, pmin), min(hi, pmax)
+        if a <= b:
+            out.append({"key": key, "name": name, "min": a, "max": b})
+    return out
+
+
+def _cc_masks_error(masks) -> str | None:
+    if not isinstance(masks, (list, tuple)) or len(masks) != 4:
+        return "A CU table must contain exactly four row masks."
+    if any(type(m) is not int or not 0 <= m <= 0x1F for m in masks):
+        return "Every CU row mask must be an integer from 0 through 31."
+    if sum(bin(m).count("1") * 2 for m in masks) not in range(24, 41, 2):
+        return "A CU table must route 24 through 40 CUs."
+    return None
+
+
+def _cc_bounded(value, allowed) -> int | None:
+    """Entier exact et dans la liste autorisée — jamais d'argument libre vers root."""
+    if isinstance(value, bool) or type(value) not in (int, str):
+        return None
+    try:
+        n = int(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return n if str(n) == str(value) and n in allowed else None
+
+
+def _cc_live_gpu_clock(status: dict) -> dict:
+    """Le helper du CC lit `pp_dpm_sclk`, qui reste bloqué sur 14-100 MHz même
+    avec fix-freq du governor ; `hwmon/freq1_input` (ce que lit MangoHud) donne
+    la vraie horloge. Copie : le cache du statut garde la valeur du helper."""
+    try:
+        for hwmon in Path("/sys/class/hwmon").iterdir():
+            if (hwmon / "name").read_text().strip() != "amdgpu":
+                continue
+            mhz = round(int((hwmon / "freq1_input").read_text()) / 1_000_000)
+            if mhz > 0:
+                return {**status, "gpu_core_mhz": mhz}
+    except (OSError, ValueError):
+        pass
+    return status
+
+
+# phase : idle → running → staged | failed. `staged` survit au rechargement du
+# plugin grâce à la lecture de rpm-ostree, faite une seule fois (le démon est
+# réveillé à chaque `status`, pas question de le sonder toutes les 5 s).
+_cc_install_state: dict = {"phase": "idle", "error": None, "checked": False, "task": None}
+
+
+def _cc_install_supported() -> bool:
+    return Path("/run/ostree-booted").exists() and RPM_OSTREE.is_file()
+
+
+def _cc_install_staged_blocking() -> bool:
+    """Le prochain déploiement (index 0), pas encore booté, embarque déjà le paquet."""
+    try:
+        r = subprocess.run([str(RPM_OSTREE), "status", "--json"], text=True,
+                           capture_output=True, timeout=30, check=False)
+        deps = json.loads(r.stdout or "{}").get("deployments") or []
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        return False
+    if not deps or deps[0].get("booted"):
+        return False
+    return any(str(p).startswith("bc250-control-center-")
+               for p in deps[0].get("requested-local-packages") or [])
+
+
+def _cc_install_blocking() -> None:
+    import hashlib
+    import tempfile
+    work = Path(tempfile.mkdtemp(prefix="bc250-toolkit-cc-", dir="/var/tmp"))
+    rpm = work / CC_RPM_URL.rsplit("/", 1)[1]
+    try:
+        digest = hashlib.sha256()
+        req = urllib.request.Request(CC_RPM_URL, headers={"User-Agent": "BC250-Toolkit-Decky"})
+        with urllib.request.urlopen(req, timeout=60, context=updater._ssl_context()) as resp, \
+                open(rpm, "wb") as f:
+            while chunk := resp.read(1 << 16):
+                digest.update(chunk)
+                f.write(chunk)
+        if digest.hexdigest() != CC_RPM_SHA256:
+            raise RuntimeError("checksum mismatch, package rejected")
+        r = subprocess.run(
+            [str(RPM_OSTREE), "install", "--idempotent", str(rpm)],
+            text=True, capture_output=True, timeout=1800, check=False,
+            env={"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"},
+        )
+        if r.returncode:
+            raise RuntimeError((r.stderr or r.stdout or "rpm-ostree failed").strip()[-600:])
+        _cc_install_state.update(phase="staged", error=None, checked=True)
+    except Exception as e:
+        _cc_install_state.update(phase="failed", error=str(e)[-600:] or type(e).__name__)
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def _retire_toolkit_cu_service() -> bool:
+    """Le Control Center restaure les CU au boot : notre service ferait un 2e
+    passage, peut-être avec une AUTRE table. On le désactive sans supprimer ses
+    fichiers, pour que ce soit réversible."""
+    unit = f"{CU_SERVICE_NAME}.service"
+    try:
+        r = subprocess.run(["systemctl", "is-enabled", unit], capture_output=True, text=True, timeout=5)
+        if r.stdout.strip() != "enabled":
+            return False
+        d = subprocess.run(_sudo_cmd(["systemctl", "disable", unit]), capture_output=True, timeout=15)
+        return d.returncode == 0
+    except Exception:
+        return False
+
+
 class Plugin:
     async def _main(self):
         self._games_db: dict = {}
+        if _cc_helper_trusted():
+            asyncio.create_task(self._cc_retire_duplicate_cu_boot())
         # Purge le cache CU si cu_count=0 (lecture umr ratée lors d'une session précédente)
         if CU_LIVE_CACHE.exists():
             try:
@@ -1038,8 +1253,174 @@ class Plugin:
 
     # ── CU management ─────────────────────────────────────────────────────────
 
+    # ── BC250 Control Center (pont) ───────────────────────────────────────────
+
+    async def cc_status(self, max_age: float = 0.0) -> dict:
+        if not _cc_helper_trusted():
+            return {"ok": False, "available": False, "install": await self._cc_install_info()}
+        cached = _cc_status_cache["value"]
+        if max_age and cached is not None and time.monotonic() - _cc_status_cache["at"] < max_age:
+            return _cc_live_gpu_clock(cached)
+        async with _cc_helper_lock:
+            r = await asyncio.to_thread(_cc_status_blocking)
+        r["available"] = True
+        if r.get("ok") is not False:
+            allowed = r.get("gpu_allowed_range")
+            if isinstance(allowed, (list, tuple)) and len(allowed) == 2:
+                try:
+                    r["gpu_profiles"] = _cc_gpu_profiles(
+                        int(allowed[0]), int(allowed[1]), str(r.get("gpu_governor", "cyan")))
+                except (TypeError, ValueError):
+                    pass
+            _cc_status_cache.update(at=time.monotonic(), value=r)
+        return _cc_live_gpu_clock(r)
+
+    async def cc_cpu_telemetry(self) -> dict:
+        if not _cc_helper_trusted():
+            return {"ok": False, "available": False}
+        # Hors des verrous : doit répondre PENDANT une détection CPU de plusieurs minutes.
+        r = await asyncio.to_thread(_cc_run, "cpu-telemetry", timeout=5)
+        if r.get("ok") is not False and r.get("protocol") != CC_PROTOCOL:
+            return {"ok": False, "protocol_mismatch": True, "error": "helper protocol mismatch"}
+        return r
+
+    async def _cc_operation(self, *args: str, timeout: int = 190, verify: bool = True) -> dict:
+        if _cc_operation_lock.locked():
+            return {"ok": False, "error": "busy"}
+
+        def blocking() -> dict:
+            if verify:
+                st = _cc_status_blocking()
+                if st.get("ok") is False:
+                    return st
+            return _cc_run(*args, timeout=timeout)
+
+        async with _cc_operation_lock, _cc_helper_lock:
+            r = await asyncio.to_thread(blocking)
+        _cc_status_cache["at"] = 0.0  # la prochaine lecture doit refléter l'écriture
+        return r
+
+    async def cc_gpu_profile(self, profile: str) -> dict:
+        if profile not in CC_GPU_PROFILES:
+            return {"ok": False, "error": "Unsupported GPU profile."}
+        # Le helper valide lui-même le governor actif et relit le résultat.
+        return await self._cc_operation("gpu-profile", profile, timeout=30, verify=False)
+
+    async def cc_gpu_safe_point(self, frequency) -> dict:
+        n = _cc_bounded(frequency, range(500, 2601))
+        if n is None:
+            return {"ok": False, "error": "Unsupported GPU safe-point."}
+        return await self._cc_operation("gpu-safe-point", str(n), timeout=30, verify=False)
+
+    async def cc_cu_table(self, masks) -> dict:
+        err = _cc_masks_error(masks)
+        if err:
+            return {"ok": False, "error": err}
+        return await self._cc_operation("cu-table", *(str(m) for m in masks), timeout=480)
+
+    async def cc_cu_save(self, masks) -> dict:
+        err = _cc_masks_error(masks)
+        if err:
+            return {"ok": False, "error": err}
+        r = await self._cc_operation("cu-save", *(str(m) for m in masks), timeout=660)
+        if r.get("ok") is not False:
+            await asyncio.to_thread(_retire_toolkit_cu_service)
+        return r
+
+    async def cc_cu_service(self, action: str) -> dict:
+        if action not in ("install", "remove"):
+            return {"ok": False, "error": "Unsupported CU service action."}
+        r = await self._cc_operation("cu-service", action, timeout=240 if action == "install" else 90)
+        if action == "install" and r.get("ok") is not False:
+            await asyncio.to_thread(_retire_toolkit_cu_service)
+        return r
+
+    async def cc_fan_channel(self, channel, target) -> dict:
+        ch = _cc_bounded(channel, CC_FAN_CHANNELS)
+        if ch is None:
+            return {"ok": False, "error": "Unsupported fan channel."}
+        if target == "automatic":
+            tgt = "automatic"
+        else:
+            pct = _cc_bounded(target, range(20, 101))
+            if pct is None:
+                return {"ok": False, "error": "Fan speed must be Automatic or 20-100%."}
+            tgt = str(pct)
+        return await self._cc_operation("fan-channel", str(ch), tgt, timeout=30)
+
+    async def cc_cpu_tuning(self, frequency, vid) -> dict:
+        f = _cc_bounded(frequency, CC_CPU_FREQUENCIES)
+        v = _cc_bounded(vid, CC_CPU_VIDS)
+        if f is None or v is None:
+            return {"ok": False, "error": "Unsupported CPU frequency or voltage."}
+        return await self._cc_operation("cpu-detect", str(f), str(v), timeout=920)
+
+    async def cc_cpu_scale(self, frequency, scale) -> dict:
+        f = _cc_bounded(frequency, CC_CPU_FREQUENCIES)
+        sc = _cc_bounded(scale, CC_CPU_SCALES)
+        if f is None or sc is None:
+            return {"ok": False, "error": "Unsupported CPU frequency or scale."}
+        return await self._cc_operation("cpu-scale", str(f), str(sc), timeout=200)
+
+    async def cc_cpu_service(self, action: str) -> dict:
+        if action not in ("install", "remove"):
+            return {"ok": False, "error": "Unsupported CPU service action."}
+        return await self._cc_operation("cpu-service", action, timeout=180 if action == "install" else 90)
+
+    async def _cc_install_info(self) -> dict:
+        s = _cc_install_state
+        supported = _cc_install_supported()
+        if supported and not s["checked"] and s["phase"] == "idle":
+            s["checked"] = True
+            if await asyncio.to_thread(_cc_install_staged_blocking):
+                s["phase"] = "staged"
+        return {"supported": supported, "phase": s["phase"], "error": s["error"],
+                "version": CC_RPM_VERSION}
+
+    async def cc_install(self) -> dict:
+        """Installe le RPM figé du Control Center (Bazzite) ; l'onglet suit la phase."""
+        if _cc_helper_trusted():
+            return {"ok": False, "error": "BC250 Control Center is already installed."}
+        if not _cc_install_supported():
+            return {"ok": False, "error": "Automatic install needs an rpm-ostree system such as Bazzite."}
+        if _cc_install_state["phase"] in ("running", "staged"):
+            return {"ok": True}
+        _cc_install_state.update(phase="running", error=None)
+        _cc_install_state["task"] = asyncio.create_task(asyncio.to_thread(_cc_install_blocking))
+        return {"ok": True}
+
+    async def _cc_retire_duplicate_cu_boot(self):
+        st = await self.cc_status()
+        if st.get("ok") is not False and st.get("cu_service_enabled"):
+            await asyncio.to_thread(_retire_toolkit_cu_service)
+
+    async def _cc_cu_snapshot(self) -> dict | None:
+        """Statut CU vu par le Control Center, au format de get_cu_status."""
+        if not _cc_helper_trusted():
+            return None
+        st = await self.cc_status(max_age=CC_STATUS_MAX_AGE)
+        masks = st.get("cu_masks")
+        if st.get("ok") is False or not isinstance(masks, list) or len(masks) != 4:
+            return None  # helper indisponible → lecture umr du Toolkit
+        live = [int(m) & 0x1f for m in masks]
+        saved = st.get("cu_saved_masks")
+        boot = ([int(m) & 0x1f for m in saved]
+                if isinstance(saved, list) and len(saved) == 4 and st.get("cu_service_enabled") else None)
+        return {
+            "umr_available": bool(st.get("cu_backend_ready", True)),
+            "current_profile": _identify_profile(live),
+            "cu_count": st.get("cu_active_cus") or _masks_cu_count(live),
+            "boot_profile": _identify_profile(boot) if boot else None,
+            "boot_cu": _masks_cu_count(boot) if boot else None,
+            "profiles": {name: {"label": p["label"], "cu": p["cu"]} for name, p in CU_PROFILES.items()},
+            "source": "control_center",
+        }
+
     async def get_cu_status(self) -> dict:
         """Retourne le statut CU actuel."""
+        cc = await self._cc_cu_snapshot()
+        if cc is not None:
+            return cc
         umr = _find_umr()
         result: dict = {
             "umr_available": umr is not None,
@@ -1062,7 +1443,14 @@ class Plugin:
         # Chemin lent : lecture umr en tâche de fond (non-bloquant, cache mis à jour)
         # Déclenche si : pas de valeur OU valeur = 0 (cache corrompu d'une lecture ratée)
         global _cu_reading, _cu_last_attempt
-        need_read = (result["cu_count"] is None or result["cu_count"] == 0)
+        try:
+            cache_age = time.time() - CU_LIVE_CACHE.stat().st_mtime
+        except OSError:
+            cache_age = None
+        # Relecture aussi quand le cache vieillit : un autre outil (Control Center,
+        # terminal) peut avoir changé les CU sans passer par nous.
+        need_read = (result["cu_count"] is None or result["cu_count"] == 0
+                     or (cache_age is not None and cache_age > 60))
         throttled = (time.time() - _cu_last_attempt) < 30  # retry max toutes les 30s
         if need_read and umr and not _cu_reading and not throttled:
             _cu_reading = True
@@ -1091,6 +1479,29 @@ class Plugin:
         """Applique un profil CU via umr (live) et optionnellement l'installe au boot."""
         if profile not in CU_PROFILES:
             return {"ok": False, "error": f"Profil inconnu: {profile}"}
+
+        if _cc_helper_trusted():
+            # Le Control Center est la source de vérité : on écrit par lui, jamais à côté.
+            masks = list(CU_PROFILES[profile]["masks"])
+            r = await (self.cc_cu_save(masks) if save_boot else self.cc_cu_table(masks))
+            if r.get("ok") is False:
+                return {"ok": False, "error": r.get("error") or "BC250 Control Center refused the CU table."}
+            out = {"ok": True, "profile": profile, "cu_count": CU_PROFILES[profile]["cu"],
+                   "source": "control_center"}
+            if save_boot:
+                st = await self.cc_status()
+                if st.get("cu_service_installed"):
+                    out["boot_saved"] = True
+                else:
+                    svc = await self.cc_cu_service("install")
+                    out["boot_saved"] = svc.get("ok") is not False
+                    if not out["boot_saved"]:
+                        out["boot_error"] = svc.get("error")
+            try:
+                CU_LIVE_CACHE.write_text(json.dumps({"cu_count": out["cu_count"], "current_profile": profile}))
+            except Exception:
+                pass
+            return out
 
         umr = _find_umr()
         if not umr:

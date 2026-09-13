@@ -113,6 +113,23 @@ Credit: the unlock primitive and the script are the work of
 [rw-r-r-0644](https://github.com/rw-r-r-0644/bc250-core-unlock) (MIT, vendored
 untouched in `core_unlock/upstream/` with its licence).
 
+### Tuning Tab (with BC250 Control Center)
+When [BC250 Control Center](https://github.com/movacx/bc250-control-center) is
+installed (its RPM through `rpm-ostree install` on Bazzite, then *Prepare
+dependencies* once in the app), this tab is its Game Mode interface:
+- **GPU** — governor profiles and validated safe points
+- **Compute Units** — live 4×5 grid, saved boot table and boot service
+- **CPU** — overclock through the Control Center's detector, manual scale and boot service
+- **Fans** — manual speed per channel, or back to automatic
+
+The Toolkit keeps no settings of its own here: it drives the same protected
+helper as the Control Center, so a change made on the desktop shows up in Game
+Mode and the other way round. The CU tab goes through it too. Without the
+Control Center, the rest of the plugin works as before; on Bazzite the tab
+offers an **Install BC250 Control Center** button (official v1.19.0 RPM,
+SHA-256 checked, `rpm-ostree install`, then reboot), and elsewhere it links to
+the project page. The button disappears once the Control Center is detected.
+
 ### System Tab
 - Real-time CPU/GPU temperatures, fan speed and GPU/CPU clocks
 - **CPU cores** — cores and threads currently online (`6C / 12T`, green at `8C / 16T`)
@@ -269,7 +286,8 @@ sudo systemctl restart plugin_loader
 - [@AyeZeeBB](https://github.com/AyeZeeBB) — CachyOS/Arch support for the umr installation + GPU instance fallback (merged from their fork)
 - [@rw-r-r-0644](https://github.com/rw-r-r-0644) — found the 8-core unlock: the core presence mask at SMN `0x0115A870` and the ungated SMU queue-3 message that can write it, plus the decision to act only on a `0x77` mask. Their script is vendored untouched in `core_unlock/upstream/` (MIT) and does all the writing
 - [@Forbidden-Darkness](https://github.com/Forbidden-Darkness) — the modified P3.00 firmware that exposes the 8-core unlock as a BIOS option with an on/off toggle, and the flashing menu that backs your current firmware up first ([AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script](https://github.com/Forbidden-Darkness/AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script), MIT)
-- [Old Lamer](https://www.youtube.com/@OldLamer) — the videos that documented both unlock routes end to end and brought them to a wider audience
+- [@movacx](https://github.com/movacx) — [BC250 Control Center](https://github.com/movacx/bc250-control-center) (MIT): the protected helper the Tuning tab drives for GPU, CU, CPU and fan control; the Toolkit reuses its helper protocol and its GPU profile bounds
+- [Old Lamer](https://www.youtube.com/@OldLamer) — the videos that documented both unlock routes end to end and brought them to a wider audience, and the one that showed BC250 Control Center
 
 ---
 

@@ -761,11 +761,226 @@ const T = {
         set_db_date: "База обновлена", set_contribute: "Внести вклад", toast_db_ok: "База обновлена",
     },
 };
+// Onglet Tuning (pont BC250 Control Center) — dictionnaire séparé pour ne pas
+// noyer les blocs existants ; t() le consulte après T.
+const CC = {
+    en: {
+        tab_tuning: "Tuning", cc_title: "BC250 Control Center",
+        cc_missing: "BC250 Control Center is not installed.",
+        cc_missing_desc: "Install its RPM from Desktop Mode (rpm-ostree install), reboot, then run “Prepare dependencies” once in the app. This tab and the CU tab then share its settings.",
+        cc_open_project: "Open the project page", cc_retry: "Retry",
+        cc_install_btn: "Install BC250 Control Center", cc_install_desc: "Downloads the official v{v} package (checksum verified), adds it to the system with rpm-ostree, then asks for a reboot. Takes a few minutes; you can keep playing.", cc_installing: "Installing… download, then rpm-ostree", cc_install_staged: "Installed. Reboot to finish, then run “Prepare dependencies” once in the app from Desktop Mode.", cc_reboot: "Reboot now", cc_install_failed: "Installation failed: {error}",
+        cc_protocol: "This Control Center version is not supported by the Toolkit ({error}).",
+        cc_synced: "Synced with BC250 Control Center: changes made on the desktop show up here, and the other way round.",
+        cc_busy: "Applying…", cc_busy_other: "Another operation is still running.", cc_ok: "Done",
+        cc_gpu: "GPU", cc_governor: "Governor", cc_gpu_range: "Frequency range", cc_now: "Now",
+        cc_gpu_safe_points: "Validated safe points",
+        cc_gpu_no_gov: "No GPU governor is active. Install it from Control Center (Prepare dependencies).",
+        cc_cu: "Compute Units", cc_cu_live: "Routed live", cc_cu_apply: "Apply selection", cc_cu_save: "Save for boot",
+        cc_cu_min: "At least 24 CU (12 WGP) must stay on.",
+        cc_cu_backend: "The CU backend is not ready. Run Prepare dependencies in Control Center.",
+        cc_boot_service: "Boot service", cc_on: "enabled", cc_off: "disabled", cc_install: "Install boot service", cc_remove: "Remove boot service",
+        cc_cpu: "CPU overclock", cc_cpu_active: "Active profile", cc_cpu_freq: "Frequency", cc_cpu_vid: "Max voltage",
+        cc_cpu_manual: "Manual scale", cc_cpu_manual_desc: "Fine-tune the scale found by the detector.", cc_cpu_manual_first: "Run the automatic detection first.",
+        cc_cpu_scale: "Scale", cc_cpu_apply: "Detect and apply", cc_cpu_apply_manual: "Apply scale", cc_confirm: "Start",
+        cc_cpu_confirm: "{freq} MHz, up to {vid} mV, limit {temp} °C. The detector stress-tests the CPU step by step and can take several minutes. A freeze is possible.",
+        cc_cpu_confirm_manual: "{freq} MHz, scale {scale}, limit {temp} °C. A freeze is possible.",
+        cc_cpu_not_ready: "CPU tuning is not available: {reason}",
+        cc_fan: "Fans", cc_fan_speed: "Speed", cc_fan_auto: "Back to automatic", cc_apply: "Apply",
+        cc_fan_none: "No controllable fan channel was detected.",
+    },
+    fr: {
+        tab_tuning: "Tuning", cc_title: "BC250 Control Center",
+        cc_missing: "BC250 Control Center n'est pas installé.",
+        cc_missing_desc: "Installe son RPM depuis le mode Bureau (rpm-ostree install), redémarre, puis lance une fois « Prepare dependencies » dans l'appli. Cet onglet et l'onglet CU partageront alors ses réglages.",
+        cc_open_project: "Ouvrir la page du projet", cc_retry: "Réessayer",
+        cc_install_btn: "Installer BC250 Control Center", cc_install_desc: "Télécharge le paquet officiel v{v} (empreinte vérifiée), l’ajoute au système avec rpm-ostree, puis demande un redémarrage. Quelques minutes ; tu peux continuer à jouer.", cc_installing: "Installation… téléchargement, puis rpm-ostree", cc_install_staged: "Installé. Redémarre pour terminer, puis lance une fois « Prepare dependencies » dans l’appli en mode Bureau.", cc_reboot: "Redémarrer maintenant", cc_install_failed: "Échec de l’installation : {error}",
+        cc_protocol: "Cette version du Control Center n'est pas prise en charge par le Toolkit ({error}).",
+        cc_synced: "Synchronisé avec BC250 Control Center : ce qui change au bureau apparaît ici, et inversement.",
+        cc_busy: "Application…", cc_busy_other: "Une autre opération est encore en cours.", cc_ok: "Fait",
+        cc_gpu: "GPU", cc_governor: "Governor", cc_gpu_range: "Plage de fréquence", cc_now: "Actuel",
+        cc_gpu_safe_points: "Paliers validés",
+        cc_gpu_no_gov: "Aucun governor GPU actif. Installe-le depuis le Control Center (Prepare dependencies).",
+        cc_cu: "Compute Units", cc_cu_live: "Routés en direct", cc_cu_apply: "Appliquer la sélection", cc_cu_save: "Garder au démarrage",
+        cc_cu_min: "Au moins 24 CU (12 WGP) doivent rester actifs.",
+        cc_cu_backend: "Le moteur CU n'est pas prêt. Lance Prepare dependencies dans le Control Center.",
+        cc_boot_service: "Service au démarrage", cc_on: "activé", cc_off: "désactivé", cc_install: "Installer le service", cc_remove: "Retirer le service",
+        cc_cpu: "Overclock CPU", cc_cpu_active: "Profil actif", cc_cpu_freq: "Fréquence", cc_cpu_vid: "Tension max",
+        cc_cpu_manual: "Échelle manuelle", cc_cpu_manual_desc: "Affine l'échelle trouvée par le détecteur.", cc_cpu_manual_first: "Lance d'abord la détection automatique.",
+        cc_cpu_scale: "Échelle", cc_cpu_apply: "Détecter et appliquer", cc_cpu_apply_manual: "Appliquer l'échelle", cc_confirm: "Lancer",
+        cc_cpu_confirm: "{freq} MHz, jusqu'à {vid} mV, limite {temp} °C. Le détecteur stresse le CPU palier par palier et peut prendre plusieurs minutes. Un gel est possible.",
+        cc_cpu_confirm_manual: "{freq} MHz, échelle {scale}, limite {temp} °C. Un gel est possible.",
+        cc_cpu_not_ready: "Réglage CPU indisponible : {reason}",
+        cc_fan: "Ventilateurs", cc_fan_speed: "Vitesse", cc_fan_auto: "Revenir en automatique", cc_apply: "Appliquer",
+        cc_fan_none: "Aucune voie de ventilateur pilotable détectée.",
+    },
+    de: {
+        tab_tuning: "Tuning", cc_missing: "BC250 Control Center ist nicht installiert.",
+        cc_missing_desc: "Installiere das RPM im Desktop-Modus (rpm-ostree install), starte neu und führe in der App einmal „Prepare dependencies“ aus. Dieser Tab und der CU-Tab teilen dann seine Einstellungen.",
+        cc_open_project: "Projektseite öffnen", cc_retry: "Erneut versuchen",
+        cc_install_btn: "BC250 Control Center installieren", cc_install_desc: "Lädt das offizielle Paket v{v} (Prüfsumme geprüft), fügt es mit rpm-ostree zum System hinzu und fordert dann einen Neustart an. Dauert einige Minuten; du kannst weiterspielen.", cc_installing: "Installation… Download, dann rpm-ostree", cc_install_staged: "Installiert. Starte neu und führe dann im Desktop-Modus einmal „Prepare dependencies“ in der App aus.", cc_reboot: "Jetzt neu starten", cc_install_failed: "Installation fehlgeschlagen: {error}",
+        cc_protocol: "Diese Control-Center-Version wird vom Toolkit nicht unterstützt ({error}).",
+        cc_synced: "Mit BC250 Control Center synchronisiert: Änderungen am Desktop erscheinen hier und umgekehrt.",
+        cc_busy: "Wird angewendet…", cc_busy_other: "Ein anderer Vorgang läuft noch.", cc_ok: "Fertig",
+        cc_governor: "Governor", cc_gpu_range: "Frequenzbereich", cc_now: "Aktuell", cc_gpu_safe_points: "Geprüfte Stufen",
+        cc_gpu_no_gov: "Kein GPU-Governor aktiv. Installiere ihn im Control Center (Prepare dependencies).",
+        cc_cu_live: "Live aktiv", cc_cu_apply: "Auswahl anwenden", cc_cu_save: "Für den Start speichern",
+        cc_cu_min: "Mindestens 24 CU (12 WGP) müssen aktiv bleiben.",
+        cc_cu_backend: "Das CU-Backend ist nicht bereit. Führe Prepare dependencies im Control Center aus.",
+        cc_boot_service: "Startdienst", cc_on: "aktiv", cc_off: "inaktiv", cc_install: "Dienst installieren", cc_remove: "Dienst entfernen",
+        cc_cpu: "CPU-Übertaktung", cc_cpu_active: "Aktives Profil", cc_cpu_freq: "Frequenz", cc_cpu_vid: "Max. Spannung",
+        cc_cpu_manual: "Manuelle Skala", cc_cpu_manual_desc: "Feinabstimmung der vom Detektor gefundenen Skala.", cc_cpu_manual_first: "Zuerst die automatische Erkennung ausführen.",
+        cc_cpu_scale: "Skala", cc_cpu_apply: "Erkennen und anwenden", cc_cpu_apply_manual: "Skala anwenden", cc_confirm: "Starten",
+        cc_cpu_confirm: "{freq} MHz, bis {vid} mV, Limit {temp} °C. Der Detektor belastet die CPU stufenweise und kann mehrere Minuten dauern. Ein Einfrieren ist möglich.",
+        cc_cpu_confirm_manual: "{freq} MHz, Skala {scale}, Limit {temp} °C. Ein Einfrieren ist möglich.",
+        cc_cpu_not_ready: "CPU-Tuning nicht verfügbar: {reason}",
+        cc_fan: "Lüfter", cc_fan_speed: "Drehzahl", cc_fan_auto: "Zurück auf automatisch", cc_apply: "Anwenden",
+        cc_fan_none: "Kein steuerbarer Lüfterkanal erkannt.",
+    },
+    es: {
+        tab_tuning: "Tuning", cc_missing: "BC250 Control Center no está instalado.",
+        cc_missing_desc: "Instala su RPM desde el modo Escritorio (rpm-ostree install), reinicia y ejecuta una vez «Prepare dependencies» en la app. Esta pestaña y la de CU compartirán entonces sus ajustes.",
+        cc_open_project: "Abrir la página del proyecto", cc_retry: "Reintentar",
+        cc_install_btn: "Instalar BC250 Control Center", cc_install_desc: "Descarga el paquete oficial v{v} (suma verificada), lo añade al sistema con rpm-ostree y pide reiniciar. Tarda unos minutos; puedes seguir jugando.", cc_installing: "Instalando… descarga y luego rpm-ostree", cc_install_staged: "Instalado. Reinicia para terminar y ejecuta una vez «Prepare dependencies» en la app desde el modo Escritorio.", cc_reboot: "Reiniciar ahora", cc_install_failed: "Error de instalación: {error}",
+        cc_protocol: "El Toolkit no admite esta versión de Control Center ({error}).",
+        cc_synced: "Sincronizado con BC250 Control Center: lo que cambias en el escritorio aparece aquí, y al revés.",
+        cc_busy: "Aplicando…", cc_busy_other: "Otra operación sigue en curso.", cc_ok: "Hecho",
+        cc_governor: "Governor", cc_gpu_range: "Rango de frecuencia", cc_now: "Actual", cc_gpu_safe_points: "Escalones validados",
+        cc_gpu_no_gov: "No hay governor de GPU activo. Instálalo desde Control Center (Prepare dependencies).",
+        cc_cu_live: "Activas en vivo", cc_cu_apply: "Aplicar selección", cc_cu_save: "Guardar para el arranque",
+        cc_cu_min: "Deben quedar activas al menos 24 CU (12 WGP).",
+        cc_cu_backend: "El motor de CU no está listo. Ejecuta Prepare dependencies en Control Center.",
+        cc_boot_service: "Servicio de arranque", cc_on: "activado", cc_off: "desactivado", cc_install: "Instalar servicio", cc_remove: "Quitar servicio",
+        cc_cpu: "Overclock de CPU", cc_cpu_active: "Perfil activo", cc_cpu_freq: "Frecuencia", cc_cpu_vid: "Tensión máx.",
+        cc_cpu_manual: "Escala manual", cc_cpu_manual_desc: "Ajusta la escala encontrada por el detector.", cc_cpu_manual_first: "Ejecuta primero la detección automática.",
+        cc_cpu_scale: "Escala", cc_cpu_apply: "Detectar y aplicar", cc_cpu_apply_manual: "Aplicar escala", cc_confirm: "Iniciar",
+        cc_cpu_confirm: "{freq} MHz, hasta {vid} mV, límite {temp} °C. El detector estresa la CPU por escalones y puede tardar varios minutos. Puede congelarse.",
+        cc_cpu_confirm_manual: "{freq} MHz, escala {scale}, límite {temp} °C. Puede congelarse.",
+        cc_cpu_not_ready: "Ajuste de CPU no disponible: {reason}",
+        cc_fan: "Ventiladores", cc_fan_speed: "Velocidad", cc_fan_auto: "Volver a automático", cc_apply: "Aplicar",
+        cc_fan_none: "No se detectó ningún canal de ventilador controlable.",
+    },
+    it: {
+        tab_tuning: "Tuning", cc_missing: "BC250 Control Center non è installato.",
+        cc_missing_desc: "Installa il suo RPM dalla modalità Desktop (rpm-ostree install), riavvia ed esegui una volta «Prepare dependencies» nell'app. Questa scheda e quella CU condivideranno le sue impostazioni.",
+        cc_open_project: "Apri la pagina del progetto", cc_retry: "Riprova",
+        cc_install_btn: "Installa BC250 Control Center", cc_install_desc: "Scarica il pacchetto ufficiale v{v} (checksum verificato), lo aggiunge al sistema con rpm-ostree e chiede un riavvio. Richiede qualche minuto; puoi continuare a giocare.", cc_installing: "Installazione… download, poi rpm-ostree", cc_install_staged: "Installato. Riavvia per completare, poi esegui una volta «Prepare dependencies» nell’app in modalità Desktop.", cc_reboot: "Riavvia ora", cc_install_failed: "Installazione non riuscita: {error}",
+        cc_protocol: "Questa versione di Control Center non è supportata dal Toolkit ({error}).",
+        cc_synced: "Sincronizzato con BC250 Control Center: ciò che cambi sul desktop compare qui, e viceversa.",
+        cc_busy: "Applicazione…", cc_busy_other: "Un'altra operazione è ancora in corso.", cc_ok: "Fatto",
+        cc_governor: "Governor", cc_gpu_range: "Intervallo di frequenza", cc_now: "Attuale", cc_gpu_safe_points: "Livelli validati",
+        cc_gpu_no_gov: "Nessun governor GPU attivo. Installalo da Control Center (Prepare dependencies).",
+        cc_cu_live: "Attive ora", cc_cu_apply: "Applica selezione", cc_cu_save: "Salva per l'avvio",
+        cc_cu_min: "Devono restare attive almeno 24 CU (12 WGP).",
+        cc_cu_backend: "Il motore CU non è pronto. Esegui Prepare dependencies in Control Center.",
+        cc_boot_service: "Servizio all'avvio", cc_on: "attivo", cc_off: "disattivo", cc_install: "Installa servizio", cc_remove: "Rimuovi servizio",
+        cc_cpu: "Overclock CPU", cc_cpu_active: "Profilo attivo", cc_cpu_freq: "Frequenza", cc_cpu_vid: "Tensione max",
+        cc_cpu_manual: "Scala manuale", cc_cpu_manual_desc: "Affina la scala trovata dal rilevatore.", cc_cpu_manual_first: "Esegui prima il rilevamento automatico.",
+        cc_cpu_scale: "Scala", cc_cpu_apply: "Rileva e applica", cc_cpu_apply_manual: "Applica scala", cc_confirm: "Avvia",
+        cc_cpu_confirm: "{freq} MHz, fino a {vid} mV, limite {temp} °C. Il rilevatore stressa la CPU a gradini e può richiedere diversi minuti. Possibile blocco.",
+        cc_cpu_confirm_manual: "{freq} MHz, scala {scale}, limite {temp} °C. Possibile blocco.",
+        cc_cpu_not_ready: "Regolazione CPU non disponibile: {reason}",
+        cc_fan: "Ventole", cc_fan_speed: "Velocità", cc_fan_auto: "Torna ad automatico", cc_apply: "Applica",
+        cc_fan_none: "Nessun canale ventola controllabile rilevato.",
+    },
+    pt: {
+        tab_tuning: "Tuning", cc_missing: "O BC250 Control Center não está instalado.",
+        cc_missing_desc: "Instala o RPM no modo Desktop (rpm-ostree install), reinicia e executa uma vez «Prepare dependencies» na app. Este separador e o de CU passam a partilhar as definições.",
+        cc_open_project: "Abrir a página do projeto", cc_retry: "Tentar de novo",
+        cc_install_btn: "Instalar BC250 Control Center", cc_install_desc: "Transfere o pacote oficial v{v} (checksum verificado), adiciona-o ao sistema com rpm-ostree e pede um reinício. Demora alguns minutos; podes continuar a jogar.", cc_installing: "A instalar… transferência e depois rpm-ostree", cc_install_staged: "Instalado. Reinicia para concluir e executa uma vez «Prepare dependencies» na app no modo Desktop.", cc_reboot: "Reiniciar agora", cc_install_failed: "Falha na instalação: {error}",
+        cc_protocol: "Esta versão do Control Center não é suportada pelo Toolkit ({error}).",
+        cc_synced: "Sincronizado com o BC250 Control Center: o que mudas no desktop aparece aqui, e vice-versa.",
+        cc_busy: "A aplicar…", cc_busy_other: "Outra operação ainda está a decorrer.", cc_ok: "Feito",
+        cc_governor: "Governor", cc_gpu_range: "Intervalo de frequência", cc_now: "Atual", cc_gpu_safe_points: "Patamares validados",
+        cc_gpu_no_gov: "Nenhum governor de GPU ativo. Instala-o no Control Center (Prepare dependencies).",
+        cc_cu_live: "Ativas agora", cc_cu_apply: "Aplicar seleção", cc_cu_save: "Guardar para o arranque",
+        cc_cu_min: "Pelo menos 24 CU (12 WGP) têm de ficar ativas.",
+        cc_cu_backend: "O motor de CU não está pronto. Executa Prepare dependencies no Control Center.",
+        cc_boot_service: "Serviço de arranque", cc_on: "ativo", cc_off: "inativo", cc_install: "Instalar serviço", cc_remove: "Remover serviço",
+        cc_cpu: "Overclock de CPU", cc_cpu_active: "Perfil ativo", cc_cpu_freq: "Frequência", cc_cpu_vid: "Tensão máx.",
+        cc_cpu_manual: "Escala manual", cc_cpu_manual_desc: "Afina a escala encontrada pelo detetor.", cc_cpu_manual_first: "Executa primeiro a deteção automática.",
+        cc_cpu_scale: "Escala", cc_cpu_apply: "Detetar e aplicar", cc_cpu_apply_manual: "Aplicar escala", cc_confirm: "Iniciar",
+        cc_cpu_confirm: "{freq} MHz, até {vid} mV, limite {temp} °C. O detetor força a CPU por patamares e pode demorar vários minutos. Pode congelar.",
+        cc_cpu_confirm_manual: "{freq} MHz, escala {scale}, limite {temp} °C. Pode congelar.",
+        cc_cpu_not_ready: "Ajuste de CPU indisponível: {reason}",
+        cc_fan: "Ventoinhas", cc_fan_speed: "Velocidade", cc_fan_auto: "Voltar ao automático", cc_apply: "Aplicar",
+        cc_fan_none: "Nenhum canal de ventoinha controlável detetado.",
+    },
+    nl: {
+        tab_tuning: "Tuning", cc_missing: "BC250 Control Center is niet geïnstalleerd.",
+        cc_missing_desc: "Installeer de RPM in de desktopmodus (rpm-ostree install), herstart en voer in de app één keer „Prepare dependencies” uit. Dit tabblad en het CU-tabblad delen dan de instellingen.",
+        cc_open_project: "Projectpagina openen", cc_retry: "Opnieuw proberen",
+        cc_install_btn: "BC250 Control Center installeren", cc_install_desc: "Downloadt het officiële pakket v{v} (checksum gecontroleerd), voegt het met rpm-ostree aan het systeem toe en vraagt dan om een herstart. Duurt een paar minuten; je kunt blijven spelen.", cc_installing: "Installeren… downloaden, daarna rpm-ostree", cc_install_staged: "Geïnstalleerd. Herstart om af te ronden en voer daarna in de desktopmodus één keer „Prepare dependencies” uit in de app.", cc_reboot: "Nu herstarten", cc_install_failed: "Installatie mislukt: {error}",
+        cc_protocol: "Deze Control Center-versie wordt niet door de Toolkit ondersteund ({error}).",
+        cc_synced: "Gesynchroniseerd met BC250 Control Center: wijzigingen op de desktop verschijnen hier, en omgekeerd.",
+        cc_busy: "Toepassen…", cc_busy_other: "Er loopt nog een andere bewerking.", cc_ok: "Klaar",
+        cc_governor: "Governor", cc_gpu_range: "Frequentiebereik", cc_now: "Nu", cc_gpu_safe_points: "Gevalideerde stappen",
+        cc_gpu_no_gov: "Geen GPU-governor actief. Installeer hem via Control Center (Prepare dependencies).",
+        cc_cu_live: "Nu actief", cc_cu_apply: "Selectie toepassen", cc_cu_save: "Bewaren voor opstart",
+        cc_cu_min: "Minstens 24 CU (12 WGP) moeten actief blijven.",
+        cc_cu_backend: "De CU-backend is niet klaar. Voer Prepare dependencies uit in Control Center.",
+        cc_boot_service: "Opstartdienst", cc_on: "aan", cc_off: "uit", cc_install: "Dienst installeren", cc_remove: "Dienst verwijderen",
+        cc_cpu: "CPU-overklokken", cc_cpu_active: "Actief profiel", cc_cpu_freq: "Frequentie", cc_cpu_vid: "Max. spanning",
+        cc_cpu_manual: "Handmatige schaal", cc_cpu_manual_desc: "Verfijn de schaal die de detector vond.", cc_cpu_manual_first: "Voer eerst de automatische detectie uit.",
+        cc_cpu_scale: "Schaal", cc_cpu_apply: "Detecteren en toepassen", cc_cpu_apply_manual: "Schaal toepassen", cc_confirm: "Starten",
+        cc_cpu_confirm: "{freq} MHz, tot {vid} mV, limiet {temp} °C. De detector belast de CPU stap voor stap en kan enkele minuten duren. Vastlopen is mogelijk.",
+        cc_cpu_confirm_manual: "{freq} MHz, schaal {scale}, limiet {temp} °C. Vastlopen is mogelijk.",
+        cc_cpu_not_ready: "CPU-tuning niet beschikbaar: {reason}",
+        cc_fan: "Ventilatoren", cc_fan_speed: "Snelheid", cc_fan_auto: "Terug naar automatisch", cc_apply: "Toepassen",
+        cc_fan_none: "Geen regelbaar ventilatorkanaal gevonden.",
+    },
+    pl: {
+        tab_tuning: "Tuning", cc_missing: "BC250 Control Center nie jest zainstalowany.",
+        cc_missing_desc: "Zainstaluj jego RPM w trybie pulpitu (rpm-ostree install), uruchom ponownie i raz wykonaj „Prepare dependencies” w aplikacji. Ta karta i karta CU będą wtedy dzielić jego ustawienia.",
+        cc_open_project: "Otwórz stronę projektu", cc_retry: "Spróbuj ponownie",
+        cc_install_btn: "Zainstaluj BC250 Control Center", cc_install_desc: "Pobiera oficjalny pakiet v{v} (suma kontrolna sprawdzona), dodaje go do systemu przez rpm-ostree i prosi o restart. Trwa kilka minut; możesz grać dalej.", cc_installing: "Instalowanie… pobieranie, potem rpm-ostree", cc_install_staged: "Zainstalowano. Uruchom ponownie, a potem w trybie pulpitu raz wykonaj „Prepare dependencies” w aplikacji.", cc_reboot: "Uruchom ponownie teraz", cc_install_failed: "Instalacja nie powiodła się: {error}",
+        cc_protocol: "Ta wersja Control Center nie jest obsługiwana przez Toolkit ({error}).",
+        cc_synced: "Zsynchronizowano z BC250 Control Center: zmiany z pulpitu widać tutaj i odwrotnie.",
+        cc_busy: "Stosowanie…", cc_busy_other: "Inna operacja wciąż trwa.", cc_ok: "Gotowe",
+        cc_governor: "Governor", cc_gpu_range: "Zakres częstotliwości", cc_now: "Teraz", cc_gpu_safe_points: "Zweryfikowane progi",
+        cc_gpu_no_gov: "Brak aktywnego governora GPU. Zainstaluj go w Control Center (Prepare dependencies).",
+        cc_cu_live: "Aktywne teraz", cc_cu_apply: "Zastosuj wybór", cc_cu_save: "Zapisz na start",
+        cc_cu_min: "Co najmniej 24 CU (12 WGP) musi pozostać aktywnych.",
+        cc_cu_backend: "Moduł CU nie jest gotowy. Uruchom Prepare dependencies w Control Center.",
+        cc_boot_service: "Usługa startowa", cc_on: "włączona", cc_off: "wyłączona", cc_install: "Zainstaluj usługę", cc_remove: "Usuń usługę",
+        cc_cpu: "Podkręcanie CPU", cc_cpu_active: "Aktywny profil", cc_cpu_freq: "Częstotliwość", cc_cpu_vid: "Maks. napięcie",
+        cc_cpu_manual: "Skala ręczna", cc_cpu_manual_desc: "Dostrój skalę znalezioną przez detektor.", cc_cpu_manual_first: "Najpierw uruchom automatyczne wykrywanie.",
+        cc_cpu_scale: "Skala", cc_cpu_apply: "Wykryj i zastosuj", cc_cpu_apply_manual: "Zastosuj skalę", cc_confirm: "Start",
+        cc_cpu_confirm: "{freq} MHz, do {vid} mV, limit {temp} °C. Detektor obciąża CPU stopniowo i może to potrwać kilka minut. Możliwe zawieszenie.",
+        cc_cpu_confirm_manual: "{freq} MHz, skala {scale}, limit {temp} °C. Możliwe zawieszenie.",
+        cc_cpu_not_ready: "Strojenie CPU niedostępne: {reason}",
+        cc_fan: "Wentylatory", cc_fan_speed: "Prędkość", cc_fan_auto: "Wróć do automatu", cc_apply: "Zastosuj",
+        cc_fan_none: "Nie wykryto sterowalnego kanału wentylatora.",
+    },
+    ru: {
+        tab_tuning: "Тюнинг", cc_missing: "BC250 Control Center не установлен.",
+        cc_missing_desc: "Установите его RPM в режиме рабочего стола (rpm-ostree install), перезагрузитесь и один раз выполните «Prepare dependencies» в приложении. Эта вкладка и вкладка CU будут использовать его настройки.",
+        cc_open_project: "Открыть страницу проекта", cc_retry: "Повторить",
+        cc_install_btn: "Установить BC250 Control Center", cc_install_desc: "Скачивает официальный пакет v{v} (контрольная сумма проверена), добавляет его в систему через rpm-ostree и просит перезагрузку. Занимает несколько минут; можно продолжать играть.", cc_installing: "Установка… загрузка, затем rpm-ostree", cc_install_staged: "Установлено. Перезагрузитесь, затем один раз выполните «Prepare dependencies» в приложении в режиме рабочего стола.", cc_reboot: "Перезагрузить сейчас", cc_install_failed: "Ошибка установки: {error}",
+        cc_protocol: "Эта версия Control Center не поддерживается Toolkit ({error}).",
+        cc_synced: "Синхронизировано с BC250 Control Center: изменения на рабочем столе видны здесь, и наоборот.",
+        cc_busy: "Применение…", cc_busy_other: "Другая операция ещё выполняется.", cc_ok: "Готово",
+        cc_governor: "Governor", cc_gpu_range: "Диапазон частот", cc_now: "Сейчас", cc_gpu_safe_points: "Проверенные ступени",
+        cc_gpu_no_gov: "Нет активного GPU governor. Установите его в Control Center (Prepare dependencies).",
+        cc_cu_live: "Активно сейчас", cc_cu_apply: "Применить выбор", cc_cu_save: "Сохранить для запуска",
+        cc_cu_min: "Должно оставаться активными не менее 24 CU (12 WGP).",
+        cc_cu_backend: "Модуль CU не готов. Выполните Prepare dependencies в Control Center.",
+        cc_boot_service: "Служба запуска", cc_on: "включена", cc_off: "выключена", cc_install: "Установить службу", cc_remove: "Удалить службу",
+        cc_cpu: "Разгон CPU", cc_cpu_active: "Активный профиль", cc_cpu_freq: "Частота", cc_cpu_vid: "Макс. напряжение",
+        cc_cpu_manual: "Ручная шкала", cc_cpu_manual_desc: "Точная настройка шкалы, найденной детектором.", cc_cpu_manual_first: "Сначала запустите автоматическое определение.",
+        cc_cpu_scale: "Шкала", cc_cpu_apply: "Определить и применить", cc_cpu_apply_manual: "Применить шкалу", cc_confirm: "Запустить",
+        cc_cpu_confirm: "{freq} МГц, до {vid} мВ, предел {temp} °C. Детектор нагружает CPU ступенями, это может занять несколько минут. Возможно зависание.",
+        cc_cpu_confirm_manual: "{freq} МГц, шкала {scale}, предел {temp} °C. Возможно зависание.",
+        cc_cpu_not_ready: "Настройка CPU недоступна: {reason}",
+        cc_fan: "Вентиляторы", cc_fan_speed: "Скорость", cc_fan_auto: "Вернуть автоматический режим", cc_apply: "Применить",
+        cc_fan_none: "Управляемый канал вентилятора не найден.",
+    },
+};
 function t(key, vars) {
     if (!_locale)
         _locale = detectLocale();
     const dict = T[_locale] ?? T.en;
-    let s = dict[key] ?? T.en[key] ?? key;
+    let s = dict[key] ?? CC[_locale]?.[key] ?? T.en[key] ?? CC.en[key] ?? key;
     if (vars)
         for (const [k, v] of Object.entries(vars))
             s = s.replace(`{${k}}`, String(v));
@@ -1030,7 +1245,7 @@ function CuTab() {
                                     ? `${status.cu_count} / 40 CU`
                                     : status.umr_available
                                         ? t("cu_reading")
-                                        : t("cu_na") }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cu_boot"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), !status.umr_available && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                        : t("cu_na") }) }) }), status.boot_cu != null && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cu_boot"), children: SP_JSX.jsxs("span", { style: { fontSize: "12px", color: "#aaa" }, children: [status.boot_cu, " CU", status.boot_profile ? ` (${status.boot_profile})` : ""] }) }) })), status.source === "control_center" && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { color: "#4caf50", children: t("cc_synced") }) })), !status.umr_available && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
                                             fontSize: "12px", color: "#ff9800", lineHeight: "1.4",
                                             borderLeft: "3px solid #ff9800", paddingLeft: "8px",
                                         }, children: t("cu_no_umr") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: installingUmr, onClick: handleInstallUmr, children: [SP_JSX.jsx(IcDownload, {}), " ", installingUmr ? t("cu_installing_umr") : t("cu_install_umr")] }) })] }))] }), SP_JSX.jsx(DFL.PanelSection, { title: t("cu_warn_title"), children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: {
@@ -1263,9 +1478,174 @@ function SettingsTab({ autoApply, setAutoApply, gamesDb, onRefreshDb, }) {
                         : t("update_check");
     return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("set_auto"), description: t("set_auto_desc"), checked: autoApply, onChange: setAutoApply }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { disabled: refreshing, onClick: doRefresh, children: [SP_JSX.jsx(IcRefresh, {}), " ", refreshing ? t("set_refreshing") : t("set_refresh_db")] }) }), meta?.updated && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_db_date"), children: SP_JSX.jsx("span", { style: { fontSize: "11px", color: "#888" }, children: meta.updated }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("set_contribute"), children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#67a3ff" }, children: "github.com/Necrosiak/bc250-toolkit-decky" }) }) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("update_section"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("update_auto"), checked: autoUpd, onChange: onToggleAutoUpd }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: updStatus === "available" ? "#23a55a" : undefined, active: updStatus === "available", disabled: updStatus === "checking" || updStatus === "installing", onClick: updStatus === "available" ? installUpd : checkUpd, children: [updStatus === "available" ? SP_JSX.jsx(IcDownload, {}) : updStatus === "failed" ? SP_JSX.jsx(IcWarn, {}) : SP_JSX.jsx(IcRefresh, {}), " ", updLabel] }) }), updStatus === "failed" && updErr ? (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: 11, opacity: 0.8, wordBreak: "break-word" }, children: updErr }) })) : null] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("about"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: 11, color: "#aaa", lineHeight: 1.6 }, children: [SP_JSX.jsxs("div", { children: [SP_JSX.jsx("b", { style: { color: "#fff" }, children: "BC250 Toolkit" }), version ? ` v${version}` : ""] }), SP_JSX.jsxs("div", { children: [t("about_by"), " ", SP_JSX.jsx("span", { style: { color: "#67a3ff" }, children: "Necrosiak" })] })] }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { onClick: () => openUrl("https://github.com/Necrosiak/bc250-toolkit-decky"), children: [SP_JSX.jsx(IcGithub, {}), " GitHub"] }) })] })] }));
 }
+const CC_URL = "https://github.com/movacx/bc250-control-center";
+const CU_ROWS = [0, 1, 2, 3];
+const CU_WGPS = [0, 1, 2, 3, 4];
+const wgpCount = (m) => m.reduce((n, v) => n + CU_WGPS.filter((b) => v & (1 << b)).length, 0);
+const validMasks = (m) => Array.isArray(m) && m.length === 4 && m.every((v) => Number.isInteger(v) && v >= 0 && v <= 31);
+const VAL = { fontSize: "12px", color: "#ddd" };
+function ccError(r) {
+    if (r.error === "busy")
+        return t("cc_busy_other");
+    if (r.protocol_mismatch)
+        return t("cc_protocol", { error: r.error ?? "" });
+    return r.error ?? "?";
+}
+function Note({ color = "#ff9800", children }) {
+    return (SP_JSX.jsx("div", { style: { fontSize: "12px", color, lineHeight: "1.4", borderLeft: `3px solid ${color}`, paddingLeft: "8px", margin: "6px 0", width: "100%", boxSizing: "border-box" }, children: children }));
+}
+// Case de la grille CU : focus manette local, orange tant que la sélection
+// diffère de ce qui est réellement routé.
+function CuCell({ sub, on, pending, disabled, onClick }) {
+    const [focused, setFocused] = SP_REACT.useState(false);
+    const c = "#67a3ff";
+    return (SP_JSX.jsxs(Btn, { disabled: disabled, onClick: onClick, onFocus: () => setFocused(true), onBlur: () => setFocused(false), style: {
+            margin: 0, minWidth: 0, minHeight: 0, height: 34, padding: 0, boxSizing: "border-box",
+            borderRadius: 5, display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", lineHeight: 1, fontSize: 10, fontWeight: 700, color: "#fff",
+            background: pending ? "rgba(255,152,0,0.35)" : on ? c : "rgba(255,255,255,0.05)",
+            border: `1px solid ${pending ? "#ff9800" : on ? c : "transparent"}`,
+            opacity: disabled ? 0.5 : 1,
+            ...focusHalo(c, focused, 1.06),
+        }, children: [SP_JSX.jsx("span", { style: { fontSize: 8, opacity: 0.7 }, children: sub }), SP_JSX.jsx("span", { style: { marginTop: 2 }, children: on ? "ON" : "—" })] }));
+}
+function TuningTab() {
+    const [st, setSt] = SP_REACT.useState(null);
+    const [busy, setBusy] = SP_REACT.useState(null);
+    const [msg, setMsg] = SP_REACT.useState(null);
+    const [focus, setFocus] = SP_REACT.useState(null);
+    const [cuDraft, setCuDraft] = SP_REACT.useState(null);
+    const [fanChannel, setFanChannel] = SP_REACT.useState(2);
+    const [fanDuty, setFanDuty] = SP_REACT.useState(50);
+    const [cpuFreq, setCpuFreq] = SP_REACT.useState(3500);
+    const [cpuVid, setCpuVid] = SP_REACT.useState(1150);
+    const [cpuManual, setCpuManual] = SP_REACT.useState(false);
+    const [cpuScale, setCpuScale] = SP_REACT.useState(-30);
+    const [cpuLive, setCpuLive] = SP_REACT.useState(null);
+    const busyRef = SP_REACT.useRef(false);
+    const seeded = SP_REACT.useRef(false);
+    const refresh = SP_REACT.useCallback(() => {
+        call("cc_status").then(setSt).catch((e) => setSt({ ok: false, error: String(e) }));
+    }, []);
+    SP_REACT.useEffect(() => {
+        refresh();
+        const timer = setInterval(() => { if (!busyRef.current)
+            refresh(); }, 5000);
+        return () => clearInterval(timer);
+    }, [refresh]);
+    // Curseurs pré-remplis UNE fois avec ce qui tourne réellement.
+    SP_REACT.useEffect(() => {
+        if (!st || st.ok === false || seeded.current)
+            return;
+        seeded.current = true;
+        const cpu = st.cpu_active_profile ?? st.cpu_saved_profile;
+        if (cpu?.frequency)
+            setCpuFreq(cpu.frequency);
+        if (typeof cpu?.scale === "number")
+            setCpuScale(cpu.scale);
+        const fan = (st.fan_channel_options ?? []).find((o) => o.available);
+        if (fan) {
+            setFanChannel(fan.channel);
+            if (typeof fan.percent === "number")
+                setFanDuty(Math.max(20, Math.min(100, Math.round(fan.percent / 5) * 5)));
+        }
+    }, [st]);
+    const run = async (key, fn, pollCpu = false) => {
+        if (busyRef.current)
+            return;
+        busyRef.current = true;
+        setBusy(key);
+        setMsg(null);
+        // Une détection CPU dure plusieurs minutes : on affiche l'horloge qui monte.
+        const timer = pollCpu
+            ? setInterval(() => {
+                call("cc_cpu_telemetry")
+                    .then((r) => { if (typeof r.cpu_frequency_mhz === "number")
+                    setCpuLive(r.cpu_frequency_mhz); })
+                    .catch(() => { });
+            }, 2000)
+            : null;
+        try {
+            const r = await fn();
+            const text = r.ok === false ? `✗ ${ccError(r)}` : `✓ ${r.message ?? t("cc_ok")}`;
+            setMsg(text);
+            notify({ title: "BC250 Toolkit", body: text });
+        }
+        catch (e) {
+            setMsg(`✗ ${e}`);
+        }
+        finally {
+            if (timer)
+                clearInterval(timer);
+            setCpuLive(null);
+            if (key.startsWith("cu"))
+                setCuDraft(null);
+            busyRef.current = false;
+            setBusy(null);
+            refresh();
+        }
+    };
+    if (!st)
+        return SP_JSX.jsx(DFL.SteamSpinner, {});
+    if (st.available === false) {
+        const inst = st.install ?? {};
+        const small = { fontSize: "12px", color: "#aaa", lineHeight: "1.4", margin: "4px 0 8px" };
+        return (SP_JSX.jsxs(DFL.PanelSection, { title: t("cc_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { children: t("cc_missing") }) }), inst.phase === "staged" ? (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(Note, { color: "#23a55a", children: ["\u2713 ", t("cc_install_staged")] }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: "#23a55a", active: true, onClick: () => window.SteamClient?.System?.RestartPC?.(), children: [SP_JSX.jsx(IcRefresh, {}), " ", t("cc_reboot")] }) })] })) : inst.supported ? (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: small, children: t("cc_install_desc", { v: inst.version ?? "" }) }) }), inst.phase === "failed" && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(Note, { color: "#f44336", children: ["\u2717 ", t("cc_install_failed", { error: inst.error ?? "?" })] }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { active: inst.phase !== "running", onClick: () => {
+                                    if (inst.phase === "running")
+                                        return;
+                                    call("cc_install").then(refresh).catch(() => refresh());
+                                }, children: inst.phase === "running" ? SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.SteamSpinner, {}), " ", t("cc_installing")] }) : SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(IcDownload, {}), " ", t("cc_install_btn")] }) }) })] })) : (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: small, children: t("cc_missing_desc") }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { onClick: () => openUrl(CC_URL), children: [SP_JSX.jsx(IcGithub, {}), " ", t("cc_open_project")] }) })] }));
+    }
+    if (st.ok === false) {
+        return (SP_JSX.jsxs(DFL.PanelSection, { title: t("cc_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(Note, { color: "#f44336", children: ["\u2717 ", ccError(st)] }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { onClick: refresh, children: [SP_JSX.jsx(IcRefresh, {}), " ", t("cc_retry")] }) })] }));
+    }
+    const locked = !!busy;
+    const label = (key, text) => (busy === key ? t("cc_busy") : text);
+    // GPU
+    const range = Array.isArray(st.gpu_range) && st.gpu_range.length === 2 ? st.gpu_range : null;
+    const profiles = st.gpu_profiles ?? [];
+    const points = st.gpu_safe_point_ceilings ?? [];
+    const gpuReady = !!st.gpu_governor_active;
+    // CU
+    const live = validMasks(st.cu_masks) ? st.cu_masks : null;
+    const draft = cuDraft ?? live;
+    const saved = validMasks(st.cu_saved_masks) ? st.cu_saved_masks : null;
+    const cuPending = !!draft && !!live && draft.some((m, i) => m !== live[i]);
+    const cuReady = !!st.cu_backend_ready;
+    // CPU
+    const cpuReady = !!st.cpu_tuning_ready;
+    const detected = st.cpu_detected_profile;
+    const activeCpu = st.cpu_active_profile ?? detected?.active_profile;
+    const manualReady = !!(detected?.ready && detected?.same_boot && (st.cpu_manual_scale_ready ?? detected?.manual_scale_ready));
+    const manualFreqOk = manualReady && detected?.frequency === cpuFreq;
+    const cpuLimit = st.cpu_tuning_temperature ?? 90;
+    // Ventilos
+    const fans = (st.fan_channel_options ?? []).filter((o) => o.available);
+    const fan = fans.find((o) => o.channel === fanChannel);
+    const confirmCpu = () => DFL.showModal(SP_JSX.jsx(DFL.ConfirmModal, { strTitle: cpuManual ? t("cc_cpu_apply_manual") : t("cc_cpu_apply"), strDescription: cpuManual
+            ? t("cc_cpu_confirm_manual", { freq: cpuFreq, scale: cpuScale, temp: cpuLimit })
+            : t("cc_cpu_confirm", { freq: cpuFreq, vid: cpuVid, temp: cpuLimit }), strOKButtonText: t("cc_confirm"), onOK: () => run("cpu", () => cpuManual
+            ? call("cc_cpu_scale", cpuFreq, cpuScale)
+            : call("cc_cpu_tuning", cpuFreq, cpuVid), true) }));
+    const listBtn = (key, active, color, text, onClick, disabled = false) => (SP_JSX.jsxs(CardBtn, { active: active, focused: focus === key, color: color, disabled: locked || disabled, onClick: onClick, onFocus: () => setFocus(key), onBlur: () => setFocus((f) => (f === key ? null : f)), children: [SP_JSX.jsx("span", { style: { flex: 1, textAlign: "left" }, children: label(key, text) }), active && SP_JSX.jsx("span", { style: { fontSize: 10 }, children: "\u25CF" })] }, key));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsxs(DFL.PanelSection, { title: t("cc_title"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { color: "#4caf50", children: t("cc_synced") }) }), msg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.4", margin: "4px 0", color: msg.startsWith("✓") ? "#4caf50" : "#f44336" }, children: msg }) }))] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("cc_gpu"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_governor"), children: SP_JSX.jsx("span", { style: VAL, children: st.gpu_governor_label ?? "—" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_gpu_range"), children: SP_JSX.jsx("span", { style: VAL, children: range ? `${range[0]}–${range[1]} MHz` : "—" }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_now"), children: SP_JSX.jsxs("span", { style: VAL, children: [st.gpu_core_mhz ?? "—", " MHz \u00B7 ", st.gpu_voltage_mv ?? "—", " mV \u00B7 ", st.gpu_temperature_c != null ? `${Number(st.gpu_temperature_c).toFixed(0)} °C` : "—"] }) }) }), !gpuReady && SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { children: t("cc_gpu_no_gov") }) }), gpuReady && profiles.length > 0 && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { style: { display: "flex", flexDirection: "column", gap: 4 }, children: profiles.map((p) => listBtn(`gpu-${p.key}`, !!range && range[0] === p.min && range[1] === p.max, "#4caf50", `${p.name} · ${p.min}–${p.max} MHz`, () => run(`gpu-${p.key}`, () => call("cc_gpu_profile", p.key)))) }) })), gpuReady && points.length > 0 && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_gpu_safe_points") }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { style: { display: "flex", flexDirection: "column", gap: 4 }, children: points.map((pt) => listBtn(`gsp-${pt.frequency}`, !!range && range[1] === pt.frequency, "#ff9800", `${pt.frequency} MHz · ${pt.voltage} mV`, () => run(`gsp-${pt.frequency}`, () => call("cc_gpu_safe_point", pt.frequency)))) }) })] }))] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("cc_cu"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_cu_live"), children: SP_JSX.jsxs("span", { style: { fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }, children: [st.cu_active_cus ?? "—", " / ", st.cu_total_cus ?? 40, " CU", draft && cuPending ? `  →  ${wgpCount(draft) * 2}` : ""] }) }) }), !cuReady && SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { children: t("cc_cu_backend") }) }), draft && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { "flow-children": "grid", style: { display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 4, width: "100%" }, children: CU_ROWS.flatMap((r) => CU_WGPS.map((w) => {
+                                const on = !!(draft[r] & (1 << w));
+                                const routed = !!live && !!(live[r] & (1 << w));
+                                return (SP_JSX.jsx(CuCell, { sub: `${r}.${w}`, on: on, pending: on !== routed, disabled: locked || !cuReady, onClick: () => {
+                                        if (on && wgpCount(draft) <= 12) {
+                                            setMsg(`✗ ${t("cc_cu_min")}`);
+                                            return;
+                                        }
+                                        const next = draft.slice();
+                                        next[r] = on ? next[r] & ~(1 << w) : next[r] | (1 << w);
+                                        setCuDraft(next);
+                                    } }, `${r}-${w}`));
+                            })) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { active: true, color: "#67a3ff", disabled: locked || !cuReady || !cuPending, onClick: () => draft && run("cu-apply", () => call("cc_cu_table", draft)), children: label("cu-apply", t("cc_cu_apply")) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { disabled: locked || !cuReady || !draft, onClick: () => draft && run("cu-save", () => call("cc_cu_save", draft)), children: label("cu-save", t("cc_cu_save")) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_boot_service"), children: SP_JSX.jsxs("span", { style: VAL, children: [st.cu_service_enabled ? t("cc_on") : t("cc_off"), saved ? ` · ${wgpCount(saved) * 2} CU` : ""] }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: st.cu_service_installed ? (SP_JSX.jsx(ActionCard, { disabled: locked, onClick: () => run("cu-svc", () => call("cc_cu_service", "remove")), children: label("cu-svc", t("cc_remove")) })) : (SP_JSX.jsx(ActionCard, { disabled: locked || !saved, onClick: () => run("cu-svc", () => call("cc_cu_service", "install")), children: label("cu-svc", t("cc_install")) })) })] }), SP_JSX.jsxs(DFL.PanelSection, { title: t("cc_cpu"), children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_now"), children: SP_JSX.jsxs("span", { style: VAL, children: [cpuLive ?? st.cpu_frequency_mhz ?? "—", " MHz \u00B7 ", st.cpu_temperature_c != null ? `${Number(st.cpu_temperature_c).toFixed(1)} °C` : "—"] }) }) }), activeCpu && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_cpu_active"), children: SP_JSX.jsxs("span", { style: VAL, children: [activeCpu.frequency, " MHz \u00B7 scale ", activeCpu.scale, " \u00B7 ~", activeCpu.estimated_vid, " mV"] }) }) })), !cpuReady && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { children: t("cc_cpu_not_ready", { reason: st.cpu_tuning_error ?? st.cpu_tuning_source ?? "?" }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.SliderField, { label: t("cc_cpu_freq"), value: cpuFreq, min: 3500, max: 4200, step: 50, showValue: true, valueSuffix: " MHz", disabled: locked || !cpuReady, onChange: (v) => setCpuFreq(v) }) }), !cpuManual && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.SliderField, { label: t("cc_cpu_vid"), value: cpuVid, min: 950, max: 1325, step: 5, showValue: true, valueSuffix: " mV", disabled: locked || !cpuReady, onChange: (v) => setCpuVid(v) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("cc_cpu_manual"), description: manualReady ? t("cc_cpu_manual_desc") : t("cc_cpu_manual_first"), checked: cpuManual, disabled: locked || !manualReady, onChange: setCpuManual }) }), cpuManual && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.SliderField, { label: t("cc_cpu_scale"), value: cpuScale, min: -50, max: 0, step: 1, showValue: true, disabled: locked || !manualFreqOk, onChange: (v) => setCpuScale(v) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { active: true, color: "#f44336", disabled: locked || !cpuReady || (cpuManual && !manualFreqOk), onClick: confirmCpu, children: label("cpu", cpuManual ? t("cc_cpu_apply_manual") : t("cc_cpu_apply")) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { label: t("cc_boot_service"), children: SP_JSX.jsx("span", { style: VAL, children: st.cpu_service_enabled ? t("cc_on") : t("cc_off") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: st.cpu_service_installed || st.cpu_service_enabled ? (SP_JSX.jsx(ActionCard, { disabled: locked, onClick: () => run("cpu-svc", () => call("cc_cpu_service", "remove")), children: label("cpu-svc", t("cc_remove")) })) : (SP_JSX.jsx(ActionCard, { disabled: locked || !activeCpu?.persistable, onClick: () => run("cpu-svc", () => call("cc_cpu_service", "install")), children: label("cpu-svc", t("cc_install")) })) })] }), SP_JSX.jsx(DFL.PanelSection, { title: t("cc_fan"), children: fans.length === 0 ? (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { children: t("cc_fan_none") }) })) : (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { style: { display: "flex", flexDirection: "column", gap: 4 }, children: fans.map((o) => listBtn(`fan-${o.channel}`, o.channel === fanChannel, "#67a3ff", `${o.label ?? `PWM ${o.channel}`} · ${o.rpm ?? "—"} RPM · ${o.percent ?? "—"}%`, () => setFanChannel(o.channel))) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.SliderField, { label: t("cc_fan_speed"), value: fanDuty, min: 20, max: 100, step: 5, showValue: true, valueSuffix: "%", disabled: locked || !fan, onChange: (v) => setFanDuty(v) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { active: true, color: "#67a3ff", disabled: locked || !fan, onClick: () => run("fan", () => call("cc_fan_channel", fanChannel, fanDuty)), children: label("fan", t("cc_apply")) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(ActionCard, { disabled: locked || !fan, onClick: () => run("fan-auto", () => call("cc_fan_channel", fanChannel, "automatic")), children: label("fan-auto", t("cc_fan_auto")) }) })] })) })] }));
+}
 const TAB_DEFS = [
     { id: "games", tKey: "tab_games", icon: SP_JSX.jsx(IcController, {}) },
     { id: "cu", tKey: "tab_cu", icon: SP_JSX.jsx(IcLightning, {}) },
+    { id: "tuning", tKey: "tab_tuning", icon: SP_JSX.jsx(FaMicrochip, {}) },
     { id: "system", tKey: "tab_system", icon: SP_JSX.jsx(IcThermometer, {}) },
     { id: "settings", tKey: "tab_settings", icon: SP_JSX.jsx(IcGear, {}) },
 ];
@@ -1326,7 +1706,7 @@ function GameRow({ name, appid, selected, focused, onClick, onFocus, onBlur }) {
 // actif, anneau blanc au focus. Rangée Focusable horizontale = nav D-pad correcte.
 function TabBtn({ active, focused, onClick, onFocus, onBlur, children }) {
     return (SP_JSX.jsx(BtnTab, { onClick: onClick, onFocus: onFocus, onBlur: onBlur, style: {
-            flex: "1 1 0", minWidth: 0, margin: 0, padding: "5px 2px",
+            flex: active ? "2.6 1 0" : "1 1 0", minWidth: 0, margin: 0, padding: "5px 2px",
             fontSize: 11, minHeight: 0, boxSizing: "border-box", color: "#fff",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
             overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
@@ -1340,7 +1720,7 @@ function TabBtn({ active, focused, onClick, onFocus, onBlur, children }) {
 }
 function TabBar({ tab, setTab }) {
     const [focused, setFocused] = SP_REACT.useState(null);
-    return (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { "flow-children": "row", style: { display: "flex", gap: 4, width: "100%", boxSizing: "border-box" }, children: TAB_DEFS.map(({ id, tKey, icon }) => (SP_JSX.jsxs(TabBtn, { active: tab === id, focused: focused === id, onClick: () => setTab(id), onFocus: () => setFocused(id), onBlur: () => setFocused((f) => (f === id ? null : f)), children: [SP_JSX.jsx("span", { children: icon }), SP_JSX.jsx("span", { style: { overflow: "hidden", textOverflow: "ellipsis" }, children: t(tKey) })] }, id))) }) }) }));
+    return (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Focusable, { "flow-children": "row", style: { display: "flex", gap: 4, width: "100%", boxSizing: "border-box" }, children: TAB_DEFS.map(({ id, tKey, icon }) => (SP_JSX.jsxs(TabBtn, { active: tab === id, focused: focused === id, onClick: () => setTab(id), onFocus: () => setFocused(id), onBlur: () => setFocused((f) => (f === id ? null : f)), children: [SP_JSX.jsx("span", { children: icon }), tab === id && SP_JSX.jsx("span", { style: { overflow: "hidden", textOverflow: "ellipsis" }, children: t(tKey) })] }, id))) }) }) }));
 }
 // ── Plugin principal ──────────────────────────────────────────────────────────
 function Content() {
@@ -1382,7 +1762,7 @@ function Content() {
     };
     if (!dbLoaded)
         return SP_JSX.jsx(DFL.SteamSpinner, {});
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(TabBar, { tab: tab, setTab: setTab }), tab === "games" && SP_JSX.jsx(GamesTab, { gamesDb: gamesDb, savedVariants: savedVariants }), tab === "cu" && SP_JSX.jsx(CuTab, {}), tab === "system" && SP_JSX.jsx(SystemTab, {}), tab === "settings" && (SP_JSX.jsx(SettingsTab, { autoApply: autoApply, setAutoApply: setAutoApply, gamesDb: gamesDb, onRefreshDb: refreshDb }))] }));
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(TabBar, { tab: tab, setTab: setTab }), tab === "games" && SP_JSX.jsx(GamesTab, { gamesDb: gamesDb, savedVariants: savedVariants }), tab === "cu" && SP_JSX.jsx(CuTab, {}), tab === "tuning" && SP_JSX.jsx(TuningTab, {}), tab === "system" && SP_JSX.jsx(SystemTab, {}), tab === "settings" && (SP_JSX.jsx(SettingsTab, { autoApply: autoApply, setAutoApply: setAutoApply, gamesDb: gamesDb, onRefreshDb: refreshDb }))] }));
 }
 // ── Auto-update: the frontend only REPORTS ───────────────────────────────────
 // The backend installs (it may: the plugin directory is root-owned, but the

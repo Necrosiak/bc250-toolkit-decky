@@ -44,6 +44,15 @@ Base de dados comunitária de opções de lançamento otimizadas para o BC-250 �
   - Escrever no BIOS requer um [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) atualizado (fornece o helper root `bc250-uma-helper` — sem palavra-passe sudo)
   - **Auto (≈8 GB) é o valor seguro recomendado** — se aparecerem artefactos gráficos (p. ex. verdes) após uma alteração, volte para Auto
 
+### Separador Tuning (com BC250 Control Center)
+Com o [BC250 Control Center](https://github.com/movacx/bc250-control-center) instalado (o RPM via `rpm-ostree install` no Bazzite e depois uma vez *Prepare dependencies* na app), este separador é a sua interface no modo de jogo:
+- **GPU** — perfis do governor e patamares validados
+- **Compute Units** — grelha 4×5 em direto, tabela guardada para o arranque e serviço de arranque
+- **CPU** — overclock pelo detetor do Control Center, escala manual e serviço de arranque
+- **Ventoinhas** — velocidade manual por canal, ou regresso ao automático
+
+O Toolkit não guarda aqui definições próprias: usa o mesmo helper protegido do Control Center, por isso o que mudas no desktop aparece no modo de jogo, e vice-versa. O separador CU também passa por ele. Sem Control Center, o resto do plugin funciona como antes; no Bazzite o separador oferece um botão **Instalar BC250 Control Center** (RPM oficial v1.19.0, SHA-256 verificado, `rpm-ostree install` e reinício), noutros sistemas aponta para a página do projeto. O botão desaparece assim que o Control Center é detetado.
+
 ### Separador Sistema
 - Temperaturas CPU/GPU em tempo real, velocidade da ventoinha e clocks GPU/CPU
 - **Recursos** — RAM do sistema ativada (o que resta ao SO após a reserva UMA), RAM usada com percentagem e número de CUs ativos

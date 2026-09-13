@@ -44,6 +44,15 @@ Community-Datenbank mit optimierten Startoptionen für den BC-250 — direkt aus
   - Das Schreiben ins BIOS erfordert ein aktuelles [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) (liefert den Root-Helper `bc250-uma-helper` — keine sudo-Passwortabfrage)
   - **Auto (≈8 GB) ist der empfohlene sichere Wert** — bei Grafikartefakten (z. B. grünen Störungen) nach einer Änderung zurück auf Auto stellen
 
+### Tuning-Tab (mit BC250 Control Center)
+Ist [BC250 Control Center](https://github.com/movacx/bc250-control-center) installiert (RPM per `rpm-ostree install` auf Bazzite, danach einmal *Prepare dependencies* in der App), wird dieser Tab seine Oberfläche im Spielmodus:
+- **GPU** — Governor-Profile und geprüfte Stufen
+- **Compute Units** — Live-Raster 4×5, gespeicherte Starttabelle und Startdienst
+- **CPU** — Übertaktung über den Detektor des Control Centers, manuelle Skala und Startdienst
+- **Lüfter** — manuelle Drehzahl pro Kanal oder zurück auf automatisch
+
+Der Toolkit speichert hier nichts selbst: Er steuert denselben geschützten Helper wie das Control Center, Änderungen am Desktop erscheinen also im Spielmodus und umgekehrt. Auch der CU-Tab läuft darüber. Ohne Control Center funktioniert der Rest des Plugins wie bisher; unter Bazzite bietet der Tab eine Schaltfläche **BC250 Control Center installieren** (offizielles RPM v1.19.0, SHA-256 geprüft, `rpm-ostree install`, dann Neustart), sonst verlinkt er die Projektseite. Die Schaltfläche verschwindet, sobald das Control Center erkannt wird.
+
 ### System-Tab
 - CPU/GPU-Temperaturen in Echtzeit, Lüfterdrehzahl und GPU/CPU-Takt
 - **Ressourcen** — aktivierter System-RAM (was dem OS nach dem UMA-Carve-out bleibt), belegter RAM mit Prozentanzeige und Anzahl aktiver CUs

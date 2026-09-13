@@ -44,6 +44,15 @@ Communitydatabase met geoptimaliseerde startopties voor de BC-250 — met één 
   - Schrijven naar het BIOS vereist een up-to-date [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) (levert de root-helper `bc250-uma-helper` — geen sudo-wachtwoord meer)
   - **Auto (≈8 GB) is de aanbevolen veilige waarde** — zie je grafische artefacten (bv. groene storingen) na een wijziging, zet dan terug op Auto
 
+### Tabblad Tuning (met BC250 Control Center)
+Is [BC250 Control Center](https://github.com/movacx/bc250-control-center) geïnstalleerd (de RPM via `rpm-ostree install` op Bazzite, daarna één keer *Prepare dependencies* in de app), dan is dit tabblad de interface in de spelmodus:
+- **GPU** — governor-profielen en gevalideerde stappen
+- **Compute Units** — live 4×5-raster, bewaarde opstarttabel en opstartdienst
+- **CPU** — overklokken via de detector van Control Center, handmatige schaal en opstartdienst
+- **Ventilatoren** — handmatige snelheid per kanaal, of terug naar automatisch
+
+De Toolkit bewaart hier zelf niets: hij stuurt dezelfde beschermde helper als Control Center aan, dus wijzigingen op de desktop verschijnen in de spelmodus en omgekeerd. Ook het CU-tabblad loopt erlangs. Zonder Control Center werkt de rest van de plugin zoals voorheen; op Bazzite biedt het tabblad een knop **BC250 Control Center installeren** (officiële RPM v1.19.0, SHA-256 gecontroleerd, `rpm-ostree install`, daarna herstarten), elders verwijst het naar de projectpagina. De knop verdwijnt zodra Control Center wordt gedetecteerd.
+
 ### Tabblad Systeem
 - CPU/GPU-temperaturen in realtime, ventilatortoerental en GPU/CPU-kloksnelheden
 - **Systeembronnen** — geactiveerd systeem-RAM (wat het OS overhoudt na de UMA-reservering), gebruikt RAM met percentage en aantal actieve CU's

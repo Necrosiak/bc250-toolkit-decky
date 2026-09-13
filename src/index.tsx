@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, ReactNode } from "react";
+import { useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { FaMicrochip } from "react-icons/fa";
 import {
   IcController, IcDownload, IcGear, IcGithub, IcLightning, IcRefresh,
@@ -13,6 +13,9 @@ import {
   SteamSpinner,
   Focusable,
   DialogButton,
+  SliderField,
+  ConfirmModal,
+  showModal,
 } from "@decky/ui";
 import { definePlugin, call } from "@decky/api";
 import { t } from "./i18n";
@@ -134,6 +137,7 @@ interface CuStatus {
   boot_profile: string | null;
   boot_cu: number | null;
   profiles: Record<string, { label: string; cu: number }>;
+  source?: string;
 }
 
 interface UmaStatus {
@@ -149,7 +153,7 @@ interface UmaStatus {
   uma_frame_buffer_options: string[];
 }
 
-type TabId = "games" | "cu" | "system" | "settings";
+type TabId = "games" | "cu" | "tuning" | "system" | "settings";
 
 // ── Steam helpers (via backend Python — SteamClient.Apps.Set* cassé dans QAM) ─
 
@@ -501,6 +505,11 @@ function CuTab() {
                 {status.boot_cu} CU{status.boot_profile ? ` (${status.boot_profile})` : ""}
               </span>
             </Field>
+          </PanelSectionRow>
+        )}
+        {status.source === "control_center" && (
+          <PanelSectionRow>
+            <Note color="#4caf50">{t("cc_synced")}</Note>
           </PanelSectionRow>
         )}
         {!status.umr_available && (
@@ -1173,11 +1182,471 @@ function SettingsTab({
 
 // ── Barre d'onglets ───────────────────────────────────────────────────────────
 
+// ── Onglet Tuning (pont BC250 Control Center) ─────────────────────────────────
+// Toute la logique matérielle vit dans le helper root du BC250 Control Center
+// (movacx) ; cet onglet n'en est que l'interface manette. On ne garde AUCUNE
+// valeur ici : le statut est relu après chaque action et toutes les 5 s, donc
+// le bureau et le gamemode affichent toujours la même chose.
+
+type CcResult = { ok?: boolean; error?: string; message?: string; available?: boolean; protocol_mismatch?: boolean; [k: string]: any };
+
+const CC_URL = "https://github.com/movacx/bc250-control-center";
+const CU_ROWS = [0, 1, 2, 3];
+const CU_WGPS = [0, 1, 2, 3, 4];
+const wgpCount = (m: number[]) => m.reduce((n, v) => n + CU_WGPS.filter((b) => v & (1 << b)).length, 0);
+const validMasks = (m: any): m is number[] =>
+  Array.isArray(m) && m.length === 4 && m.every((v) => Number.isInteger(v) && v >= 0 && v <= 31);
+const VAL = { fontSize: "12px", color: "#ddd" };
+
+function ccError(r: CcResult): string {
+  if (r.error === "busy") return t("cc_busy_other");
+  if (r.protocol_mismatch) return t("cc_protocol", { error: r.error ?? "" });
+  return r.error ?? "?";
+}
+
+function Note({ color = "#ff9800", children }: any) {
+  return (
+    <div style={{ fontSize: "12px", color, lineHeight: "1.4", borderLeft: `3px solid ${color}`, paddingLeft: "8px", margin: "6px 0", width: "100%", boxSizing: "border-box" }}>
+      {children}
+    </div>
+  );
+}
+
+// Case de la grille CU : focus manette local, orange tant que la sélection
+// diffère de ce qui est réellement routé.
+function CuCell({ sub, on, pending, disabled, onClick }: any) {
+  const [focused, setFocused] = useState(false);
+  const c = "#67a3ff";
+  return (
+    <Btn
+      disabled={disabled}
+      onClick={onClick}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={{
+        margin: 0, minWidth: 0, minHeight: 0, height: 34, padding: 0, boxSizing: "border-box",
+        borderRadius: 5, display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", lineHeight: 1, fontSize: 10, fontWeight: 700, color: "#fff",
+        background: pending ? "rgba(255,152,0,0.35)" : on ? c : "rgba(255,255,255,0.05)",
+        border: `1px solid ${pending ? "#ff9800" : on ? c : "transparent"}`,
+        opacity: disabled ? 0.5 : 1,
+        ...focusHalo(c, focused, 1.06),
+      }}
+    >
+      <span style={{ fontSize: 8, opacity: 0.7 }}>{sub}</span>
+      <span style={{ marginTop: 2 }}>{on ? "ON" : "—"}</span>
+    </Btn>
+  );
+}
+
+function TuningTab() {
+  const [st, setSt] = useState<CcResult | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [focus, setFocus] = useState<string | null>(null);
+  const [cuDraft, setCuDraft] = useState<number[] | null>(null);
+  const [fanChannel, setFanChannel] = useState(2);
+  const [fanDuty, setFanDuty] = useState(50);
+  const [cpuFreq, setCpuFreq] = useState(3500);
+  const [cpuVid, setCpuVid] = useState(1150);
+  const [cpuManual, setCpuManual] = useState(false);
+  const [cpuScale, setCpuScale] = useState(-30);
+  const [cpuLive, setCpuLive] = useState<number | null>(null);
+  const busyRef = useRef(false);
+  const seeded = useRef(false);
+
+  const refresh = useCallback(() => {
+    call<[], CcResult>("cc_status").then(setSt).catch((e) => setSt({ ok: false, error: String(e) }));
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    const timer = setInterval(() => { if (!busyRef.current) refresh(); }, 5000);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
+  // Curseurs pré-remplis UNE fois avec ce qui tourne réellement.
+  useEffect(() => {
+    if (!st || st.ok === false || seeded.current) return;
+    seeded.current = true;
+    const cpu = st.cpu_active_profile ?? st.cpu_saved_profile;
+    if (cpu?.frequency) setCpuFreq(cpu.frequency);
+    if (typeof cpu?.scale === "number") setCpuScale(cpu.scale);
+    const fan = (st.fan_channel_options ?? []).find((o: any) => o.available);
+    if (fan) {
+      setFanChannel(fan.channel);
+      if (typeof fan.percent === "number") setFanDuty(Math.max(20, Math.min(100, Math.round(fan.percent / 5) * 5)));
+    }
+  }, [st]);
+
+  const run = async (key: string, fn: () => Promise<CcResult>, pollCpu = false) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(key);
+    setMsg(null);
+    // Une détection CPU dure plusieurs minutes : on affiche l'horloge qui monte.
+    const timer = pollCpu
+      ? setInterval(() => {
+          call<[], CcResult>("cc_cpu_telemetry")
+            .then((r) => { if (typeof r.cpu_frequency_mhz === "number") setCpuLive(r.cpu_frequency_mhz); })
+            .catch(() => {});
+        }, 2000)
+      : null;
+    try {
+      const r = await fn();
+      const text = r.ok === false ? `✗ ${ccError(r)}` : `✓ ${r.message ?? t("cc_ok")}`;
+      setMsg(text);
+      notify({ title: "BC250 Toolkit", body: text });
+    } catch (e) {
+      setMsg(`✗ ${e}`);
+    } finally {
+      if (timer) clearInterval(timer);
+      setCpuLive(null);
+      if (key.startsWith("cu")) setCuDraft(null);
+      busyRef.current = false;
+      setBusy(null);
+      refresh();
+    }
+  };
+
+  if (!st) return <SteamSpinner />;
+
+  if (st.available === false) {
+    const inst = st.install ?? {};
+    const small = { fontSize: "12px", color: "#aaa", lineHeight: "1.4", margin: "4px 0 8px" };
+    return (
+      <PanelSection title={t("cc_title")}>
+        <PanelSectionRow><Note>{t("cc_missing")}</Note></PanelSectionRow>
+        {inst.phase === "staged" ? (
+          <>
+            <PanelSectionRow><Note color="#23a55a">✓ {t("cc_install_staged")}</Note></PanelSectionRow>
+            <PanelSectionRow>
+              <ActionCard color="#23a55a" active onClick={() => (window as any).SteamClient?.System?.RestartPC?.()}>
+                <IcRefresh /> {t("cc_reboot")}
+              </ActionCard>
+            </PanelSectionRow>
+          </>
+        ) : inst.supported ? (
+          <>
+            <PanelSectionRow><div style={small}>{t("cc_install_desc", { v: inst.version ?? "" })}</div></PanelSectionRow>
+            {inst.phase === "failed" && (
+              <PanelSectionRow><Note color="#f44336">✗ {t("cc_install_failed", { error: inst.error ?? "?" })}</Note></PanelSectionRow>
+            )}
+            <PanelSectionRow>
+              <ActionCard
+                active={inst.phase !== "running"}
+                onClick={() => {
+                  if (inst.phase === "running") return;
+                  call<[], CcResult>("cc_install").then(refresh).catch(() => refresh());
+                }}>
+                {inst.phase === "running" ? <><SteamSpinner /> {t("cc_installing")}</> : <><IcDownload /> {t("cc_install_btn")}</>}
+              </ActionCard>
+            </PanelSectionRow>
+          </>
+        ) : (
+          <PanelSectionRow><div style={small}>{t("cc_missing_desc")}</div></PanelSectionRow>
+        )}
+        <PanelSectionRow>
+          <ActionCard onClick={() => openUrl(CC_URL)}><IcGithub /> {t("cc_open_project")}</ActionCard>
+        </PanelSectionRow>
+      </PanelSection>
+    );
+  }
+
+  if (st.ok === false) {
+    return (
+      <PanelSection title={t("cc_title")}>
+        <PanelSectionRow><Note color="#f44336">✗ {ccError(st)}</Note></PanelSectionRow>
+        <PanelSectionRow><ActionCard onClick={refresh}><IcRefresh /> {t("cc_retry")}</ActionCard></PanelSectionRow>
+      </PanelSection>
+    );
+  }
+
+  const locked = !!busy;
+  const label = (key: string, text: string) => (busy === key ? t("cc_busy") : text);
+
+  // GPU
+  const range: number[] | null = Array.isArray(st.gpu_range) && st.gpu_range.length === 2 ? st.gpu_range : null;
+  const profiles: any[] = st.gpu_profiles ?? [];
+  const points: any[] = st.gpu_safe_point_ceilings ?? [];
+  const gpuReady = !!st.gpu_governor_active;
+
+  // CU
+  const live = validMasks(st.cu_masks) ? st.cu_masks : null;
+  const draft = cuDraft ?? live;
+  const saved = validMasks(st.cu_saved_masks) ? st.cu_saved_masks : null;
+  const cuPending = !!draft && !!live && draft.some((m, i) => m !== live[i]);
+  const cuReady = !!st.cu_backend_ready;
+
+  // CPU
+  const cpuReady = !!st.cpu_tuning_ready;
+  const detected = st.cpu_detected_profile;
+  const activeCpu = st.cpu_active_profile ?? detected?.active_profile;
+  const manualReady = !!(detected?.ready && detected?.same_boot && (st.cpu_manual_scale_ready ?? detected?.manual_scale_ready));
+  const manualFreqOk = manualReady && detected?.frequency === cpuFreq;
+  const cpuLimit = st.cpu_tuning_temperature ?? 90;
+
+  // Ventilos
+  const fans: any[] = (st.fan_channel_options ?? []).filter((o: any) => o.available);
+  const fan = fans.find((o) => o.channel === fanChannel);
+
+  const confirmCpu = () =>
+    showModal(
+      <ConfirmModal
+        strTitle={cpuManual ? t("cc_cpu_apply_manual") : t("cc_cpu_apply")}
+        strDescription={cpuManual
+          ? t("cc_cpu_confirm_manual", { freq: cpuFreq, scale: cpuScale, temp: cpuLimit })
+          : t("cc_cpu_confirm", { freq: cpuFreq, vid: cpuVid, temp: cpuLimit })}
+        strOKButtonText={t("cc_confirm")}
+        onOK={() => run(
+          "cpu",
+          () => cpuManual
+            ? call<[number, number], CcResult>("cc_cpu_scale", cpuFreq, cpuScale)
+            : call<[number, number], CcResult>("cc_cpu_tuning", cpuFreq, cpuVid),
+          true,
+        )}
+      />,
+    );
+
+  const listBtn = (key: string, active: boolean, color: string, text: string, onClick: () => void, disabled = false) => (
+    <CardBtn
+      key={key}
+      active={active}
+      focused={focus === key}
+      color={color}
+      disabled={locked || disabled}
+      onClick={onClick}
+      onFocus={() => setFocus(key)}
+      onBlur={() => setFocus((f) => (f === key ? null : f))}
+    >
+      <span style={{ flex: 1, textAlign: "left" }}>{label(key, text)}</span>
+      {active && <span style={{ fontSize: 10 }}>●</span>}
+    </CardBtn>
+  );
+
+  return (
+    <>
+      <PanelSection title={t("cc_title")}>
+        <PanelSectionRow><Note color="#4caf50">{t("cc_synced")}</Note></PanelSectionRow>
+        {msg && (
+          <PanelSectionRow>
+            <div style={{ fontSize: "11px", lineHeight: "1.4", margin: "4px 0", color: msg.startsWith("✓") ? "#4caf50" : "#f44336" }}>{msg}</div>
+          </PanelSectionRow>
+        )}
+      </PanelSection>
+
+      <PanelSection title={t("cc_gpu")}>
+        <PanelSectionRow><Field label={t("cc_governor")}><span style={VAL}>{st.gpu_governor_label ?? "—"}</span></Field></PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("cc_gpu_range")}><span style={VAL}>{range ? `${range[0]}–${range[1]} MHz` : "—"}</span></Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("cc_now")}>
+            <span style={VAL}>{st.gpu_core_mhz ?? "—"} MHz · {st.gpu_voltage_mv ?? "—"} mV · {st.gpu_temperature_c != null ? `${Number(st.gpu_temperature_c).toFixed(0)} °C` : "—"}</span>
+          </Field>
+        </PanelSectionRow>
+        {!gpuReady && <PanelSectionRow><Note>{t("cc_gpu_no_gov")}</Note></PanelSectionRow>}
+        {gpuReady && profiles.length > 0 && (
+          <PanelSectionRow>
+            <Focusable style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {profiles.map((p) => listBtn(
+                `gpu-${p.key}`, !!range && range[0] === p.min && range[1] === p.max, "#4caf50",
+                `${p.name} · ${p.min}–${p.max} MHz`,
+                () => run(`gpu-${p.key}`, () => call<[string], CcResult>("cc_gpu_profile", p.key)),
+              ))}
+            </Focusable>
+          </PanelSectionRow>
+        )}
+        {gpuReady && points.length > 0 && (
+          <>
+            <PanelSectionRow><Field label={t("cc_gpu_safe_points")} /></PanelSectionRow>
+            <PanelSectionRow>
+              <Focusable style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {points.map((pt) => listBtn(
+                  `gsp-${pt.frequency}`, !!range && range[1] === pt.frequency, "#ff9800",
+                  `${pt.frequency} MHz · ${pt.voltage} mV`,
+                  () => run(`gsp-${pt.frequency}`, () => call<[number], CcResult>("cc_gpu_safe_point", pt.frequency)),
+                ))}
+              </Focusable>
+            </PanelSectionRow>
+          </>
+        )}
+      </PanelSection>
+
+      <PanelSection title={t("cc_cu")}>
+        <PanelSectionRow>
+          <Field label={t("cc_cu_live")}>
+            <span style={{ fontWeight: "bold", color: "#67a3ff", fontSize: "14px" }}>
+              {st.cu_active_cus ?? "—"} / {st.cu_total_cus ?? 40} CU{draft && cuPending ? `  →  ${wgpCount(draft) * 2}` : ""}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        {!cuReady && <PanelSectionRow><Note>{t("cc_cu_backend")}</Note></PanelSectionRow>}
+        {draft && (
+          <PanelSectionRow>
+            <Focusable
+              flow-children="grid"
+              style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 4, width: "100%" }}
+            >
+              {CU_ROWS.flatMap((r) => CU_WGPS.map((w) => {
+                const on = !!(draft[r] & (1 << w));
+                const routed = !!live && !!(live[r] & (1 << w));
+                return (
+                  <CuCell
+                    key={`${r}-${w}`}
+                    sub={`${r}.${w}`}
+                    on={on}
+                    pending={on !== routed}
+                    disabled={locked || !cuReady}
+                    onClick={() => {
+                      if (on && wgpCount(draft) <= 12) { setMsg(`✗ ${t("cc_cu_min")}`); return; }
+                      const next = draft.slice();
+                      next[r] = on ? next[r] & ~(1 << w) : next[r] | (1 << w);
+                      setCuDraft(next);
+                    }}
+                  />
+                );
+              }))}
+            </Focusable>
+          </PanelSectionRow>
+        )}
+        <PanelSectionRow>
+          <ActionCard active color="#67a3ff" disabled={locked || !cuReady || !cuPending}
+            onClick={() => draft && run("cu-apply", () => call<[number[]], CcResult>("cc_cu_table", draft))}>
+            {label("cu-apply", t("cc_cu_apply"))}
+          </ActionCard>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <ActionCard disabled={locked || !cuReady || !draft}
+            onClick={() => draft && run("cu-save", () => call<[number[]], CcResult>("cc_cu_save", draft))}>
+            {label("cu-save", t("cc_cu_save"))}
+          </ActionCard>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("cc_boot_service")}>
+            <span style={VAL}>
+              {st.cu_service_enabled ? t("cc_on") : t("cc_off")}{saved ? ` · ${wgpCount(saved) * 2} CU` : ""}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          {st.cu_service_installed ? (
+            <ActionCard disabled={locked} onClick={() => run("cu-svc", () => call<[string], CcResult>("cc_cu_service", "remove"))}>
+              {label("cu-svc", t("cc_remove"))}
+            </ActionCard>
+          ) : (
+            <ActionCard disabled={locked || !saved} onClick={() => run("cu-svc", () => call<[string], CcResult>("cc_cu_service", "install"))}>
+              {label("cu-svc", t("cc_install"))}
+            </ActionCard>
+          )}
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t("cc_cpu")}>
+        <PanelSectionRow>
+          <Field label={t("cc_now")}>
+            <span style={VAL}>
+              {cpuLive ?? st.cpu_frequency_mhz ?? "—"} MHz · {st.cpu_temperature_c != null ? `${Number(st.cpu_temperature_c).toFixed(1)} °C` : "—"}
+            </span>
+          </Field>
+        </PanelSectionRow>
+        {activeCpu && (
+          <PanelSectionRow>
+            <Field label={t("cc_cpu_active")}>
+              <span style={VAL}>{activeCpu.frequency} MHz · scale {activeCpu.scale} · ~{activeCpu.estimated_vid} mV</span>
+            </Field>
+          </PanelSectionRow>
+        )}
+        {!cpuReady && (
+          <PanelSectionRow>
+            <Note>{t("cc_cpu_not_ready", { reason: st.cpu_tuning_error ?? st.cpu_tuning_source ?? "?" })}</Note>
+          </PanelSectionRow>
+        )}
+        <PanelSectionRow>
+          <SliderField label={t("cc_cpu_freq")} value={cpuFreq} min={3500} max={4200} step={50} showValue valueSuffix=" MHz"
+            disabled={locked || !cpuReady} onChange={(v: number) => setCpuFreq(v)} />
+        </PanelSectionRow>
+        {!cpuManual && (
+          <PanelSectionRow>
+            <SliderField label={t("cc_cpu_vid")} value={cpuVid} min={950} max={1325} step={5} showValue valueSuffix=" mV"
+              disabled={locked || !cpuReady} onChange={(v: number) => setCpuVid(v)} />
+          </PanelSectionRow>
+        )}
+        <PanelSectionRow>
+          <ToggleField label={t("cc_cpu_manual")} description={manualReady ? t("cc_cpu_manual_desc") : t("cc_cpu_manual_first")}
+            checked={cpuManual} disabled={locked || !manualReady} onChange={setCpuManual} />
+        </PanelSectionRow>
+        {cpuManual && (
+          <PanelSectionRow>
+            <SliderField label={t("cc_cpu_scale")} value={cpuScale} min={-50} max={0} step={1} showValue
+              disabled={locked || !manualFreqOk} onChange={(v: number) => setCpuScale(v)} />
+          </PanelSectionRow>
+        )}
+        <PanelSectionRow>
+          <ActionCard active color="#f44336" disabled={locked || !cpuReady || (cpuManual && !manualFreqOk)} onClick={confirmCpu}>
+            {label("cpu", cpuManual ? t("cc_cpu_apply_manual") : t("cc_cpu_apply"))}
+          </ActionCard>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field label={t("cc_boot_service")}><span style={VAL}>{st.cpu_service_enabled ? t("cc_on") : t("cc_off")}</span></Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          {st.cpu_service_installed || st.cpu_service_enabled ? (
+            <ActionCard disabled={locked} onClick={() => run("cpu-svc", () => call<[string], CcResult>("cc_cpu_service", "remove"))}>
+              {label("cpu-svc", t("cc_remove"))}
+            </ActionCard>
+          ) : (
+            <ActionCard disabled={locked || !activeCpu?.persistable}
+              onClick={() => run("cpu-svc", () => call<[string], CcResult>("cc_cpu_service", "install"))}>
+              {label("cpu-svc", t("cc_install"))}
+            </ActionCard>
+          )}
+        </PanelSectionRow>
+      </PanelSection>
+
+      <PanelSection title={t("cc_fan")}>
+        {fans.length === 0 ? (
+          <PanelSectionRow><Note>{t("cc_fan_none")}</Note></PanelSectionRow>
+        ) : (
+          <>
+            <PanelSectionRow>
+              <Focusable style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {fans.map((o) => listBtn(
+                  `fan-${o.channel}`, o.channel === fanChannel, "#67a3ff",
+                  `${o.label ?? `PWM ${o.channel}`} · ${o.rpm ?? "—"} RPM · ${o.percent ?? "—"}%`,
+                  () => setFanChannel(o.channel),
+                ))}
+              </Focusable>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <SliderField label={t("cc_fan_speed")} value={fanDuty} min={20} max={100} step={5} showValue valueSuffix="%"
+                disabled={locked || !fan} onChange={(v: number) => setFanDuty(v)} />
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ActionCard active color="#67a3ff" disabled={locked || !fan}
+                onClick={() => run("fan", () => call<[number, number | string], CcResult>("cc_fan_channel", fanChannel, fanDuty))}>
+                {label("fan", t("cc_apply"))}
+              </ActionCard>
+            </PanelSectionRow>
+            <PanelSectionRow>
+              <ActionCard disabled={locked || !fan}
+                onClick={() => run("fan-auto", () => call<[number, number | string], CcResult>("cc_fan_channel", fanChannel, "automatic"))}>
+                {label("fan-auto", t("cc_fan_auto"))}
+              </ActionCard>
+            </PanelSectionRow>
+          </>
+        )}
+      </PanelSection>
+    </>
+  );
+}
+
 type TabDef = { id: TabId; tKey: string; icon: ReactNode };
 
 const TAB_DEFS: TabDef[] = [
   { id: "games",    tKey: "tab_games",    icon: <IcController /> },
   { id: "cu",       tKey: "tab_cu",       icon: <IcLightning /> },
+  { id: "tuning",   tKey: "tab_tuning",   icon: <FaMicrochip /> },
   { id: "system",   tKey: "tab_system",   icon: <IcThermometer /> },
   { id: "settings", tKey: "tab_settings", icon: <IcGear /> },
 ];
@@ -1292,7 +1761,7 @@ function TabBtn({ active, focused, onClick, onFocus, onBlur, children }: any) {
       onFocus={onFocus}
       onBlur={onBlur}
       style={{
-        flex: "1 1 0", minWidth: 0, margin: 0, padding: "5px 2px",
+        flex: active ? "2.6 1 0" : "1 1 0", minWidth: 0, margin: 0, padding: "5px 2px",
         fontSize: 11, minHeight: 0, boxSizing: "border-box", color: "#fff",
         display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
         overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
@@ -1328,7 +1797,7 @@ function TabBar({ tab, setTab }: { tab: TabId; setTab: (t: TabId) => void }) {
               onBlur={() => setFocused((f) => (f === id ? null : f))}
             >
               <span>{icon}</span>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{t(tKey)}</span>
+              {tab === id && <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{t(tKey)}</span>}
             </TabBtn>
           ))}
         </Focusable>
@@ -1389,6 +1858,7 @@ function Content() {
       <TabBar tab={tab} setTab={setTab} />
       {tab === "games"    && <GamesTab gamesDb={gamesDb} savedVariants={savedVariants} />}
       {tab === "cu"       && <CuTab />}
+      {tab === "tuning"   && <TuningTab />}
       {tab === "system"   && <SystemTab />}
       {tab === "settings" && (
         <SettingsTab

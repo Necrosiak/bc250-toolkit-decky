@@ -2,6 +2,50 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.5.7 — 2026-09-13
+
+### New Tuning tab, shared with BC250 Control Center
+
+When [BC250 Control Center](https://github.com/movacx/bc250-control-center)
+(by movacx) is installed, the Toolkit becomes its Game Mode interface. A new
+**Tuning** tab drives the same protected helper as the Control Center's own
+Quick Access plugin:
+
+- GPU governor profiles and validated safe points;
+- a live 4×5 Compute Unit grid, saved boot table and boot service;
+- CPU overclock through the Control Center's detector, manual scale and boot service;
+- manual fan speed per channel, and back to automatic.
+
+Nothing is stored on the Toolkit side. Both interfaces read and write the same
+files, so a change made on the desktop shows up in Game Mode and the other way
+round. The **CU** tab goes through the Control Center too while it is present,
+and the Toolkit's own CU boot service is disabled once the Control Center
+restores CUs at boot, so the table is never applied twice with two different
+values. Without the Control Center, everything works as before.
+
+On Bazzite and other rpm-ostree systems, the tab can also **install the Control
+Center** when it is missing: it downloads the official v1.19.0 RPM, refuses it
+unless its SHA-256 matches, adds it with `rpm-ostree install`, then offers to
+reboot. The version is pinned to the one whose helper protocol the Toolkit
+speaks. Once the Control Center is detected, the button is gone. Elsewhere, the
+tab keeps pointing to the project page.
+
+The Toolkit only runs the helper when it is a root-owned, non-writable file,
+checks its protocol version before every write, and never forwards a value
+outside the lists the helper accepts.
+
+### The Tuning tab shows the real GPU clock
+
+The "Current" GPU line read `pp_dpm_sclk`, which stays stuck between 14 and
+100 MHz on the BC-250 even while the governor drives the GPU at 1850 MHz. It
+now reads the amdgpu `freq1_input` sensor, the same source MangoHud uses.
+
+### The CU tab no longer shows a stale count
+
+The live CU count came from a cache that was only refreshed when empty, so a
+change made by another tool never appeared. It is now re-read once the cache is
+more than a minute old.
+
 ## 0.5.6 — 2026-09-13
 
 ### Updates no longer stop at the first thing they cannot write, or at DNS

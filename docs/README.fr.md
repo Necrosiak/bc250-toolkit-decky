@@ -46,6 +46,15 @@ Base de données communautaire d'options de lancement optimisées pour le BC-250
   - L'écriture dans le BIOS nécessite un [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks) à jour (fournit le helper root `bc250-uma-helper` — plus de mot de passe sudo)
   - **Auto (≈8 Go) est la valeur sûre recommandée** — en cas d'artefacts graphiques (ex. verts) après un changement, repasser en Auto
 
+### Onglet Tuning (avec BC250 Control Center)
+Quand [BC250 Control Center](https://github.com/movacx/bc250-control-center) est installé (son RPM via `rpm-ostree install` sur Bazzite, puis une fois *Prepare dependencies* dans l'appli), cet onglet devient son interface en mode jeu :
+- **GPU** — profils du governor et paliers validés
+- **Compute Units** — grille 4×5 en direct, table gardée au démarrage et service de démarrage
+- **CPU** — overclock par le détecteur du Control Center, échelle manuelle et service de démarrage
+- **Ventilateurs** — vitesse manuelle par voie, ou retour en automatique
+
+Le Toolkit ne garde ici aucun réglage à lui : il pilote le même helper protégé que le Control Center, donc ce qui change au bureau apparaît en mode jeu, et inversement. L'onglet CU passe aussi par lui. Sans Control Center, le reste du plugin fonctionne comme avant ; sur Bazzite, l'onglet propose un bouton **Installer BC250 Control Center** (RPM officiel v1.19.0, SHA-256 vérifié, `rpm-ostree install`, puis redémarrage), ailleurs il renvoie vers la page du projet. Le bouton disparaît dès que le Control Center est détecté.
+
 ### Onglet Système
 - Températures CPU/GPU en temps réel, vitesse du ventilateur et fréquences GPU/CPU
 - **Ressources** — RAM système activée (ce qui reste à l'OS après le carve-out UMA), RAM utilisée avec pourcentage, et nombre de CU actifs
