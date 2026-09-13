@@ -2,6 +2,26 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.5.6 — 2026-09-13
+
+### Updates no longer stop at the first thing they cannot write, or at DNS
+
+Two separate faults, both silent:
+
+- The update was applied file by file and gave up on the first one it could not
+  write — leaving the plugin **half updated**, part old code and part new. It now
+  surveys everything first: a code file it cannot write cancels the update
+  without touching anything, while documentation, licences and `plugin.json`
+  are skipped and the update proceeds.
+- The release check ran once, a few seconds after boot, which is often **before
+  the network is up** — and nothing retried, so the plugin stayed on its version
+  until a boot that happened to be luckier. It now retries while the failure is
+  the network. On the machine this was found on, three boots out of four had
+  been dying on `Temporary failure in name resolution`.
+
+When an update genuinely cannot be applied, the plugin now says so instead of
+writing one line to a log nobody reads.
+
 ## [0.5.5] - 2026-08-30
 
 ### Added
