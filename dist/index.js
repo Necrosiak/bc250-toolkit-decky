@@ -1302,7 +1302,9 @@ function CpuUnlockSection() {
         setMsg(null);
         try {
             const r = await call("apply_cpu_unlock");
-            setMsg(r.ok ? `✓ ${t("cpu_unlock_done")}` : `✗ ${r.error ?? t("cpu_unlock_failed")}`);
+            // En cas de succès, le bloc « redémarre » affiché après refresh dit déjà la suite.
+            if (!r.ok)
+                setMsg(`✗ ${r.error ?? t("cpu_unlock_failed")}`);
             if (r.ok)
                 notify({ title: "BC250 Toolkit", body: t("cpu_unlock_done") });
             await refresh();
@@ -1341,7 +1343,7 @@ function CpuUnlockSection() {
                         }, children: st.error }) }) })), st?.ok && !unlocked && st.eligible && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
                                     fontSize: "11px", color: "#ff9800", lineHeight: "1.5",
                                     borderLeft: "3px solid #ff9800", paddingLeft: "8px",
-                                }, children: t("cpu_unlock_warn") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: "#ff9800", disabled: busy, onClick: unlock, children: [SP_JSX.jsx(FaMicrochip, {}), " ", busy ? t("cpu_unlock_working") : t("cpu_unlock_btn")] }) })] })), st?.ok && (st.eligible || st.already_unlocked) && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("cpu_unlock_boot"), description: t("cpu_unlock_boot_desc"), checked: !!st.boot_enabled, disabled: busy, onChange: setBoot }) })), st?.ok && !unlocked && !st.eligible && st.mask && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#888", lineHeight: "1.5" }, children: t("cpu_unlock_not_eligible") }) }) })), msg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
+                                }, children: t("cpu_unlock_warn") }) }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: "#ff9800", disabled: busy, onClick: unlock, children: [SP_JSX.jsx(FaMicrochip, {}), " ", busy ? t("cpu_unlock_working") : t("cpu_unlock_btn")] }) })] })), st?.ok && !unlocked && st.already_unlocked && (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(Note, { color: "#67a3ff", children: t("cpu_unlock_done") }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs(ActionCard, { color: "#23a55a", active: true, onClick: () => window.SteamClient?.System?.RestartPC?.(), children: [SP_JSX.jsx(IcRefresh, {}), " ", t("cc_reboot")] }) })] })), st?.ok && (st.eligible || st.already_unlocked) && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: t("cpu_unlock_boot"), description: t("cpu_unlock_boot_desc"), checked: !!st.boot_enabled, disabled: busy, onChange: setBoot }) })), st?.ok && !unlocked && !st.eligible && st.mask && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", color: "#888", lineHeight: "1.5" }, children: t("cpu_unlock_not_eligible") }) }) })), msg && (SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: {
                             fontSize: "12px", lineHeight: "1.4",
                             color: msg.startsWith("✓") ? "#4caf50" : "#f44336",
                         }, children: msg }) }) })), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.Field, { children: SP_JSX.jsx("div", { style: { fontSize: "10px", color: "#888", lineHeight: "1.5", whiteSpace: "pre-line" }, children: t("cpu_unlock_legend") }) }) })] }));
