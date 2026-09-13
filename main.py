@@ -676,6 +676,7 @@ class Plugin:
             except Exception:
                 CU_LIVE_CACHE.unlink(missing_ok=True)
         self._install_pre_steam_hook()
+        await asyncio.get_event_loop().run_in_executor(None, self._refresh_core_boot_script)
         await self._load_db()
         asyncio.create_task(self._autoupdate_check())
 
@@ -1842,8 +1843,46 @@ fi
 
 echo $((attempts + 1)) > "$STATE/attempts"
 log "redémarrage pour activer les 8 cœurs / 16 threads"
-systemctl reboot
+# Un inhibiteur « block » peut refuser le redémarrage en plein démarrage : vécu
+# le 13/09 après une coupure de courant (« Operation denied due to active block
+# inhibitor »), la machine est restée en 6C/12T et la tentative était comptée
+# pour rien. On réessaie 30 s en journalisant qui bloque, puis on passe outre :
+# rien d'irréversible ne s'écrit au démarrage (rpm-ostree finalise un
+# déploiement à l'ARRÊT), et un service oneshot n'a pas de délai de démarrage.
+for i in 1 2 3 4 5 6; do
+    systemctl reboot && exit 0
+    log "redémarrage refusé (essai $i/6) — inhibiteurs actifs :"
+    systemd-inhibit --list --no-legend --no-pager 2>/dev/null | while read -r l; do log "  $l"; done
+    sleep 5
+done
+log "toujours refusé après 30 s — redémarrage en ignorant les inhibiteurs"
+systemctl reboot --check-inhibitors=no && exit 0
+# Aucun redémarrage n'a eu lieu : cette tentative ne compte pas.
+echo "$attempts" > "$STATE/attempts"
+log "redémarrage impossible — tentative non comptée"
+exit 1
 """
+
+    def _refresh_core_boot_script(self) -> None:
+        """Réécrit le script de boot installé s'il vient d'une version précédente.
+
+        Il n'est écrit qu'à l'activation de l'interrupteur : sans ça, une
+        machine qui l'a activé garderait l'ancien script — et ses défauts —
+        malgré la mise à jour du plugin."""
+        try:
+            if not CORE_BOOT_SCRIPT.exists():
+                return
+            want = self._core_boot_script()
+            if CORE_BOOT_SCRIPT.read_text() == want:
+                return
+            r = subprocess.run(["sudo", "tee", str(CORE_BOOT_SCRIPT)],
+                               input=want, text=True, capture_output=True, timeout=10)
+            if r.returncode != 0:
+                print(f"[BC250 core] mise à jour du script de boot KO: {r.stderr.strip()}")
+                return
+            print("[BC250 core] script de boot mis à jour vers la version du plugin")
+        except Exception as e:
+            print(f"[BC250 core] mise à jour du script de boot KO: {e!r}")
 
     def _write_core_boot_service(self) -> tuple[bool, str]:
         """Installe le script de boot + le service, activés au démarrage."""

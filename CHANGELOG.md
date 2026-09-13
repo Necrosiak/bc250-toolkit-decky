@@ -2,6 +2,28 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.5.8 — 2026-09-13
+
+### The 8-core restore could be refused at boot
+
+After a power cut the BIOS puts the core mask back to 6 cores, and the
+*Restore at boot* service rewrites it and reboots. The first time this happened
+for real, the mask was written but the reboot was refused — *Operation denied
+due to active block inhibitor* — so the machine stayed on 6 cores / 12 threads,
+and the attempt was counted anyway, leaving one try out of two.
+
+The service now retries for 30 seconds, logging which programs hold an
+inhibitor, then reboots ignoring them; nothing irreversible is written at that
+point of the boot. If the reboot still cannot happen, the attempt is not
+counted. An already-installed service picks up the new script the next time the
+plugin loads.
+
+### A reboot button when the 8 cores are one restart away
+
+Once the core mask is written, the section only showed the *Restore at boot*
+switch, with nothing saying that a restart was still needed. It now says so and
+offers a *Reboot now* button until the 8 cores are up.
+
 ## 0.5.7 — 2026-09-13
 
 ### New Tuning tab, shared with BC250 Control Center

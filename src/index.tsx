@@ -729,7 +729,8 @@ function CpuUnlockSection() {
     try {
       const r = await call<[], { ok: boolean; error?: string; need_reboot?: boolean }>(
         "apply_cpu_unlock");
-      setMsg(r.ok ? `✓ ${t("cpu_unlock_done")}` : `✗ ${r.error ?? t("cpu_unlock_failed")}`);
+      // En cas de succès, le bloc « redémarre » affiché après refresh dit déjà la suite.
+      if (!r.ok) setMsg(`✗ ${r.error ?? t("cpu_unlock_failed")}`);
       if (r.ok) notify({ title: "BC250 Toolkit", body: t("cpu_unlock_done") });
       await refresh();
     } catch (e) {
@@ -803,6 +804,22 @@ function CpuUnlockSection() {
           <PanelSectionRow>
             <ActionCard color="#ff9800" disabled={busy} onClick={unlock}>
               <FaMicrochip /> {busy ? t("cpu_unlock_working") : t("cpu_unlock_btn")}
+            </ActionCard>
+          </PanelSectionRow>
+        </>
+      )}
+
+      {/* Masque déjà écrit mais cœurs pas encore là : il ne manque qu'un
+          redémarrage. Sans ce bloc la section ne montrait plus que
+          l'interrupteur, et rien ne disait quoi faire. */}
+      {st?.ok && !unlocked && st.already_unlocked && (
+        <>
+          <PanelSectionRow>
+            <Note color="#67a3ff">{t("cpu_unlock_done")}</Note>
+          </PanelSectionRow>
+          <PanelSectionRow>
+            <ActionCard color="#23a55a" active onClick={() => (window as any).SteamClient?.System?.RestartPC?.()}>
+              <IcRefresh /> {t("cc_reboot")}
             </ActionCard>
           </PanelSectionRow>
         </>
