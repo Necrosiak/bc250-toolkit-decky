@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-09-07",
+"updated": "2026-09-14",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -295,7 +295,8 @@
 },
 {
 "appid": "582010",
-"name": "Monster Hunter: World"
+"name": "Monster Hunter: World",
+"top": true
 },
 {
 "appid": "377160",
@@ -357,8 +358,7 @@
 },
 {
 "appid": "1326470",
-"name": "Sons Of The Forest",
-"top": true
+"name": "Sons Of The Forest"
 },
 {
 "appid": "2186680",
@@ -509,7 +509,8 @@
 },
 {
 "appid": "275850",
-"name": "No Man's Sky"
+"name": "No Man's Sky",
+"top": true
 },
 {
 "appid": "1604030",
@@ -1042,8 +1043,7 @@
 },
 {
 "appid": "2399830",
-"name": "ARK: Survival Ascended",
-"top": true
+"name": "ARK: Survival Ascended"
 },
 {
 "appid": "1203620",
@@ -1240,8 +1240,7 @@
 },
 {
 "appid": "1643320",
-"name": "S.T.A.L.K.E.R. 2: Heart of Chornobyl",
-"top": true
+"name": "S.T.A.L.K.E.R. 2: Heart of Chornobyl"
 },
 {
 "appid": "962130",
