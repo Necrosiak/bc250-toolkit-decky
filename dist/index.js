@@ -991,7 +991,29 @@ function t(key, vars) {
 // Decky crée des entrées SANS notification_type qui ne s'affichent pas ET font
 // PLANTER le panneau de notifs Steam sur ce build. Même forme que toaster.toast
 // (title/body) → remplacement transparent partout.
+// Mode streamer — contrat PARTAGÉ avec Steamcord, BoneCast et SkullKey (même
+// contexte JS Steam) : window.__necroStreamer.sources = { source: bool },
+// localStorage « necro_streamer_mode » (auto | always | off, réglé dans
+// Steamcord). Pendant un live, un toast Steam s'imprime dans la vidéo : on le
+// retient jusqu'à la fin.
+function streamerActive() {
+    let mode = "auto";
+    try {
+        mode = localStorage.getItem("necro_streamer_mode") || "auto";
+    }
+    catch { }
+    if (mode === "off")
+        return false;
+    if (mode === "always")
+        return true;
+    return Object.values(window.__necroStreamer?.sources || {}).some(Boolean);
+}
+const STREAMER_RETRY_MS = 15000;
 function notify(data) {
+    if (streamerActive()) {
+        setTimeout(() => notify(data), STREAMER_RETRY_MS);
+        return;
+    }
     try {
         const App = window.App;
         const steamid = App?.GetCurrentUser?.()?.strSteamID || App?.m_CurrentUser?.strSteamID || "";
