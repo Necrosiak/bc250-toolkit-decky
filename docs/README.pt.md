@@ -57,6 +57,7 @@ O Toolkit não guarda aqui definições próprias: usa o mesmo helper protegido 
 - Temperaturas CPU/GPU em tempo real, velocidade da ventoinha e clocks GPU/CPU
 - **Recursos** — RAM do sistema ativada (o que resta ao SO após a reserva UMA), RAM usada com percentagem e número de CUs ativos
 - Estado do scx_lavd, perfil tuned, estado do daemon gamemode
+- **Integrações de hardware** — apenas leitura: adaptador Wi-Fi com o seu estado no NetworkManager e o controlador, se o `hid_playstation` está carregado e quantos comandos estão ligados, conetores de ecrã ativos, a saída PipeWire atual e o barramento HDMI-CEC quando existe. Nada é ativado nem alterado: o painel limita-se a indicar o que a máquina tem realmente, para nunca propor uma função de TV ou de comando que o hardware não consiga cumprir.
 - Botão de atualização manual do [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
 
 ### Separador Definições

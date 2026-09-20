@@ -57,6 +57,7 @@ Toolkit nie przechowuje tu własnych ustawień: steruje tym samym chronionym hel
 - Temperatury CPU/GPU w czasie rzeczywistym, prędkość wentylatora i zegary GPU/CPU
 - **Zasoby** — aktywna pamięć RAM systemu (to, co zostaje dla OS po wydzieleniu UMA), użyta RAM z procentem oraz liczba aktywnych CU
 - Stan scx_lavd, profil tuned, stan daemona gamemode
+- **Integracje sprzętowe** — tylko do odczytu: karta Wi-Fi ze stanem NetworkManagera i sterownikiem, czy `hid_playstation` jest załadowany i ile padów jest podłączonych, aktywne złącza ekranu, bieżące wyjście PipeWire oraz magistrala HDMI-CEC, jeśli istnieje. Nic nie jest włączane ani zmieniane: panel tylko pokazuje, co maszyna naprawdę ma, żeby nigdy nie proponować funkcji TV czy pada, której sprzęt nie udźwignie.
 - Przycisk ręcznej aktualizacji [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
 
 ### Zakładka Ustawienia

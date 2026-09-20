@@ -2,6 +2,32 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.6.0 — 2026-09-20
+
+### Hardware integrations, read-only
+
+The System tab gained a **Hardware integrations** panel that reports what this
+machine actually has, and changes nothing:
+
+- **Wi-Fi** — the adapter NetworkManager knows about, its state and the driver
+  behind it.
+- **DualSense** — whether the `hid_playstation` driver is loaded, and how many
+  controllers are connected right now.
+- **Display** — the DRM connectors currently active.
+- **Audio output** — the PipeWire sink in use.
+- **HDMI-CEC** — shown only when a `/dev/cec*` bus exists.
+
+Nothing here enables `cecd`, CEC or any TV setting on its own. The point is the
+opposite: knowing what the hardware really offers is what keeps a TV or
+controller feature from being proposed on a machine that cannot do it.
+
+Every read-only line in the System tab is now a **D-pad stop** with a visible
+highlight, so the Quick Access Menu scrolls down to the rows at the bottom
+instead of skipping the whole section.
+
+The same probes are available from the terminal with `bc250-status`, in
+[bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks).
+
 ## 0.5.9 — 2026-09-15
 
 ### Notifications wait until you stop streaming

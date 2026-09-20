@@ -57,6 +57,7 @@ De Toolkit bewaart hier zelf niets: hij stuurt dezelfde beschermde helper als Co
 - CPU/GPU-temperaturen in realtime, ventilatortoerental en GPU/CPU-kloksnelheden
 - **Systeembronnen** — geactiveerd systeem-RAM (wat het OS overhoudt na de UMA-reservering), gebruikt RAM met percentage en aantal actieve CU's
 - scx_lavd-status, tuned-profiel, gamemode-daemon-status
+- **Hardware-integraties** — alleen-lezen: wifi-adapter met zijn NetworkManager-status en stuurprogramma, of `hid_playstation` geladen is en hoeveel controllers verbonden zijn, actieve schermaansluitingen, de huidige PipeWire-uitvoer en de HDMI-CEC-bus als die bestaat. Er wordt niets ingeschakeld of gewijzigd: het paneel meldt alleen wat de machine echt heeft, zodat nooit een tv- of controllerfunctie wordt aangeboden die de hardware niet aankan.
 - Handmatige updateknop voor [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
 
 ### Tabblad Instellingen

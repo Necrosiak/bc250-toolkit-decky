@@ -57,6 +57,7 @@ Der Toolkit speichert hier nichts selbst: Er steuert denselben geschützten Help
 - CPU/GPU-Temperaturen in Echtzeit, Lüfterdrehzahl und GPU/CPU-Takt
 - **Ressourcen** — aktivierter System-RAM (was dem OS nach dem UMA-Carve-out bleibt), belegter RAM mit Prozentanzeige und Anzahl aktiver CUs
 - scx_lavd-Status, Tuned-Profil, Gamemode-Daemon-Status
+- **Hardware-Integrationen** — schreibgeschützt: WLAN-Adapter mit NetworkManager-Status und Treiber, ob `hid_playstation` geladen ist und wie viele Controller verbunden sind, aktive Bildschirmanschlüsse, die aktuelle PipeWire-Ausgabe und der HDMI-CEC-Bus, sofern vorhanden. Es wird nichts aktiviert oder geändert: Die Anzeige hält nur fest, was wirklich vorhanden ist, damit keine TV- oder Controller-Funktion angeboten wird, die die Hardware nicht kann.
 - Manuelle Aktualisierungsschaltfläche für [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
 
 ### Einstellungen-Tab

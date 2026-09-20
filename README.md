@@ -135,6 +135,7 @@ the project page. The button disappears once the Control Center is detected.
 - **CPU cores** — cores and threads currently online (`6C / 12T`, green at `8C / 16T`)
 - **Resources** — enabled system RAM (what the OS keeps after the UMA carve-out), used RAM with usage percentage, and active CU count
 - scx_lavd status, tuned profile, gamemode daemon status
+- **Hardware integrations** — read-only: Wi-Fi adapter with its NetworkManager state and driver, whether the `hid_playstation` driver is loaded and how many controllers are connected, active display connectors, the current PipeWire output, and the HDMI-CEC bus when one exists. Nothing is enabled or changed: the panel only reports what the machine actually has, so a TV or controller feature is never offered on hardware that cannot do it.
 - Manual update button for [bc250-tweaks](https://github.com/Necrosiak/bc250-tweaks)
 
 ### Settings Tab
