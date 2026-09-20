@@ -130,6 +130,11 @@ interface SystemStatus {
   gamemode_active?: boolean;
   tweaks_installed?: boolean;
   tweaks_last_update?: string;
+  wifi?: { interface?: string | null; state?: string | null; driver?: string | null };
+  dualsense?: { driver_ready?: boolean; connected?: number };
+  display_connectors?: string[];
+  cec_devices?: string[];
+  audio_sink?: string;
 }
 
 interface CpuUnlockStatus {
@@ -886,6 +891,36 @@ function CpuUnlockSection() {
 
 // ── Onglet Système ────────────────────────────────────────────────────────────
 
+// Une ligne d'information de l'onglet Système : lecture seule, mais arrêt
+// D-pad à part entière, sinon le routeur de focus de Decky saute la section
+// entière et la QAM ne fait plus défiler jusqu'aux lignes du bas.
+//
+// ⚠️ DÉFINI AU NIVEAU DU MODULE, et surtout PAS dans SystemTab : un composant
+// créé à l'intérieur d'un autre change d'identité à chaque rendu, donc React
+// démonte et remonte la ligne — le nœud qui avait le focus disparaît. Comme
+// SystemTab se rafraîchit toutes les 5 s, le focus aurait sauté tout seul
+// pendant qu'on navigue. Pour la même raison, l'état « focalisée » vit ICI :
+// le remonter au parent le ferait rendre à chaque déplacement du D-pad.
+function InfoRow({ label, children }: any) {
+  const [focused, setFocused] = useState(false);
+  return <PanelSectionRow>
+    <Focusable
+      onActivate={() => {}}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={{
+        borderRadius: 4,
+        background: focused ? "rgba(103, 163, 255, 0.22)" : "transparent",
+        boxShadow: focused ? "0 0 0 2px #67a3ff" : "none",
+        transition: "background .08s ease, box-shadow .08s ease",
+      }}
+    >
+      <Field label={label} bottomSeparator="none">{children}</Field>
+    </Focusable>
+  </PanelSectionRow>;
+}
+
+
 function SystemTab() {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [cu, setCu] = useState<CuStatus | null>(null);
@@ -938,13 +973,6 @@ function SystemTab() {
   // navigation manette : le D-pad descend de ligne en ligne et le QAM défile
   // pour suivre le focus (sinon, avec des champs d'affichage non focusables, la
   // manette reste bloquée en haut et on ne voit pas le bas de l'onglet).
-  const InfoRow = ({ label, children }: any) => (
-    <PanelSectionRow>
-      <Focusable style={{ borderRadius: 4 }}>
-        <Field label={label} bottomSeparator="none">{children}</Field>
-      </Focusable>
-    </PanelSectionRow>
-  );
   return (
     <>
       <PanelSection title={t("sys_temps")}>
@@ -1027,6 +1055,35 @@ function SystemTab() {
         <InfoRow label={t("sys_gamemode")}>
           <span style={{ color: status.gamemode_active ? "#4caf50" : "#f44336" }}>
             {status.gamemode_active ? t("sys_active") : t("sys_inactive")}
+          </span>
+        </InfoRow>
+      </PanelSection>
+
+      <PanelSection title={t("hw_title")}>
+        <InfoRow label={t("hw_wifi")}>
+          {status.wifi?.interface ? <span style={{ color: status.wifi.state === "connected" ? "#4caf50" : "#ff9800" }}>
+            {status.wifi.interface} · {status.wifi.state ?? "unknown"}{status.wifi.driver ? ` · ${status.wifi.driver}` : ""}
+          </span> : <span style={{ color: "#888" }}>{t("hw_no_adapter")}</span>}
+        </InfoRow>
+        <InfoRow label={t("hw_dualsense")}>
+          <span style={{ color: status.dualsense?.driver_ready ? "#4caf50" : "#888" }}>
+            {status.dualsense?.driver_ready ? t("hw_driver_ready") : t("hw_driver_missing")}
+            {status.dualsense?.driver_ready ? ` · ${t("hw_connected", { count: status.dualsense.connected ?? 0 })}` : ""}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("hw_display")}>
+          <span style={{ color: (status.display_connectors?.length ?? 0) > 0 ? "#4caf50" : "#888" }}>
+            {status.display_connectors?.length ? status.display_connectors.join(", ") : t("hw_no_display")}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("hw_audio")}>
+          <span style={{ color: status.audio_sink ? "#4caf50" : "#888" }}>
+            {status.audio_sink ?? t("hw_no_audio")}
+          </span>
+        </InfoRow>
+        <InfoRow label={t("hw_cec")}>
+          <span style={{ color: (status.cec_devices?.length ?? 0) > 0 ? "#4caf50" : "#888" }}>
+            {status.cec_devices?.length ? `${status.cec_devices.join(", ")} · ${t("hw_cec_available")}` : t("hw_no_cec")}
           </span>
         </InfoRow>
       </PanelSection>

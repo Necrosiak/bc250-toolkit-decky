@@ -1022,6 +1022,99 @@ class Plugin:
         except Exception:
             pass
 
+        # ── Intégrations matérielles optionnelles ────────────────────────────
+        # Lecture seule : la QAM doit montrer ce qui est réellement présent,
+        # pas proposer d'activer CEC/TV ou un pilote de manette à l'aveugle.
+        try:
+            wifi = {"interface": None, "state": None, "driver": None}
+            r = subprocess.run(
+                ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device", "status"],
+                capture_output=True, text=True, timeout=2,
+            )
+            for line in r.stdout.splitlines():
+                fields = line.split(":", 2)
+                if len(fields) == 3 and fields[1] == "wifi":
+                    wifi["interface"], wifi["state"] = fields[0], fields[2]
+                    mod = Path("/sys/class/net") / fields[0] / "device/driver/module"
+                    try:
+                        wifi["driver"] = mod.resolve().name
+                    except OSError:
+                        pass
+                    break
+            status["wifi"] = wifi
+        except Exception:
+            pass
+
+        try:
+            driver_ready = "hid_playstation" in Path("/proc/modules").read_text()
+            controllers = 0
+            for name_f in Path("/sys/class/input").glob("input*/name"):
+                try:
+                    name = name_f.read_text().strip().lower()
+                    if any(token in name for token in ("dualsense", "playstation", "wireless controller")):
+                        controllers += 1
+                except OSError:
+                    pass
+            status["dualsense"] = {"driver_ready": driver_ready, "connected": controllers}
+        except Exception:
+            pass
+
+        try:
+            connectors = []
+            for drm in Path("/sys/class/drm").glob("card*-*"):
+                state_f = drm / "status"
+                try:
+                    if state_f.read_text().strip() == "connected":
+                        connectors.append(drm.name.split("-", 1)[1])
+                except OSError:
+                    pass
+            status["display_connectors"] = connectors
+        except Exception:
+            pass
+
+        try:
+            cec = [str(node) for node in Path("/dev").glob("cec*") if node.exists()]
+            status["cec_devices"] = cec
+        except Exception:
+            pass
+
+        try:
+            # Sortie audio ACTIVE, via `wpctl status`. Deux pièges, tous deux
+            # mesurés le 2026-09-20 sur cette machine :
+            #
+            # ① Le plugin tourne en ROOT. Sans l'environnement de session,
+            #    wpctl répond « Could not connect to PipeWire » : il cherche le
+            #    socket dans /run/user/0. Même parade que le daemon-reload
+            #    plus haut — XDG_RUNTIME_DIR de l'utilisateur RÉEL.
+            # ② La sortie est un ARBRE : la ligne du sink sélectionné s'écrit
+            #    ` │  *   54. HD-Audio Generic … [vol: 1.00]`. Un `.strip()`
+            #    laisse le `│` en tête, donc tester `startswith("*")` ne
+            #    matchait jamais et la ligne « Sortie audio » restait vide.
+            #    On retire donc les caractères de l'arbre avant de lire.
+            uid = _user_uid()
+            r = subprocess.run(
+                ["wpctl", "status"], capture_output=True, text=True, timeout=2,
+                env=_clean_env(HOME=str(_USER_HOME),
+                               XDG_RUNTIME_DIR=f"/run/user/{uid}") if uid else None,
+            )
+            in_sinks = False
+            for line in r.stdout.splitlines():
+                bare = line.strip().lstrip("│├└─ ").strip()
+                if bare.startswith("Sinks:"):
+                    in_sinks = True
+                    continue
+                if in_sinks and (bare.startswith("Sources:") or bare.startswith("Filters:")):
+                    break
+                if in_sinks and bare.startswith("*"):
+                    # Exemple : "*   54. HD-Audio Generic Stéréo (HDMI) [vol: 1.00]"
+                    audio = bare[1:].strip()
+                    if ". " in audio:
+                        audio = audio.split(". ", 1)[1]
+                    status["audio_sink"] = audio.split(" [vol:", 1)[0].strip()
+                    break
+        except Exception:
+            pass
+
         return status
 
     # ── Tweaks update ─────────────────────────────────────────────────────────

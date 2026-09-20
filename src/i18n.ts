@@ -122,6 +122,10 @@ const T: Record<Locale, Dict> = {
     sys_toast_ok: "✓ Tweaks updated",
     sys_toast_fail: "✗ Update error",
     sys_log: "Log",
+    // Hardware integrations
+    hw_title: "Hardware integrations", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Display", hw_audio: "Audio output", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "No adapter detected", hw_driver_ready: "Driver ready", hw_driver_missing: "Driver not loaded", hw_connected: "{count} connected",
+    hw_no_display: "No active connector", hw_no_audio: "No active output", hw_cec_available: "TV integration available", hw_no_cec: "No CEC bus — connect TV/adapter first",
     // Settings
     set_auto: "Auto-apply on launch",
     set_auto_desc: "Automatically applies settings when a known game is launched",
@@ -201,6 +205,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Dernier update",
     sys_btn_update: "Mettre à jour les tweaks", sys_btn_updating: "Mise à jour...",
     sys_toast_ok: "✓ Tweaks mis à jour", sys_toast_fail: "✗ Erreur mise à jour", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Intégrations matérielles", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Écran", hw_audio: "Sortie audio", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "Aucun adaptateur détecté", hw_driver_ready: "Pilote prêt", hw_driver_missing: "Pilote non chargé", hw_connected: "{count} connecté(s)",
+    hw_no_display: "Aucun connecteur actif", hw_no_audio: "Aucune sortie active", hw_cec_available: "Intégration TV disponible", hw_no_cec: "Aucun bus CEC — connecte d’abord la TV ou l’adaptateur",
     set_auto: "Auto-apply au lancement",
     set_auto_desc: "Applique automatiquement les settings quand un jeu connu est lancé",
     update_section: "Mises à jour",
@@ -271,6 +279,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Letztes Update",
     sys_btn_update: "Tweaks aktualisieren", sys_btn_updating: "Aktualisiere...",
     sys_toast_ok: "✓ Tweaks aktualisiert", sys_toast_fail: "✗ Update-Fehler", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Hardware-Integrationen", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Bildschirm", hw_audio: "Audioausgabe", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "Kein Adapter erkannt", hw_driver_ready: "Treiber bereit", hw_driver_missing: "Treiber nicht geladen", hw_connected: "{count} verbunden",
+    hw_no_display: "Kein aktiver Anschluss", hw_no_audio: "Keine aktive Ausgabe", hw_cec_available: "TV-Integration verfügbar", hw_no_cec: "Kein CEC-Bus — TV oder Adapter zuerst anschließen",
     set_auto: "Automatisch beim Start anwenden",
     set_auto_desc: "Wendet Einstellungen automatisch an, wenn ein bekanntes Spiel gestartet wird",
     set_refresh_db: "DB von GitHub aktualisieren", set_refreshing: "Wird aktualisiert...",
@@ -333,6 +345,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Última actualización",
     sys_btn_update: "Actualizar tweaks", sys_btn_updating: "Actualizando...",
     sys_toast_ok: "✓ Tweaks actualizados", sys_toast_fail: "✗ Error de actualización", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Integraciones de hardware", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Pantalla", hw_audio: "Salida de audio", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "No se detectó ningún adaptador", hw_driver_ready: "Controlador listo", hw_driver_missing: "Controlador no cargado", hw_connected: "{count} conectados",
+    hw_no_display: "Ningún conector activo", hw_no_audio: "Ninguna salida activa", hw_cec_available: "Integración con el televisor disponible", hw_no_cec: "Sin bus CEC — conecta antes el televisor o el adaptador",
     set_auto: "Auto-aplicar al iniciar",
     set_auto_desc: "Aplica ajustes automáticamente cuando se lanza un juego conocido",
     set_refresh_db: "Actualizar BD desde GitHub", set_refreshing: "Actualizando...",
@@ -395,6 +411,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Ultimo aggiornamento",
     sys_btn_update: "Aggiorna tweaks", sys_btn_updating: "Aggiornamento...",
     sys_toast_ok: "✓ Tweaks aggiornati", sys_toast_fail: "✗ Errore aggiornamento", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Integrazioni hardware", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Schermo", hw_audio: "Uscita audio", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "Nessun adattatore rilevato", hw_driver_ready: "Driver pronto", hw_driver_missing: "Driver non caricato", hw_connected: "{count} collegati",
+    hw_no_display: "Nessun connettore attivo", hw_no_audio: "Nessuna uscita attiva", hw_cec_available: "Integrazione TV disponibile", hw_no_cec: "Nessun bus CEC — collega prima la TV o l’adattatore",
     set_auto: "Auto-applica all'avvio",
     set_auto_desc: "Applica automaticamente le impostazioni quando viene avviato un gioco noto",
     set_refresh_db: "Aggiorna DB da GitHub", set_refreshing: "Aggiornamento...",
@@ -457,6 +477,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Última atualização",
     sys_btn_update: "Atualizar tweaks", sys_btn_updating: "Atualizando...",
     sys_toast_ok: "✓ Tweaks atualizados", sys_toast_fail: "✗ Erro de atualização", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Integrações de hardware", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Ecrã", hw_audio: "Saída de áudio", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "Nenhum adaptador detetado", hw_driver_ready: "Controlador pronto", hw_driver_missing: "Controlador não carregado", hw_connected: "{count} ligados",
+    hw_no_display: "Nenhum conetor ativo", hw_no_audio: "Nenhuma saída ativa", hw_cec_available: "Integração com TV disponível", hw_no_cec: "Sem barramento CEC — ligue primeiro a TV ou o adaptador",
     set_auto: "Auto-aplicar ao iniciar",
     set_auto_desc: "Aplica configurações automaticamente quando um jogo conhecido é lançado",
     set_refresh_db: "Atualizar BD do GitHub", set_refreshing: "Atualizando...",
@@ -519,6 +543,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Laatste update",
     sys_btn_update: "Tweaks bijwerken", sys_btn_updating: "Bijwerken...",
     sys_toast_ok: "✓ Tweaks bijgewerkt", sys_toast_fail: "✗ Update fout", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Hardware-integraties", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Scherm", hw_audio: "Audio-uitvoer", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "Geen adapter gevonden", hw_driver_ready: "Stuurprogramma gereed", hw_driver_missing: "Stuurprogramma niet geladen", hw_connected: "{count} verbonden",
+    hw_no_display: "Geen actieve aansluiting", hw_no_audio: "Geen actieve uitvoer", hw_cec_available: "Tv-integratie beschikbaar", hw_no_cec: "Geen CEC-bus — sluit eerst de tv of adapter aan",
     set_auto: "Automatisch toepassen bij start",
     set_auto_desc: "Past instellingen automatisch toe wanneer een bekend spel wordt gestart",
     set_refresh_db: "DB bijwerken van GitHub", set_refreshing: "Bijwerken...",
@@ -581,6 +609,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Ostatnia aktualizacja",
     sys_btn_update: "Aktualizuj tweaki", sys_btn_updating: "Aktualizowanie...",
     sys_toast_ok: "✓ Tweaki zaktualizowane", sys_toast_fail: "✗ Błąd aktualizacji", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Integracje sprzętowe", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Ekran", hw_audio: "Wyjście audio", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "Nie wykryto adaptera", hw_driver_ready: "Sterownik gotowy", hw_driver_missing: "Sterownik niezaładowany", hw_connected: "Połączone: {count}",
+    hw_no_display: "Brak aktywnego złącza", hw_no_audio: "Brak aktywnego wyjścia", hw_cec_available: "Integracja z TV dostępna", hw_no_cec: "Brak magistrali CEC — podłącz najpierw telewizor lub adapter",
     set_auto: "Automatyczne stosowanie przy uruchomieniu",
     set_auto_desc: "Automatycznie stosuje ustawienia gdy uruchamiana jest znana gra",
     set_refresh_db: "Odśwież bazę z GitHub", set_refreshing: "Odświeżanie...",
@@ -643,6 +675,10 @@ const T: Record<Locale, Dict> = {
     sys_last_update: "Последнее обновление",
     sys_btn_update: "Обновить твики", sys_btn_updating: "Обновление...",
     sys_toast_ok: "✓ Твики обновлены", sys_toast_fail: "✗ Ошибка обновления", sys_log: "Log",
+    // Intégrations matérielles
+    hw_title: "Аппаратные интеграции", hw_wifi: "Wi-Fi", hw_dualsense: "DualSense", hw_display: "Экран", hw_audio: "Аудиовыход", hw_cec: "HDMI-CEC",
+    hw_no_adapter: "Адаптер не обнаружен", hw_driver_ready: "Драйвер готов", hw_driver_missing: "Драйвер не загружен", hw_connected: "Подключено: {count}",
+    hw_no_display: "Нет активного разъёма", hw_no_audio: "Нет активного выхода", hw_cec_available: "Интеграция с ТВ доступна", hw_no_cec: "Шины CEC нет — сначала подключите телевизор или адаптер",
     set_auto: "Авто-применение при запуске",
     set_auto_desc: "Автоматически применяет настройки при запуске известной игры",
     set_refresh_db: "Обновить базу с GitHub", set_refreshing: "Обновление...",
