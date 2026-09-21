@@ -1,3 +1,4 @@
 node_modules/
 __pycache__/
 decky-plugin-database/
+dist/
