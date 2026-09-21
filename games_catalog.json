@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-09-14",
+"updated": "2026-09-21",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -124,8 +124,7 @@
 },
 {
 "appid": "1085660",
-"name": "Destiny 2",
-"top": true
+"name": "Destiny 2"
 },
 {
 "appid": "105600",
@@ -613,7 +612,8 @@
 },
 {
 "appid": "2050650",
-"name": "Resident Evil 4"
+"name": "Resident Evil 4",
+"top": true
 },
 {
 "appid": "1446780",
@@ -2753,7 +2753,8 @@
 },
 {
 "appid": "2344520",
-"name": "Diablo IV"
+"name": "Diablo IV",
+"top": true
 },
 {
 "appid": "216150",
