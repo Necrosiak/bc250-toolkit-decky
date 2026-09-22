@@ -705,7 +705,16 @@ class Plugin:
             # Steam UI. Measured here on 2026-09-13.
             res = await updater.apply(info["url"])
             if res.get("ok"):
-                updater.restart_loader()
+                if updater.restart_loader():
+                    return
+                # Being root is NOT enough on its own: until 2026-09-22 the
+                # restart died on the loader's bundled libraries before polkit
+                # was ever reached, for every plugin alike (see restart_loader).
+                # Keep the honest branch — a silent no-reload is exactly what
+                # kept machines on stale code (Steamcord #52).
+                print(f"[BC250 updater] {info['latest']} written to disk; loader "
+                      "restart refused — active at next Steam start")
+                self._pending_update = {"version": info["latest"], "reload": True}
                 return
             print(f"[BC250 updater] update aborted: {res.get('error', 'unknown reason')}")
             self._pending_update = {"version": info["latest"],
@@ -732,8 +741,8 @@ class Plugin:
 
     async def apply_update(self, url):
         res = await updater.apply(url)
-        if res.get("ok"):
-            updater.restart_loader()
+        # The frontend reloads this plugin through the loader; restarting
+        # plugin_loader from here would bounce every plugin instead.
         return res
 
     async def get_autoupdate(self):

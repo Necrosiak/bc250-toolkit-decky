@@ -1147,7 +1147,7 @@ function SettingsTab({
   // ── Mises à jour (release-based) ──
   const [autoUpd, setAutoUpd] = useState(true);
   const [updStatus, setUpdStatus] = useState<
-    "idle" | "checking" | "available" | "uptodate" | "installing" | "failed"
+    "idle" | "checking" | "available" | "uptodate" | "installing" | "failed" | "needsrestart"
   >("idle");
   const [updErr, setUpdErr] = useState("");
   const [updLatest, setUpdLatest] = useState("");
@@ -1183,7 +1183,29 @@ function SettingsTab({
     // "installing…" forever.
     try {
       const r: any = await call<[string], any>("apply_update", updUrl);
-      if (!(r === true || r?.ok)) { setUpdErr(r?.error || ""); setUpdStatus("failed"); }
+      if (!(r === true || r?.ok)) { setUpdErr(r?.error || ""); setUpdStatus("failed"); return; }
+      // Being root does not help here: measured 2026-09-22, `systemctl` cannot
+      // even start from a plugin backend (it inherits the loader's PyInstaller
+      // libraries), so the update used to stay on disk, unloaded and
+      // unannounced (Steamcord #52). The loader is root whatever the plugin is,
+      // and its internal loader/reload_plugin route re-imports us from the new
+      // files — unlike utilities/install_plugin, the Store route, which dies on
+      // a deckbrew 404 (2026-09-13).
+      const backend: any = (window as any).DeckyBackend;
+      if (backend?.call) {
+        try {
+          await backend.call("loader/reload_plugin", "BC250 Toolkit");
+          // The open panel is NOT remounted by the reload — Steam keeps the
+          // React tree it already mounted, so it used to sit on "Installing…"
+          // forever even though the plugin had just been re-imported (seen on
+          // screen 2026-09-22). Finish the journey ourselves; the new code is
+          // what the next menu opening renders.
+          setUpdCurrent(updLatest);
+          setUpdStatus("uptodate");
+          return;
+        } catch { /* Decky too old for that route */ }
+      }
+      setUpdStatus("needsrestart");
     } catch { setUpdStatus("failed"); }
   };
 
@@ -1193,6 +1215,7 @@ function SettingsTab({
     : updStatus === "available" ? t("update_install", { v: updLatest })
     : updStatus === "uptodate" ? t("update_up_to_date", { v: updCurrent })
     : updStatus === "failed" ? t("update_failed")
+    : updStatus === "needsrestart" ? t("update_needs_restart")
     : t("update_check");
 
   return (
