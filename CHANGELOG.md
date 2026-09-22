@@ -2,7 +2,7 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
-## 0.6.1 — unreleased
+## 0.6.1 — 2026-09-22
 
 ### Updates that installed but never loaded
 
