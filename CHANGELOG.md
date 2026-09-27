@@ -2,6 +2,16 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.6.2 — 2026-09-27
+
+### A successful update now says so
+
+After installing an update, the button went back to "Up to date", exactly like
+a click that did nothing. It now reads "Updated to X ✓", with a note to close
+and reopen the Quick Access menu to load the new version. Same fix as
+[Steamcord #52](https://github.com/Necrosiak/Steamcord/issues/52), reported by
+[@bastiHST90](https://github.com/bastiHST90).
+
 ## 0.6.1 — 2026-09-22
 
 ### Updates that installed but never loaded

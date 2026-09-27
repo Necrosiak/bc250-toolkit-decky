@@ -207,4 +207,10 @@ Aktywnie pracujemy nad tym, aby ten plugin działał na **każdym systemie opera
 
 ## Informacja o AI
 
-Przy tworzeniu tego projektu korzystano z AI — do inżynierii wstecznej, programowania i dokumentacji. **Nie** do grafiki ani twórczego pisania. Wszystko, co publikowane, przechodzi przez człowieka, a za wynik odpowiadam ja. Jeśli ci to nie odpowiada, teraz już wiesz.
+Przy tworzeniu tego projektu korzystano z AI (Claude od Anthropic i Codex od OpenAI) — do inżynierii wstecznej, programowania i dokumentacji. **Nie** do grafiki ani twórczego pisania. Wszystko, co publikowane, przechodzi przez człowieka, a za wynik odpowiadam ja. Jeśli ci to nie odpowiada, teraz już wiesz.
+
+## Wesprzyj rozwój
+
+Jeśli ten projekt jest dla Ciebie przydatny, możesz wesprzeć jego dalszy rozwój na [Ko-fi](https://ko-fi.com/nekyron).
+
+[![Wesprzyj mnie na Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nekyron)

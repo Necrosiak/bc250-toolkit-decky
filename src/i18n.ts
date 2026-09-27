@@ -138,6 +138,8 @@ const T: Record<Locale, Dict> = {
     update_failed: "Update failed — see the message below",
     update_needs_restart: "Installed — restart Steam to finish",
     update_up_to_date: "Up to date ({v})",
+    update_done: "Updated to {v} ✓",
+    update_done_note: "BC250 Toolkit {v} is installed. Close and reopen the Quick Access menu to load it.",
     set_refresh_db: "Refresh DB from GitHub",
     set_refreshing: "Refreshing...",
     set_db_date: "DB updated on",
@@ -221,6 +223,8 @@ const T: Record<Locale, Dict> = {
     update_failed: "Échec de la mise à jour — voir le message dessous",
     update_needs_restart: "Installée — redémarre Steam pour terminer",
     update_up_to_date: "À jour ({v})",
+    update_done: "Mis à jour en {v} ✓",
+    update_done_note: "BC250 Toolkit {v} est installé. Ferme puis rouvre le menu d'accès rapide pour le charger.",
     set_refresh_db: "Rafraîchir DB depuis GitHub", set_refreshing: "Rafraîchissement...",
     set_db_date: "DB mise à jour le", set_contribute: "Contribuer", toast_db_ok: "DB mise à jour",
   },
@@ -289,6 +293,8 @@ const T: Record<Locale, Dict> = {
     set_auto_desc: "Wendet Einstellungen automatisch an, wenn ein bekanntes Spiel gestartet wird",
     set_refresh_db: "DB von GitHub aktualisieren", set_refreshing: "Wird aktualisiert...",
     set_db_date: "DB aktualisiert am", set_contribute: "Beitragen", toast_db_ok: "DB aktualisiert",
+    update_done: "Aktualisiert auf {v} ✓",
+    update_done_note: "BC250 Toolkit {v} ist installiert. Schließe das Schnellzugriffsmenü und öffne es erneut, um es zu laden.",
   },
   es: {
     tab_games: "Juegos", tab_cu: "CU/UMA", tab_system: "Sistema", tab_settings: "Ajustes",
@@ -355,6 +361,8 @@ const T: Record<Locale, Dict> = {
     set_auto_desc: "Aplica ajustes automáticamente cuando se lanza un juego conocido",
     set_refresh_db: "Actualizar BD desde GitHub", set_refreshing: "Actualizando...",
     set_db_date: "BD actualizada el", set_contribute: "Contribuir", toast_db_ok: "BD actualizada",
+    update_done: "Actualizado a {v} ✓",
+    update_done_note: "BC250 Toolkit {v} está instalado. Cierra y vuelve a abrir el menú de acceso rápido para cargarlo.",
   },
   it: {
     tab_games: "Giochi", tab_cu: "CU/UMA", tab_system: "Sistema", tab_settings: "Impostazioni",
@@ -421,6 +429,8 @@ const T: Record<Locale, Dict> = {
     set_auto_desc: "Applica automaticamente le impostazioni quando viene avviato un gioco noto",
     set_refresh_db: "Aggiorna DB da GitHub", set_refreshing: "Aggiornamento...",
     set_db_date: "DB aggiornato il", set_contribute: "Contribuisci", toast_db_ok: "DB aggiornato",
+    update_done: "Aggiornato a {v} ✓",
+    update_done_note: "BC250 Toolkit {v} è installato. Chiudi e riapri il menu di accesso rapido per caricarlo.",
   },
   pt: {
     tab_games: "Jogos", tab_cu: "CU/UMA", tab_system: "Sistema", tab_settings: "Configurações",
@@ -487,6 +497,8 @@ const T: Record<Locale, Dict> = {
     set_auto_desc: "Aplica configurações automaticamente quando um jogo conhecido é lançado",
     set_refresh_db: "Atualizar BD do GitHub", set_refreshing: "Atualizando...",
     set_db_date: "BD atualizado em", set_contribute: "Contribuir", toast_db_ok: "BD atualizado",
+    update_done: "Atualizado para {v} ✓",
+    update_done_note: "O BC250 Toolkit {v} está instalado. Fecha e volta a abrir o menu de acesso rápido para o carregar.",
   },
   nl: {
     tab_games: "Spellen", tab_cu: "CU/UMA", tab_system: "Systeem", tab_settings: "Instellingen",
@@ -553,6 +565,8 @@ const T: Record<Locale, Dict> = {
     set_auto_desc: "Past instellingen automatisch toe wanneer een bekend spel wordt gestart",
     set_refresh_db: "DB bijwerken van GitHub", set_refreshing: "Bijwerken...",
     set_db_date: "DB bijgewerkt op", set_contribute: "Bijdragen", toast_db_ok: "DB bijgewerkt",
+    update_done: "Bijgewerkt naar {v} ✓",
+    update_done_note: "BC250 Toolkit {v} is geïnstalleerd. Sluit het snelmenu en open het opnieuw om het te laden.",
   },
   pl: {
     tab_games: "Gry", tab_cu: "CU/UMA", tab_system: "System", tab_settings: "Ustawienia",
@@ -619,6 +633,8 @@ const T: Record<Locale, Dict> = {
     set_auto_desc: "Automatycznie stosuje ustawienia gdy uruchamiana jest znana gra",
     set_refresh_db: "Odśwież bazę z GitHub", set_refreshing: "Odświeżanie...",
     set_db_date: "Baza zaktualizowana", set_contribute: "Współtwórz", toast_db_ok: "Baza zaktualizowana",
+    update_done: "Zaktualizowano do {v} ✓",
+    update_done_note: "BC250 Toolkit {v} jest zainstalowany. Zamknij i otwórz ponownie menu szybkiego dostępu, aby go wczytać.",
   },
   ru: {
     tab_games: "Игры", tab_cu: "CU/UMA", tab_system: "Система", tab_settings: "Настройки",
@@ -685,6 +701,8 @@ const T: Record<Locale, Dict> = {
     set_auto_desc: "Автоматически применяет настройки при запуске известной игры",
     set_refresh_db: "Обновить базу с GitHub", set_refreshing: "Обновление...",
     set_db_date: "База обновлена", set_contribute: "Внести вклад", toast_db_ok: "База обновлена",
+    update_done: "Обновлено до {v} ✓",
+    update_done_note: "BC250 Toolkit {v} установлен. Закройте и снова откройте меню быстрого доступа, чтобы загрузить его.",
   },
 };
 

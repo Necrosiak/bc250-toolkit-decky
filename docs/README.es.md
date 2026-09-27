@@ -206,4 +206,10 @@ Trabajamos activamente para que este plugin funcione en **todos los sistemas ope
 
 ## Aviso sobre IA
 
-Se usó IA en la creación de este proyecto: para ingeniería inversa, desarrollo y documentación. **No** se usó para arte ni escritura creativa. Todo lo publicado lo revisa una persona, y el resultado es responsabilidad mía. Si eso te incomoda, ya lo sabes.
+Se usó IA (Claude de Anthropic y Codex de OpenAI) en la creación de este proyecto: para ingeniería inversa, desarrollo y documentación. **No** se usó para arte ni escritura creativa. Todo lo publicado lo revisa una persona, y el resultado es responsabilidad mía. Si eso te incomoda, ya lo sabes.
+
+## Apoya el desarrollo
+
+Si este proyecto te resulta útil, puedes apoyar su desarrollo continuo en [Ko-fi](https://ko-fi.com/nekyron).
+
+[![Apóyame en Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nekyron)

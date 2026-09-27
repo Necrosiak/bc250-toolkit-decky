@@ -207,4 +207,10 @@ Lavoriamo attivamente perché questo plugin funzioni su **tutti i sistemi operat
 
 ## Nota sull'IA
 
-L'IA è stata usata nella realizzazione di questo progetto: per reverse engineering, sviluppo e documentazione. **Non** per grafica o scrittura creativa. Tutto ciò che viene pubblicato è riletto da un umano, e il risultato resta sotto la mia responsabilità. Se la cosa ti dà fastidio, ora lo sai.
+L'IA (Claude di Anthropic e Codex di OpenAI) è stata usata nella realizzazione di questo progetto: per reverse engineering, sviluppo e documentazione. **Non** per grafica o scrittura creativa. Tutto ciò che viene pubblicato è riletto da un umano, e il risultato resta sotto la mia responsabilità. Se la cosa ti dà fastidio, ora lo sai.
+
+## Sostieni lo sviluppo
+
+Se questo progetto ti è utile, puoi sostenere il suo sviluppo continuo su [Ko-fi](https://ko-fi.com/nekyron).
+
+[![Sostienimi su Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nekyron)

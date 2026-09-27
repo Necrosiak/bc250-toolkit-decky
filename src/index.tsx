@@ -1147,7 +1147,7 @@ function SettingsTab({
   // ── Mises à jour (release-based) ──
   const [autoUpd, setAutoUpd] = useState(true);
   const [updStatus, setUpdStatus] = useState<
-    "idle" | "checking" | "available" | "uptodate" | "installing" | "failed" | "needsrestart"
+    "idle" | "checking" | "available" | "uptodate" | "updated" | "installing" | "failed" | "needsrestart"
   >("idle");
   const [updErr, setUpdErr] = useState("");
   const [updLatest, setUpdLatest] = useState("");
@@ -1200,8 +1200,11 @@ function SettingsTab({
           // forever even though the plugin had just been re-imported (seen on
           // screen 2026-09-22). Finish the journey ourselves; the new code is
           // what the next menu opening renders.
+          // Ending on "Up to date (x)" looked exactly like a click that did
+          // nothing (Steamcord #52, 2026-09-24): a state of its own says it
+          // worked, and what to do next.
           setUpdCurrent(updLatest);
-          setUpdStatus("uptodate");
+          setUpdStatus("updated");
           return;
         } catch { /* Decky too old for that route */ }
       }
@@ -1214,6 +1217,7 @@ function SettingsTab({
     : updStatus === "installing" ? t("update_installing")
     : updStatus === "available" ? t("update_install", { v: updLatest })
     : updStatus === "uptodate" ? t("update_up_to_date", { v: updCurrent })
+    : updStatus === "updated" ? t("update_done", { v: updCurrent })
     : updStatus === "failed" ? t("update_failed")
     : updStatus === "needsrestart" ? t("update_needs_restart")
     : t("update_check");
@@ -1267,6 +1271,11 @@ function SettingsTab({
           {updStatus === "available" ? <IcDownload /> : updStatus === "failed" ? <IcWarn /> : <IcRefresh />} {updLabel}
         </ActionCard>
       </PanelSectionRow>
+      {updStatus === "updated" ? (
+        <PanelSectionRow>
+          <div style={{ fontSize: 11, color: "#23a55a", lineHeight: 1.35 }}>{t("update_done_note", { v: updCurrent })}</div>
+        </PanelSectionRow>
+      ) : null}
       {updStatus === "failed" && updErr ? (
         <PanelSectionRow>
           <div style={{ fontSize: 11, opacity: 0.8, wordBreak: "break-word" }}>{updErr}</div>

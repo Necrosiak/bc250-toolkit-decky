@@ -298,4 +298,10 @@ We actively work to make this plugin run on **every operating system documented 
 
 ## AI disclaimer
 
-AI was used in the making of this project — for reverse engineering, development and documentation. It was **not** used for any art or creative writing. Everything released publicly is reviewed by a human, and the results are my responsibility. If that is not something you are comfortable with, now you know.
+AI (Claude by Anthropic and Codex by OpenAI) was used in the making of this project — for reverse engineering, development and documentation. It was **not** used for any art or creative writing. Everything released publicly is reviewed by a human, and the results are my responsibility. If that is not something you are comfortable with, now you know.
+
+## Support development
+
+If this project is useful to you, you can support its ongoing development on [Ko-fi](https://ko-fi.com/nekyron).
+
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nekyron)
