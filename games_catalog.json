@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-09-21",
+"updated": "2026-09-28",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -52,8 +52,7 @@
 },
 {
 "appid": "2358720",
-"name": "Black Myth: Wukong",
-"top": true
+"name": "Black Myth: Wukong"
 },
 {
 "appid": "304930",
@@ -124,7 +123,8 @@
 },
 {
 "appid": "1085660",
-"name": "Destiny 2"
+"name": "Destiny 2",
+"top": true
 },
 {
 "appid": "105600",
@@ -599,8 +599,7 @@
 },
 {
 "appid": "1144200",
-"name": "Ready or Not",
-"top": true
+"name": "Ready or Not"
 },
 {
 "appid": "534380",
@@ -1059,7 +1058,8 @@
 },
 {
 "appid": "393380",
-"name": "Squad"
+"name": "Squad",
+"top": true
 },
 {
 "appid": "1151340",
@@ -6166,8 +6166,7 @@
 },
 {
 "appid": "2406770",
-"name": "Bodycam",
-"top": true
+"name": "Bodycam"
 },
 {
 "appid": "551170",
