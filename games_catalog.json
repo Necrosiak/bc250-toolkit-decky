@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-09-28",
+"updated": "2026-10-05",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -152,7 +152,7 @@
 },
 {
 "appid": "292030",
-"name": "The Witcher 3: Wild Hunt - Complete Edition",
+"name": "The Witcher 3: Wild Hunt — Remastered",
 "top": true
 },
 {
@@ -171,7 +171,8 @@
 },
 {
 "appid": "899770",
-"name": "Last Epoch"
+"name": "Last Epoch",
+"top": true
 },
 {
 "appid": "990080",
@@ -357,7 +358,8 @@
 },
 {
 "appid": "1326470",
-"name": "Sons Of The Forest"
+"name": "Sons Of The Forest",
+"top": true
 },
 {
 "appid": "2186680",
@@ -599,7 +601,8 @@
 },
 {
 "appid": "1144200",
-"name": "Ready or Not"
+"name": "Ready or Not",
+"top": true
 },
 {
 "appid": "534380",
@@ -988,8 +991,7 @@
 },
 {
 "appid": "2622380",
-"name": "ELDEN RING NIGHTREIGN",
-"top": true
+"name": "ELDEN RING NIGHTREIGN"
 },
 {
 "appid": "1366800",
@@ -1058,8 +1060,7 @@
 },
 {
 "appid": "393380",
-"name": "Squad",
-"top": true
+"name": "Squad"
 },
 {
 "appid": "1151340",
@@ -1096,7 +1097,8 @@
 },
 {
 "appid": "270880",
-"name": "American Truck Simulator"
+"name": "American Truck Simulator",
+"top": true
 },
 {
 "appid": "1942280",
@@ -1168,7 +1170,8 @@
 },
 {
 "appid": "1304930",
-"name": "The Outlast Trials"
+"name": "The Outlast Trials",
+"top": true
 },
 {
 "appid": "1716740",
@@ -1620,7 +1623,8 @@
 },
 {
 "appid": "1057090",
-"name": "Ori and the Will of the Wisps"
+"name": "Ori and the Will of the Wisps",
+"top": true
 },
 {
 "appid": "524220",
@@ -6606,7 +6610,7 @@
 },
 {
 "appid": "65540",
-"name": "Gothic 1"
+"name": "Gothic 1 Classic"
 },
 {
 "appid": "813630",
