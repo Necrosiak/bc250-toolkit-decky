@@ -15,10 +15,12 @@ import {
   DialogButton,
   SliderField,
   ConfirmModal,
+  Navigation,
   showModal,
 } from "@decky/ui";
 import { definePlugin, call } from "@decky/api";
 import { t } from "./i18n";
+import { clearClickableNotifications, notifyClickable } from "./clickableNotify";
 
 // Notif native Steam (DisplayClientNotification, type 1 = popup + son). Le toaster
 // Decky crée des entrées SANS notification_type qui ne s'affichent pas ET font
@@ -38,9 +40,11 @@ function streamerActive(): boolean {
 }
 const STREAMER_RETRY_MS = 15000;
 
-function notify(data: { title?: string; body: string; duration?: number }) {
+function notify(data: { title?: string; body: string; duration?: number; clickKey?: string; onClick?: () => void }) {
   if (streamerActive()) { setTimeout(() => notify(data), STREAMER_RETRY_MS); return; }
   try {
+    if (data.clickKey && data.onClick && notifyClickable("bc250-toolkit", data.clickKey,
+      data.title || "BC250 Toolkit", data.body, data.onClick)) return;
     const App = (window as any).App;
     const steamid = App?.GetCurrentUser?.()?.strSteamID || App?.m_CurrentUser?.strSteamID || "";
     // steamid OBLIGATOIRE : sans lui DisplayClientNotification crée une entrée
@@ -2015,10 +2019,24 @@ async function reportFailedUpdate() {
       // Backend not reachable yet — not a failure, we come back.
     }
     if (notice?.version) {
+      const body = `Update ${notice.version} could not be installed automatically. `
+        + "Install it from Decky → Developer → Install plugin from URL.";
       notify({
         title: "BC250 Toolkit",
-        body: `Update ${notice.version} could not be installed automatically. `
-            + "Install it from Decky → Developer → Install plugin from URL.",
+        body,
+        clickKey: `update-failed:${notice.version}`,
+        onClick: () => {
+          Navigation.CloseSideMenus();
+          showModal(<ConfirmModal
+            strTitle="BC250 Toolkit update"
+            strDescription={body}
+            strOKButtonText="Open release"
+            onOK={() => {
+              const url = `https://github.com/Necrosiak/bc250-toolkit-decky/releases/tag/v${encodeURIComponent(notice.version)}`;
+              openUrl(url);
+            }}
+          />);
+        },
       });
       return;
     }
@@ -2047,7 +2065,8 @@ export default definePlugin(() => {
           const entry = db[String(e.unAppID)];
           if (!entry || !("proton" in entry)) return;
           const g = entry as GameEntry;
-          const variants = await call<[], Record<string, number>>("get_game_variants").catch(() => ({}));
+          const variants = await call<[], Record<string, number>>("get_game_variants")
+            .catch((): Record<string, number> => ({}));
           const hasConfigs = Array.isArray(g.configs) && g.configs.length > 0;
           const idx = hasConfigs ? (variants[String(e.unAppID)] ?? 0) : null;
           const r = await applyGameConfig(e.unAppID, idx);
@@ -2055,6 +2074,11 @@ export default definePlugin(() => {
             title: "BC250 Toolkit",
             body: r.ok ? t("toast_applied", { name: g.name }) : t("toast_error", { detail: r.error ?? "?" }),
             duration: 3000,
+            clickKey: `autoapply:${e.unAppID}`,
+            onClick: () => {
+              Navigation.CloseSideMenus();
+              Navigation.Navigate(`/library/app/${e.unAppID}`);
+            },
           });
         } catch (_) {}
       });
@@ -2066,6 +2090,9 @@ export default definePlugin(() => {
     title: <div className={staticClasses.Title}>BC250 Toolkit</div>,
     icon: <FaMicrochip />,
     content: <Content />,
-    onDismount() { try { unreg?.(); } catch (_) {} },
+    onDismount() {
+      try { unreg?.(); } catch (_) {}
+      clearClickableNotifications("bc250-toolkit");
+    },
   };
 });

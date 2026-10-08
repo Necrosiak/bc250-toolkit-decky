@@ -2,6 +2,18 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.6.3 — 2026-10-08
+
+- Notifications from automatic game configuration are now clickable: selecting
+  one opens that game's Steam library page, including when configuration failed.
+- An automatic-update failure notification opens the details and links to the
+  matching GitHub release.
+- These system notices do not play the incoming-chat sound; real Steam message
+  notifications keep their usual sound.
+- Uses a shared, safe Steam click router adapted from
+  [Steamcord PR #71](https://github.com/Necrosiak/Steamcord/pull/71), with
+  separate IDs so it cannot redirect real Steam chats or Steamcord messages.
+
 ## 0.6.2 — 2026-09-27
 
 ### A successful update now says so

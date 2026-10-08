@@ -1,5 +1,7 @@
 # BC250 Toolkit — Плагин DeckyLoader
 
+**Новое в v0.6.3:** уведомление об автоматической настройке открывает страницу игры в библиотеке Steam; при ошибке обновления доступны подробности и ссылка на выпуск.
+
 > 🌐 [EN](../README.md) · [FR](README.fr.md) · [DE](README.de.md) · [ES](README.es.md) · [IT](README.it.md) · [PT](README.pt.md) · [NL](README.nl.md) · [PL](README.pl.md) · [RU](README.ru.md)
 
 Плагин [DeckyLoader](https://github.com/SteamDeckHomebrew/decky-loader) для **ASRock BC-250** (AMD Ryzen Embedded V2000 / Cyan Skillfish) под управлением Bazzite, SteamOS Linux или CachyOS.
