@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-10-05",
+"updated": "2026-10-12",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -147,8 +147,7 @@
 },
 {
 "appid": "2694490",
-"name": "Path of Exile 2",
-"top": true
+"name": "Path of Exile 2"
 },
 {
 "appid": "292030",
@@ -167,12 +166,12 @@
 },
 {
 "appid": "552990",
-"name": "World of Warships"
+"name": "World of Warships",
+"top": true
 },
 {
 "appid": "899770",
-"name": "Last Epoch",
-"top": true
+"name": "Last Epoch"
 },
 {
 "appid": "990080",
@@ -253,7 +252,8 @@
 },
 {
 "appid": "3164500",
-"name": "Schedule I"
+"name": "Schedule I",
+"top": true
 },
 {
 "appid": "252950",
@@ -536,7 +536,8 @@
 },
 {
 "appid": "632360",
-"name": "Risk of Rain 2"
+"name": "Risk of Rain 2",
+"top": true
 },
 {
 "appid": "2183900",
@@ -1097,8 +1098,7 @@
 },
 {
 "appid": "270880",
-"name": "American Truck Simulator",
-"top": true
+"name": "American Truck Simulator"
 },
 {
 "appid": "1942280",
@@ -1603,7 +1603,8 @@
 },
 {
 "appid": "2054970",
-"name": "Dragon's Dogma 2"
+"name": "Dragon's Dogma 2",
+"top": true
 },
 {
 "appid": "629760",
@@ -1623,8 +1624,7 @@
 },
 {
 "appid": "1057090",
-"name": "Ori and the Will of the Wisps",
-"top": true
+"name": "Ori and the Will of the Wisps"
 },
 {
 "appid": "524220",
@@ -2757,8 +2757,7 @@
 },
 {
 "appid": "2344520",
-"name": "Diablo IV",
-"top": true
+"name": "Diablo IV"
 },
 {
 "appid": "216150",
@@ -5770,7 +5769,7 @@
 },
 {
 "appid": "1266680",
-"name": "Strobophagia | Rave Horror"
+"name": "STROBO | Rave Horror"
 },
 {
 "appid": "34450",
