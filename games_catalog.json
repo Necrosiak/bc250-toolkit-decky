@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-10-12",
+"updated": "2026-10-19",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -166,8 +166,7 @@
 },
 {
 "appid": "552990",
-"name": "World of Warships",
-"top": true
+"name": "World of Warships"
 },
 {
 "appid": "899770",
@@ -175,7 +174,8 @@
 },
 {
 "appid": "990080",
-"name": "Hogwarts Legacy"
+"name": "Hogwarts Legacy",
+"top": true
 },
 {
 "appid": "238960",
@@ -252,8 +252,7 @@
 },
 {
 "appid": "3164500",
-"name": "Schedule I",
-"top": true
+"name": "Schedule I"
 },
 {
 "appid": "252950",
@@ -287,7 +286,8 @@
 },
 {
 "appid": "526870",
-"name": "Satisfactory"
+"name": "Satisfactory",
+"top": true
 },
 {
 "appid": "8930",
@@ -358,8 +358,7 @@
 },
 {
 "appid": "1326470",
-"name": "Sons Of The Forest",
-"top": true
+"name": "Sons Of The Forest"
 },
 {
 "appid": "2186680",
@@ -510,8 +509,7 @@
 },
 {
 "appid": "275850",
-"name": "No Man's Sky",
-"top": true
+"name": "No Man's Sky"
 },
 {
 "appid": "1604030",
@@ -602,8 +600,7 @@
 },
 {
 "appid": "1144200",
-"name": "Ready or Not",
-"top": true
+"name": "Ready or Not"
 },
 {
 "appid": "534380",
@@ -992,7 +989,8 @@
 },
 {
 "appid": "2622380",
-"name": "ELDEN RING NIGHTREIGN"
+"name": "ELDEN RING NIGHTREIGN",
+"top": true
 },
 {
 "appid": "1366800",
@@ -1049,7 +1047,8 @@
 },
 {
 "appid": "1203620",
-"name": "Enshrouded"
+"name": "Enshrouded",
+"top": true
 },
 {
 "appid": "1454400",
@@ -4021,7 +4020,7 @@
 },
 {
 "appid": "39500",
-"name": "Gothic 3"
+"name": "Gothic 3 Classic"
 },
 {
 "appid": "413410",
