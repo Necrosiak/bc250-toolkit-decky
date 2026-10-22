@@ -83,6 +83,7 @@ De plugin detecteert automatisch de Steam-taal:
 1. Zet de **ontwikkelaarsmodus** aan in Decky's algemene instellingen
 2. Decky-instellingen → **Ontwikkelaar** → *Plugin installeren vanaf URL*:
    `https://github.com/Necrosiak/bc250-toolkit-decky/releases/latest/download/BC250-Toolkit.zip`
+   > ⚠️ Vanaf Decky Loader 3.3 verschijnt hier een waarschuwing *Third-Party Plugin Installation*, omdat de plugin niet uit de Decky Store komt. Dat is normaal: wacht 5 seconden en bevestig. Hij verschijnt maar één keer, updates installeren zich daarna vanzelf.
 
 > Directe distributie via GitHub: de URL hierboven wijst altijd naar de nieuwste release, daarna houdt de plugin zichzelf up-to-date met de ingebouwde auto-update.
 

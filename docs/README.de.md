@@ -83,6 +83,7 @@ Das Plugin erkennt automatisch die Steam-Sprache:
 1. **Entwicklermodus** in Deckys allgemeinen Einstellungen aktivieren
 2. Decky-Einstellungen → **Entwickler** → *Plugin von URL installieren*:
    `https://github.com/Necrosiak/bc250-toolkit-decky/releases/latest/download/BC250-Toolkit.zip`
+   > ⚠️ Ab Decky Loader 3.3 erscheint hier eine Warnung *Third-Party Plugin Installation*, weil das Plugin nicht aus dem Decky Store stammt. Das ist normal: 5 Sekunden warten und bestätigen. Sie erscheint nur einmal, Updates installieren sich danach von selbst.
 
 > Direkter Vertrieb über GitHub: die URL oben zeigt immer auf das neueste Release, danach hält sich das Plugin per eingebautem Auto-Update selbst aktuell.
 
