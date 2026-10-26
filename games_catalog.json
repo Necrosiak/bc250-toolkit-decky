@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-10-19",
+"updated": "2026-10-26",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -174,8 +174,7 @@
 },
 {
 "appid": "990080",
-"name": "Hogwarts Legacy",
-"top": true
+"name": "Hogwarts Legacy"
 },
 {
 "appid": "238960",
@@ -286,8 +285,7 @@
 },
 {
 "appid": "526870",
-"name": "Satisfactory",
-"top": true
+"name": "Satisfactory"
 },
 {
 "appid": "8930",
@@ -295,12 +293,12 @@
 },
 {
 "appid": "582010",
-"name": "Monster Hunter: World",
-"top": true
+"name": "Monster Hunter: World"
 },
 {
 "appid": "377160",
-"name": "Fallout 4"
+"name": "Fallout 4",
+"top": true
 },
 {
 "appid": "739630",
@@ -749,7 +747,7 @@
 },
 {
 "appid": "286690",
-"name": "Metro 2033 Redux"
+"name": "METRO 2033 Redux"
 },
 {
 "appid": "1237970",
@@ -1602,8 +1600,7 @@
 },
 {
 "appid": "2054970",
-"name": "Dragon's Dogma 2",
-"top": true
+"name": "Dragon's Dogma 2"
 },
 {
 "appid": "629760",
@@ -1899,7 +1896,7 @@
 },
 {
 "appid": "287390",
-"name": "Metro: Last Light Redux"
+"name": "METRO Last Light Redux"
 },
 {
 "appid": "22370",
