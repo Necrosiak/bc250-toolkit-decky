@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-10-26",
+"updated": "2026-11-02",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -52,7 +52,8 @@
 },
 {
 "appid": "2358720",
-"name": "Black Myth: Wukong"
+"name": "Black Myth: Wukong",
+"top": true
 },
 {
 "appid": "304930",
@@ -182,8 +183,7 @@
 },
 {
 "appid": "945360",
-"name": "Among Us",
-"top": true
+"name": "Among Us"
 },
 {
 "appid": "242760",
@@ -297,8 +297,7 @@
 },
 {
 "appid": "377160",
-"name": "Fallout 4",
-"top": true
+"name": "Fallout 4"
 },
 {
 "appid": "739630",
@@ -356,7 +355,8 @@
 },
 {
 "appid": "1326470",
-"name": "Sons Of The Forest"
+"name": "Sons Of The Forest",
+"top": true
 },
 {
 "appid": "2186680",
@@ -507,7 +507,8 @@
 },
 {
 "appid": "275850",
-"name": "No Man's Sky"
+"name": "No Man's Sky",
+"top": true
 },
 {
 "appid": "1604030",
@@ -987,8 +988,7 @@
 },
 {
 "appid": "2622380",
-"name": "ELDEN RING NIGHTREIGN",
-"top": true
+"name": "ELDEN RING NIGHTREIGN"
 },
 {
 "appid": "1366800",
@@ -1027,8 +1027,7 @@
 },
 {
 "appid": "1158310",
-"name": "Crusader Kings III",
-"top": true
+"name": "Crusader Kings III"
 },
 {
 "appid": "281990",
