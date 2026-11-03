@@ -2,6 +2,12 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.6.4 — 2026-11-03
+
+- The Toolkit's background process now stops on its own if Decky Loader goes
+  away without stopping it. Before, it could keep running after a stuck Decky
+  restart and grow to several gigabytes of memory.
+
 ## 0.6.3 — 2026-10-08
 
 - Notifications from automatic game configuration are now clickable: selecting
