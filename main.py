@@ -661,8 +661,52 @@ def _retire_toolkit_cu_service() -> bool:
         return False
 
 
+def _decky_loader_identity():
+    """(pid, start time) of the Decky Loader process this backend runs under, or
+    None (not on Linux, or not started by Decky)."""
+    import os
+    pid = os.getppid()
+    for _ in range(8):
+        if pid <= 1:
+            return None
+        try:
+            with open(f"/proc/{pid}/cmdline", "rb") as f:
+                cmdline = f.read()
+            with open(f"/proc/{pid}/stat") as f:
+                fields = f.read().rsplit(")", 1)[1].split()
+        except (OSError, IndexError):
+            return None
+        if cmdline.startswith(b"Decky Loader"):
+            return pid, fields[19]
+        pid = int(fields[1])
+    return None
+
+
+async def _exit_with_decky_loader(log, interval=15):
+    """A restart of plugin_loader leaves the old plugin backends running on
+    their own (measured 02/11/2026: eight orphans, one growing to 4.5 GB).
+    Leave as soon as the Decky Loader that started this backend is gone."""
+    import asyncio
+    import os
+    identity = _decky_loader_identity()
+    if identity is None:
+        return
+    pid, started = identity
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            with open(f"/proc/{pid}/stat") as f:
+                alive = f.read().rsplit(")", 1)[1].split()[19] == started
+        except (OSError, IndexError):
+            alive = False
+        if not alive:
+            log("Decky Loader is gone: stopping this orphaned plugin backend")
+            os._exit(0)
+
+
 class Plugin:
     async def _main(self):
+        asyncio.create_task(_exit_with_decky_loader(print))
         self._games_db: dict = {}
         if _cc_helper_trusted():
             asyncio.create_task(self._cc_retire_duplicate_cu_boot())
