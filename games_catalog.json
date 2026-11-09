@@ -1,7 +1,7 @@
 {
 "_meta": {
 "description": "Catalogue des jeux Steam les plus populaires pour le sélecteur de submit (BC250-Toolkit). Trié par nombre de propriétaires (SteamSpy). 'top'=true si dans le chart Steam des plus joués.",
-"updated": "2026-11-02",
+"updated": "2026-11-09",
 "source": "SteamSpy request=all (pages 0-1) + Steam ISteamChartsService/GetMostPlayedGames",
 "count": 2000
 },
@@ -52,8 +52,7 @@
 },
 {
 "appid": "2358720",
-"name": "Black Myth: Wukong",
-"top": true
+"name": "Black Myth: Wukong"
 },
 {
 "appid": "304930",
@@ -148,7 +147,8 @@
 },
 {
 "appid": "2694490",
-"name": "Path of Exile 2"
+"name": "Path of Exile 2",
+"top": true
 },
 {
 "appid": "292030",
@@ -183,7 +183,8 @@
 },
 {
 "appid": "945360",
-"name": "Among Us"
+"name": "Among Us",
+"top": true
 },
 {
 "appid": "242760",
@@ -355,8 +356,7 @@
 },
 {
 "appid": "1326470",
-"name": "Sons Of The Forest",
-"top": true
+"name": "Sons Of The Forest"
 },
 {
 "appid": "2186680",
@@ -507,8 +507,7 @@
 },
 {
 "appid": "275850",
-"name": "No Man's Sky",
-"top": true
+"name": "No Man's Sky"
 },
 {
 "appid": "1604030",
@@ -533,8 +532,7 @@
 },
 {
 "appid": "632360",
-"name": "Risk of Rain 2",
-"top": true
+"name": "Risk of Rain 2"
 },
 {
 "appid": "2183900",
@@ -1027,7 +1025,8 @@
 },
 {
 "appid": "1158310",
-"name": "Crusader Kings III"
+"name": "Crusader Kings III",
+"top": true
 },
 {
 "appid": "281990",
@@ -1040,7 +1039,8 @@
 },
 {
 "appid": "2399830",
-"name": "ARK: Survival Ascended"
+"name": "ARK: Survival Ascended",
+"top": true
 },
 {
 "appid": "1203620",
@@ -1098,7 +1098,8 @@
 },
 {
 "appid": "1942280",
-"name": "Brotato"
+"name": "Brotato",
+"top": true
 },
 {
 "appid": "993090",
@@ -1651,7 +1652,8 @@
 },
 {
 "appid": "1272080",
-"name": "PAYDAY 3"
+"name": "PAYDAY 3",
+"top": true
 },
 {
 "appid": "203140",
