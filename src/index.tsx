@@ -1228,7 +1228,7 @@ function SettingsTab({
 
   return (
     <>
-    <PanelSection>
+    <PanelSection title={t("set_games_section")}>
       <PanelSectionRow>
         <ToggleField
           label={t("set_auto")}
@@ -1249,13 +1249,6 @@ function SettingsTab({
           </Field>
         </PanelSectionRow>
       )}
-      <PanelSectionRow>
-        <Field label={t("set_contribute")}>
-          <div style={{ fontSize: "11px", color: "#67a3ff" }}>
-            github.com/Necrosiak/bc250-toolkit-decky
-          </div>
-        </Field>
-      </PanelSectionRow>
     </PanelSection>
     <PanelSection title={t("update_section")}>
       <PanelSectionRow>

@@ -2,6 +2,12 @@
 
 All notable changes to BC250-Toolkit are documented here.
 
+## 0.6.5 — 2026-11-23
+
+- Tidier Settings tab: the game-profile options now sit under their own
+  "Game profiles" heading, and the duplicate GitHub address next to the
+  GitHub button is gone.
+
 ## 0.6.4 — 2026-11-03
 
 - The Toolkit's background process now stops on its own if Decky Loader goes
