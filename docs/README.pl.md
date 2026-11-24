@@ -200,7 +200,7 @@ sudo systemctl restart plugin_loader
 
 ## Współtwórcy społeczności
 
-- [@AyeZeeBB](https://github.com/AyeZeeBB) — wsparcie CachyOS/Arch dla instalacji umr + fallback instancji GPU (scalone z jego forka)
+- [@zeex64](https://github.com/zeex64) — wsparcie CachyOS/Arch dla instalacji umr + fallback instancji GPU (scalone z jego forka)
 
 ---
 

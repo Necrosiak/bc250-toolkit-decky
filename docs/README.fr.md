@@ -206,7 +206,7 @@ sudo systemctl restart plugin_loader
 
 ## Contributeurs de la communauté
 
-- [@AyeZeeBB](https://github.com/AyeZeeBB) — prise en charge CachyOS/Arch pour l'installation de umr + repli d'instance GPU (intégré depuis son fork)
+- [@zeex64](https://github.com/zeex64) — prise en charge CachyOS/Arch pour l'installation de umr + repli d'instance GPU (intégré depuis son fork)
 
 ---
 

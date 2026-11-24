@@ -199,7 +199,7 @@ sudo systemctl restart plugin_loader
 
 ## Contribuidores da comunidade
 
-- [@AyeZeeBB](https://github.com/AyeZeeBB) — suporte CachyOS/Arch para a instalação do umr + fallback de instância GPU (integrado do fork dele)
+- [@zeex64](https://github.com/zeex64) — suporte CachyOS/Arch para a instalação do umr + fallback de instância GPU (integrado do fork dele)
 
 ---
 

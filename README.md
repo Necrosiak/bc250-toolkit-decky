@@ -287,7 +287,7 @@ sudo systemctl restart plugin_loader
 
 ## Community contributors
 
-- [@AyeZeeBB](https://github.com/AyeZeeBB) — CachyOS/Arch support for the umr installation + GPU instance fallback (merged from their fork)
+- [@zeex64](https://github.com/zeex64) — CachyOS/Arch support for the umr installation + GPU instance fallback (merged from the [zeex64 fork](https://github.com/zeex64/bc250-toolkit-decky))
 - [@rw-r-r-0644](https://github.com/rw-r-r-0644) — found the 8-core unlock: the core presence mask at SMN `0x0115A870` and the ungated SMU queue-3 message that can write it, plus the decision to act only on a `0x77` mask. Their script is vendored untouched in `core_unlock/upstream/` (MIT) and does all the writing
 - [@Forbidden-Darkness](https://github.com/Forbidden-Darkness) — the modified P3.00 firmware that exposes the 8-core unlock as a BIOS option with an on/off toggle, and the flashing menu that backs your current firmware up first ([AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script](https://github.com/Forbidden-Darkness/AMD-BC-250-UEFI-v2.2-Firmware-Menu-Script), MIT)
 - [@movacx](https://github.com/movacx) — [BC250 Control Center](https://github.com/movacx/bc250-control-center) (MIT): the protected helper the Tuning tab drives for GPU, CU, CPU and fan control; the Toolkit reuses its helper protocol and its GPU profile bounds

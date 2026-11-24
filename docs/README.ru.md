@@ -199,7 +199,7 @@ sudo systemctl restart plugin_loader
 
 ## Участники сообщества
 
-- [@AyeZeeBB](https://github.com/AyeZeeBB) — поддержка CachyOS/Arch для установки umr + фолбэк инстанса GPU (перенесено из его форка)
+- [@zeex64](https://github.com/zeex64) — поддержка CachyOS/Arch для установки umr + фолбэк инстанса GPU (перенесено из его форка)
 
 ---
 
